@@ -19,7 +19,7 @@ The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom
 
 ## Current release
 
-The 0.8 public beta adds a portable debugger and production-quality browser surface to the interactive Model B console:
+The 1.0 stable release provides a validated, portable browser surface for the interactive Model B console:
 
 - the 32K RAM, sideways ROM, OS ROM, FRED, JIM and SHEILA map;
 - sixteen sideways banks selected by `ROMSEL` at `$FE30`;
@@ -32,7 +32,8 @@ The 0.8 public beta adds a portable debugger and production-quality browser surf
 - writable SSD images transferred through an 8271 register/NMI model and exportable from the browser;
 - full-machine portable states, instruction stepping, disassembly and address breakpoints;
 - responsive keyboard-accessible controls, a screen-reader text mirror and an explicit compatibility matrix;
-- a real-ROM regression test plus the headless boot diagnostic.
+- a repeatable real-ROM software corpus plus the headless boot diagnostic;
+- a stable version 1 full-machine state contract.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 
@@ -91,6 +92,8 @@ node scripts/run-bus-vectors.js /path/to/legal-opcode-vectors
 ```
 
 See [`docs/validation.md`](docs/validation.md) for the pinned corpus revisions and published evidence.
+
+Run the bundled BBC software corpus separately with `npm run test:bbc-software`. See [`docs/bbc-validation.md`](docs/bbc-validation.md) for ROM hashes, results and the precise 1.0 support boundary, and [`docs/state-format.md`](docs/state-format.md) for the stable state contract.
 
 ## Project structure
 

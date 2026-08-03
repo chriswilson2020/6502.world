@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a aria-current="page" href="bbc.html">BBC Micro</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">0.8 · PUBLIC BETA</p><h1>Model B console.</h1></div><p>Boot BASIC, debug and save the complete machine, enable sound, or mount local UEF and writable SSD media from a responsive browser workbench.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">1.0 · STABLE</p><h1>Model B console.</h1></div><p>Boot BASIC, debug and save the complete machine, enable sound, or mount local UEF and writable SSD media from a responsive browser workbench.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>6845 + VIDEO ULA</span><h2>40 × 25 display</h2></div><span id="bbcRunState" class="status planned">NO ROM</span></div>
@@ -24,7 +24,7 @@
           <button id="pauseBbcButton" class="wide-action" type="button">Run / pause</button>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>KEYBOARD</span><h2>Matrix input</h2></div></div><p id="bbcKeyboardHelp" class="bbc-help">Click the display, then type. Browser key codes are translated into the Model B keyboard matrix read through the system VIA.</p></article>
-        <article class="tool-card"><div class="tool-heading"><div><span>0.8 PUBLIC BETA</span><h2>Debugger + states</h2></div><span id="bbcBreakpointCount" class="address-pill">0 BREAKPOINTS</span></div>
+        <article class="tool-card"><div class="tool-heading"><div><span>1.0 STABLE</span><h2>Debugger + states</h2></div><span id="bbcBreakpointCount" class="address-pill">0 BREAKPOINTS</span></div>
           <div class="debug-toolbar"><label class="inline-field">BREAKPOINT <input id="bbcBreakpointInput" value="C000" inputmode="text" maxlength="4" aria-label="Breakpoint address"></label><button id="toggleBbcBreakpointButton" class="small-button" type="button">Toggle</button><button id="stepBbcButton" class="small-button" type="button">Step</button></div>
           <pre id="bbcDisassembly" class="bbc-debugger" aria-label="BBC disassembly"></pre>
           <div class="state-actions"><button id="exportBbcStateButton" type="button">Export state</button><label class="file-button">Import state<input id="bbcStateInput" type="file" accept="application/json,.json"></label></div>

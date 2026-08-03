@@ -1,6 +1,6 @@
-# BBC Model B public-beta compatibility
+# BBC Model B 1.0 compatibility
 
-This matrix records what 6502 World 0.8 actually validates. “Implemented” does not imply complete timing compatibility with all historical software.
+This matrix records what 6502 World 1.0 actually validates. “Implemented” does not imply complete timing compatibility with all historical software.
 
 | Surface | Status | Evidence / limitation |
 |---|---|---|
@@ -13,7 +13,7 @@ This matrix records what 6502 World 0.8 actually validates. “Implemented” do
 | SN76489 | Partial | Tone/noise registers and browser audio voices; waveform/timing corpus remains |
 | UEF cassette | Partial | Standard `$0100` data chunks and transport; waveform/security chunks and MOS ACIA loading remain |
 | SSD / Intel 8271 | Partial | Seek and normal sector read/write with NMI requests; protected/nonstandard layouts and full DFS corpus remain |
-| Portable BBC state | Beta format | CPU, memory, ROMs, core devices and local media round-trip at instruction boundaries; format may change before 1.0 |
+| Portable BBC state | Stable v1 | CPU, memory, ROMs, core devices and local media round-trip at instruction boundaries; incompatible future formats must use a new version |
 | Tube | Not implemented | An absent interface is exposed today; host/parasite protocol is milestone 1.1 |
 
 ## Browser support

@@ -3,6 +3,12 @@ import { BbcModelBBus } from "./model-b-bus.js";
 import { BbcVideoOutput } from "./video.js";
 import { SsdDisk, UefCassette } from "./media.js";
 
+export const BBC_STATE_FORMAT = Object.freeze({
+  format: "6502-world-bbc-state",
+  version: 1,
+  machine: "bbc-model-b",
+});
+
 export class BbcMicroModelB {
   constructor({ traceLimit = 512, accessLogLimit = 4096 } = {}) {
     this.bus = new BbcModelBBus({ accessLogLimit });
@@ -21,7 +27,7 @@ export class BbcMicroModelB {
   exportState() {
     const fdc = this.bus.devices.fdc;
     return {
-      format: "6502-world-bbc-state", version: 1, machine: "bbc-model-b", machineTicks: this.machineTicks,
+      ...BBC_STATE_FORMAT, machineTicks: this.machineTicks,
       cpu: this.cpu.saveState(), ram: encodeBytes(this.bus.ram), osRom: encodeBytes(this.bus.osRom),
       sidewaysRoms: this.bus.sidewaysRoms.map((rom) => rom ? encodeBytes(rom) : null), selectedRom: this.bus.selectedRom,
       devices: {
@@ -34,7 +40,7 @@ export class BbcMicroModelB {
   }
 
   importState(state) {
-    if (!state || state.format !== "6502-world-bbc-state" || state.version !== 1 || state.machine !== "bbc-model-b") throw new TypeError("unsupported BBC state file");
+    if (!state || state.format !== BBC_STATE_FORMAT.format || state.version !== BBC_STATE_FORMAT.version || state.machine !== BBC_STATE_FORMAT.machine) throw new TypeError("unsupported BBC state file");
     const bus = new BbcModelBBus({ accessLogLimit: this.bus.accessLogLimit });
     bus.ram.set(decodeBytes(state.ram, 0x8000, "RAM")); bus.loadOsRom(decodeBytes(state.osRom, 0x4000, "OS ROM"));
     state.sidewaysRoms.forEach((rom, bank) => { if (rom) bus.loadSidewaysRom(bank, decodeBytes(rom, 0x4000, `sideways ROM ${bank}`)); });

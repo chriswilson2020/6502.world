@@ -94,12 +94,16 @@
 
 **Evidence:** the portable-state test restores CPU, RAM, ROM selection, VIA, video, sound, UEF position, dirty SSD data and then executes the next instruction. Browser checks cover boot, stepping, breakpoint controls, export/import, focus-visible keyboard operation, text-screen mirroring and responsive layout. See `compatibility.md`.
 
-## 1.0 — Stable BBC Model B
+## 1.0 — Stable BBC Model B (implemented)
 
 - published validation evidence
 - stable state format
 - tested software corpus
 - documented limitations
+
+**Gate:** the pinned OS 1.20/BASIC II pair boots and executes a quoted BASIC program through the real keyboard matrix; portable states identify and round-trip the stable version 1 contract; validation evidence and limitations are published.
+
+**Evidence:** `npm test` covers the CPU, machine, browser assets and state contract. `npm run test:bbc-software` reports the exact ROM hashes, reaches the BASIC prompt in 173,000 instructions and executes `PRINT "HI"`. See `bbc-validation.md`, `state-format.md` and `compatibility.md`.
 
 ## 1.1 — Tube bridge
 

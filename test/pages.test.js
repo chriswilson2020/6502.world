@@ -26,12 +26,12 @@ test("CPU workbench exposes the milestone 0.4 debugger surfaces", async () => {
   assert.match(html, /0\.4 · MINIMAL MACHINE/);
 });
 
-test("BBC console exposes the milestone 0.8 debugger, state and local media controls", async () => {
+test("BBC console exposes the stable 1.0 debugger, state and local media controls", async () => {
   const html = await readFile("public/bbc.html", "utf8");
   for (const id of ["bbcScreen", "bbcTextMirror", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "exportSsdButton", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /0\.8 · PUBLIC BETA/);
+  assert.match(html, /1\.0 · STABLE/);
   assert.match(html, /aria-describedby=["']bbcKeyboardHelp bbcTextMirror["']/);
 });
 

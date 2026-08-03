@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { BbcMicroModelB } from "../src/machine/bbc/model-b.js";
+import { BBC_STATE_FORMAT, BbcMicroModelB } from "../src/machine/bbc/model-b.js";
 
 test("BBC portable state round-trips machine, devices and writable media", async () => {
   const machine = new BbcMicroModelB({ traceLimit: 32, accessLogLimit: 0 });
@@ -14,10 +14,16 @@ test("BBC portable state round-trips machine, devices and writable media", async
   machine.loadUef(uef).play(); machine.cassette.readByte();
 
   const portable = JSON.parse(JSON.stringify(machine.exportState()));
+  assert.deepEqual({ format: portable.format, version: portable.version, machine: portable.machine }, BBC_STATE_FORMAT);
   const restored = new BbcMicroModelB({ traceLimit: 32, accessLogLimit: 0 }).importState(portable);
   assert.equal(restored.cpu.pc, machine.cpu.pc); assert.equal(restored.bus.ram[0x1234], 0x56); assert.equal(restored.bus.selectedRom, machine.bus.selectedRom);
   assert.deepEqual(restored.bus.devices.sound.saveState(), machine.bus.devices.sound.saveState());
   assert.equal(restored.bus.devices.fdc.disk.dirty, true); assert.equal(restored.bus.devices.fdc.disk.readSector(2, 3)[0], 0xa5);
   assert.equal(restored.cassette.position, 1); assert.equal(restored.cassette.playing, true);
   restored.step();
+});
+
+test("BBC stable state contract rejects unknown versions", () => {
+  const machine = new BbcMicroModelB();
+  assert.throws(() => machine.importState({ ...BBC_STATE_FORMAT, version: 2 }), /unsupported BBC state file/);
 });
