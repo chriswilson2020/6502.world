@@ -17,9 +17,9 @@ This repository begins with a deliberately small but complete vertical slice:
 
 The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom and Commodore-family targets remain future work until the BBC implementation is stable.
 
-## Current release — 1.4
+## Current release — 1.5
 
-The 1.4 release extends the stable Model B and Tube bridge into a real Acorn CP/M system:
+The 1.5 release turns the stable Model B and real Acorn CP/M path into an understandable selectable system:
 
 - the 32K RAM, sideways ROM, OS ROM, FRED, JIM and SHEILA map;
 - sixteen sideways banks selected by `ROMSEL` at `$FE30`;
@@ -42,7 +42,11 @@ The 1.4 release extends the stable Model B and Tube bridge into a real Acorn CP/
 - the owner-approved, hash-pinned Acorn Z80 media corpus bundled under `MEDIA/`;
 - an unmodified Acorn CP/M 2.2 boot through OS 1.20, DNFS, the paced 8271 and Tube;
 - a deterministic `DIR` and `STAT` gate driven through the BBC keyboard matrix;
-- a first-class browser action and 80-column MOS-font screen decoding.
+- a first-class browser action and 80-column MOS-font screen decoding;
+- separate declarative hardware profiles and compatible software presets;
+- cold profile switching, independent per-drive controls and dirty-media warnings;
+- stable BASIC and CP/M deep links with visible safe fallback behavior;
+- advanced ROM and Tube controls moved behind keyboard-accessible disclosures.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 

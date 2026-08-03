@@ -404,6 +404,8 @@ It must select the correct hardware profile, mount the utilities image when it i
 
 ## 1.5 — Hardware profiles, software presets and switching
 
+**Implemented:** declarative Model B and Model B + Acorn Z80 profiles are separated from compatible BASIC, local-media, CP/M Utilities and custom-CP/M presets. Profile selection performs a cold machine rebuild, media controls operate independently with dirty-image protection, deep links resolve safely, and low-level ROM/Tube controls live under keyboard-accessible Advanced disclosures.
+
 Do not present BBC BASIC, a Z80 processor and CP/M discs as peers in one flat selector. Separate the computer configuration from the software mounted in it.
 
 ### Hardware profiles

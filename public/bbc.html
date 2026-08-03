@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a aria-current="page" href="bbc.html">BBC Micro</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">1.4 · REAL ACORN CP/M</p><h1>Model B console.</h1></div><p>Boot BASIC or the preserved Acorn CP/M 2.2 system, debug and save the complete machine, enable sound, and mount local SSD or DSD media in two physical drives.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">1.5 · SYSTEM PROFILES</p><h1>Model B console.</h1></div><p>Choose a BBC Model B or Acorn Z80 hardware profile, boot compatible software, and change two physical drives independently without hiding the emulated machine.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>6845 + VIDEO ULA</span><h2>40 / 80-column display</h2></div><span id="bbcRunState" class="status planned">NO ROM</span></div>
@@ -14,10 +14,16 @@
         <p id="bbcStatus" class="status-message" role="status">Loading the bundled BBC firmware…</p>
       </article>
       <aside class="bbc-controls">
-        <article class="tool-card"><div class="tool-heading"><div><span>BUNDLED + LOCAL</span><h2>Boot media</h2></div></div>
-          <label class="rom-field">OS ROM · 16K<input id="osRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
-          <label class="rom-field">BASIC · 8K/16K<input id="basicRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
-          <div class="button-row compact-row"><button id="bootBbcButton" class="button primary" type="button">Restart / load</button><button id="demoBbcButton" class="button secondary" type="button">Display demo</button></div>
+        <article class="tool-card"><div class="tool-heading"><div><span>1.5 PROFILES</span><h2>System + startup</h2></div></div>
+          <label class="rom-field">System<select id="systemSelect"><option value="bbc-model-b">BBC Micro Model B</option><option value="bbc-model-b-acorn-z80">BBC Micro Model B + Acorn Z80</option></select></label>
+          <label class="rom-field">Startup<select id="softwareSelect"></select></label>
+          <div class="button-row compact-row"><button id="bootSystemButton" class="button primary" type="button">Boot system</button><button id="resetSystemButton" class="button secondary" type="button">Reset</button></div>
+          <p id="configurationStatus" class="bbc-help" role="status">BBC BASIC is the default startup.</p>
+          <details id="advancedHardware" class="advanced-panel"><summary>Advanced hardware</summary>
+            <label class="rom-field">OS ROM · 16K<input id="osRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
+            <label class="rom-field">BASIC · 8K/16K<input id="basicRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
+            <div class="button-row compact-row"><button id="bootBbcButton" class="button secondary" type="button">Restart / load ROMs</button><button id="demoBbcButton" class="button secondary" type="button">Display demo</button></div>
+          </details>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>MACHINE</span><h2>Live state</h2></div><span id="bbcRomBank" class="address-pill">ROM 0</span></div>
           <dl class="bbc-stats"><div><dt>PC</dt><dd id="bbcPc">0000</dd></div><div><dt>Cycles</dt><dd id="bbcCycles">0</dd></div><div><dt>Ticks</dt><dd id="bbcTicks">0</dd></div><div><dt>IRQ</dt><dd id="bbcIrq">LOW</dd></div></dl>
@@ -37,18 +43,23 @@
           <label class="rom-field">Physical drive 0 · SSD/DSD<input id="ssdInput" type="file" accept=".ssd,.dsd,application/octet-stream"></label>
           <label class="bbc-help"><input id="drive0WriteProtect" type="checkbox"> Write-protect drive 0</label>
           <button id="exportSsdButton" class="wide-action" type="button" disabled>Export drive 0 image</button>
+          <div class="button-row compact-row"><button id="ejectDrive0Button" class="button secondary" type="button">Eject drive 0</button><button id="resetDrive0Button" class="button secondary" type="button" disabled>Reset original</button></div>
           <label class="rom-field">Physical drive 1 · SSD/DSD<input id="drive1Input" type="file" accept=".ssd,.dsd,application/octet-stream"></label>
           <label class="bbc-help"><input id="drive1WriteProtect" type="checkbox"> Write-protect drive 1</label>
           <button id="exportDrive1Button" class="wide-action" type="button" disabled>Export drive 1 image</button>
+          <div class="button-row compact-row"><button id="ejectDrive1Button" class="button secondary" type="button">Eject drive 1</button><button id="resetDrive1Button" class="button secondary" type="button" disabled>Reset original</button></div>
+          <button id="swapDrivesButton" class="wide-action" type="button">Swap physical drives</button>
           <p id="mediaStatus" class="bbc-help">Choose a UEF cassette or sector image; media is cloned and remains local to this browser.</p>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>1.4 ACORN CP/M</span><h2>Z80 Tube processor</h2></div><span id="tubeState" class="status planned">DETACHED</span></div>
           <button id="bootCpmButton" class="wide-action" type="button">Boot Acorn CP/M 2.2</button>
-          <label class="rom-field">Z80 boot ROM · up to 4K<input id="tubeRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
-          <button id="attachTubeButton" class="wide-action" type="button">Attach Z80 processor</button>
-          <dl class="bbc-stats"><div><dt>Z80 PC</dt><dd id="tubePc">0000</dd></div><div><dt>T-states</dt><dd id="tubeTstates">0</dd></div></dl>
-          <pre id="tubeTranscript" class="bbc-debugger" aria-label="Z80 Tube startup transcript">Z80 Tube not started.</pre>
           <p id="tubeStatus" class="bbc-help">Uses the pinned Z80 World core at 6MHz and the bundled Acorn Z80 1.20 ROM; a local ROM may replace it.</p>
+          <details id="advancedTube" class="advanced-panel"><summary>Advanced Tube controls + telemetry</summary>
+            <label class="rom-field">Z80 boot ROM · up to 4K<input id="tubeRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
+            <button id="attachTubeButton" class="wide-action" type="button">Attach Z80 processor</button>
+            <dl class="bbc-stats"><div><dt>Z80 PC</dt><dd id="tubePc">0000</dd></div><div><dt>T-states</dt><dd id="tubeTstates">0</dd></div></dl>
+            <pre id="tubeTranscript" class="bbc-debugger" aria-label="Z80 Tube startup transcript">Z80 Tube not started.</pre>
+          </details>
         </article>
       </aside>
     </section>

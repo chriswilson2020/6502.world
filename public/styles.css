@@ -126,7 +126,9 @@ footer a { color: var(--accent); }
 #bbcScreen:focus { outline: 3px solid var(--accent); outline-offset: 3px; }
 .bbc-controls { display: grid; gap: 16px; }
 .rom-field { display: grid; gap: 8px; margin-top: 12px; color: var(--muted); font-size: 11px; font-weight: 750; }
-.rom-field input { width: 100%; border: 1px solid var(--line); border-radius: 6px; background: #090c0b; color: var(--text); padding: 10px; font-size: 11px; }
+.rom-field input, .rom-field select { width: 100%; border: 1px solid var(--line); border-radius: 6px; background: #090c0b; color: var(--text); padding: 10px; font-size: 11px; }
+.advanced-panel { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.advanced-panel summary { cursor: pointer; color: var(--muted); font-size: 12px; font-weight: 750; }
 .bbc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
 .bbc-stats div { border: 1px solid var(--line); border-radius: 6px; padding: 10px; }
 .bbc-stats dt { color: var(--muted); font: 9px monospace; }.bbc-stats dd { margin: 6px 0 0; font: 800 18px monospace; }
@@ -148,7 +150,7 @@ footer a { color: var(--accent); }
 .tool-heading h2 { margin: 6px 0 0; font-size: 22px; }
 .address-pill { display: inline-flex; align-items: center; min-height: 26px; border: 1px solid var(--line); border-radius: 999px; padding: 0 10px; color: var(--muted); font: 10px monospace; letter-spacing: .08em; white-space: nowrap; }
 .program-card textarea { width: 100%; max-width: 100%; min-height: 150px; resize: vertical; border: 1px solid var(--line-strong); border-radius: 8px; background: #090c0b; color: var(--text); padding: 18px; font: 17px/1.7 "SFMono-Regular", Consolas, monospace; letter-spacing: .05em; }
-.program-card textarea:focus-visible, button:focus-visible, a:focus-visible, input:focus-visible, .file-button:focus-within { outline: 3px solid var(--accent); outline-offset: 3px; }
+.program-card textarea:focus-visible, button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, .file-button:focus-within { outline: 3px solid var(--accent); outline-offset: 3px; }
 .program-note { margin: 18px 0 0; color: var(--muted); }
 .program-note code { font-size: 12px; }
 .control-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

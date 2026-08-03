@@ -28,11 +28,12 @@ test("CPU workbench exposes the milestone 0.4 debugger surfaces", async () => {
 
 test("BBC console exposes the debugger, dual-drive media and Tube controls", async () => {
   const html = await readFile("public/bbc.html", "utf8");
-  for (const id of ["bbcScreen", "bbcTextMirror", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput", "tubeRomInput", "attachTubeButton", "bootCpmButton", "tubePc", "tubeTranscript"]) {
+  for (const id of ["bbcScreen", "bbcTextMirror", "systemSelect", "softwareSelect", "bootSystemButton", "resetSystemButton", "configurationStatus", "advancedHardware", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "ejectDrive0Button", "ejectDrive1Button", "resetDrive0Button", "resetDrive1Button", "swapDrivesButton", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput", "advancedTube", "tubeRomInput", "attachTubeButton", "bootCpmButton", "tubePc", "tubeTranscript"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /1\.4 · REAL ACORN CP\/M/);
+  assert.match(html, /1\.5 · SYSTEM PROFILES/);
   assert.match(html, /aria-describedby=["']bbcKeyboardHelp bbcTextMirror["']/);
+  assert.match(html, /<summary>Advanced hardware<\/summary>/);
 });
 
 test("browser modules stay inside the GitHub Pages project path", async () => {

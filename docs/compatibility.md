@@ -19,4 +19,4 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 
 ## Browser support
 
-The static application uses standard ES modules, Canvas 2D, Web Audio, File/Blob APIs and `requestAnimationFrame`. Current Chromium is exercised in the browser checks. Controls have visible keyboard focus, the BBC canvas has a text alternative, audio starts only after a user gesture, and the workbench collapses to one column below 1050 pixels.
+The static application uses standard ES modules, Canvas 2D, Web Audio, File/Blob APIs and `requestAnimationFrame`. Current Chromium is exercised in the browser checks. Explicit hardware profiles and compatible software presets support deterministic deep links, cold switching and independent two-drive controls. Controls have visible keyboard focus, advanced controls use native disclosures, the BBC canvas has a text alternative, audio starts only after a user gesture, and the workbench collapses to one column below 1050 pixels.
