@@ -33,6 +33,12 @@ The public accuracy language must remain:
 
 The claim covers the documented opcode surface validated by the ordered-bus corpus. Undocumented opcodes and machine-level peripheral timing are not included.
 
+## Minimal machine layer
+
+`MinimalMachine` composes the processor with a flat 64K bus. It owns program origins, breakpoints, run-stop policy and portable state files; none of those concerns are added to `M6502`.
+
+State files use a versioned `6502-world-state` envelope and capture the instruction-boundary CPU state, all 64K of memory, the visible trace, interrupt level and debugger breakpoints. Loading a state reconstructs both the bus and CPU so the processor always retains the restored bus reference.
+
 ## Planned BBC layer
 
 The BBC Model B will own:

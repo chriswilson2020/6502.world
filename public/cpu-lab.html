@@ -3,56 +3,86 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Step through a MOS 6502 program one bus cycle at a time in the 6502 World CPU Lab.">
-  <title>CPU Lab · 6502 World</title>
+  <meta name="description" content="Load, inspect and debug MOS 6502 programs one bus cycle at a time in 6502 World.">
+  <title>Machine Workbench · 6502 World</title>
   <link rel="icon" href="6502-mark.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body class="lab-page">
   <header class="site-header compact-header">
     <a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a>
-    <nav><a aria-current="page" href="cpu-lab.html">CPU Lab</a><a href="index.html#machines">Machines</a><a href="https://z80.world">Z80 World ↗</a></nav>
+    <nav><a aria-current="page" href="cpu-lab.html">Workbench</a><a href="index.html#machines">Machines</a><a href="https://z80.world">Z80 World ↗</a></nav>
   </header>
 
   <main class="lab-shell">
     <section class="lab-intro">
-      <div><p class="eyebrow">MINIMAL 6502 MACHINE</p><h1>See every bus cycle.</h1></div>
-      <p>The 0.3 core implements all 151 documented NMOS 6502 opcodes and passes 1,510,000 ordered-bus scenarios. Undocumented opcodes still stop with an explicit diagnostic.</p>
+      <div><p class="eyebrow">0.4 · MINIMAL MACHINE</p><h1>Load. Inspect. Debug.</h1></div>
+      <p>A complete 64K workbench around the validated NMOS core: load raw binaries or hex, set breakpoints, inspect memory, drive interrupts, and carry portable machine states between sessions.</p>
     </section>
 
     <section class="workbench">
       <div class="workbench-main">
         <article class="tool-card program-card">
-          <div class="tool-heading"><div><span>PROGRAM</span><h2>Hex input</h2></div><span class="address-pill">LOAD $0600</span></div>
+          <div class="tool-heading">
+            <div><span>PROGRAM</span><h2>Loader</h2></div>
+            <label class="compact-field">ORIGIN <input id="loadAddress" value="0600" inputmode="text" maxlength="4" aria-label="Program load address"></label>
+          </div>
           <textarea id="programInput" spellcheck="false" aria-label="6502 program as hexadecimal bytes">A2 00 E8 8E 00 02 E0 0A D0 F8 00</textarea>
-          <div class="button-row">
-            <button id="loadButton" class="button primary" type="button">Load + reset</button>
+          <div class="button-row compact-row">
+            <button id="loadButton" class="button primary" type="button">Load hex + reset</button>
+            <label class="button secondary file-button">Load binary<input id="binaryInput" type="file" accept=".bin,.rom,application/octet-stream"></label>
             <button id="sampleButton" class="button secondary" type="button">Restore sample</button>
           </div>
-          <p class="program-note"><code>LDX #0 · INX · STX $0200 · CPX #10 · BNE · BRK</code></p>
+          <p id="programNote" class="program-note"><code>LDX #0 · INX · STX $0200 · CPX #10 · BNE · BRK</code></p>
+        </article>
+
+        <article class="tool-card debugger-card">
+          <div class="tool-heading"><div><span>INSTRUCTION DEBUGGER</span><h2>Program window</h2></div><span id="breakpointCount" class="address-pill">0 BREAKPOINTS</span></div>
+          <div class="debug-toolbar">
+            <label class="inline-field">Breakpoint <input id="breakpointAddress" value="0602" inputmode="text" maxlength="4"></label>
+            <button id="addBreakpointButton" class="small-button" type="button">Add</button>
+            <span>Click a row marker to toggle.</span>
+          </div>
+          <div id="debuggerList" class="debugger-list" aria-label="Disassembly around the program counter"></div>
+        </article>
+
+        <article class="tool-card memory-card">
+          <div class="tool-heading"><div><span>MEMORY INSPECTOR</span><h2>128-byte window</h2></div><span id="memoryRange" class="address-pill">$0000–$007F</span></div>
+          <div class="memory-toolbar">
+            <button id="memoryPrevious" class="small-button" type="button" aria-label="Previous memory page">←</button>
+            <label class="inline-field">Address <input id="memoryAddress" value="0200" inputmode="text" maxlength="4"></label>
+            <button id="memoryGo" class="small-button" type="button">Go</button>
+            <button id="memoryNext" class="small-button" type="button" aria-label="Next memory page">→</button>
+          </div>
+          <div class="memory-table-wrap">
+            <table class="memory-table"><thead><tr id="memoryHeader"></tr></thead><tbody id="memoryBody"></tbody></table>
+          </div>
         </article>
 
         <article class="tool-card trace-card">
           <div class="tool-heading"><div><span>ORDERED BUS TRACE</span><h2>Recent cycles</h2></div><span id="cycleCount" class="address-pill">0 CYCLES</span></div>
           <div class="trace-table-wrap">
-            <table>
-              <thead><tr><th>Cycle</th><th>Address</th><th>R/W</th><th>Data</th><th>Meaning</th></tr></thead>
-              <tbody id="traceBody"></tbody>
-            </table>
+            <table><thead><tr><th>Cycle</th><th>Address</th><th>R/W</th><th>Data</th><th>Meaning</th></tr></thead><tbody id="traceBody"></tbody></table>
           </div>
         </article>
       </div>
 
       <aside class="workbench-side">
         <article class="tool-card controls-card">
-          <div class="tool-heading"><div><span>EXECUTION</span><h2>Controls</h2></div><span id="runState" class="status live">READY</span></div>
+          <div class="tool-heading"><div><span>EXECUTION</span><h2>Debugger</h2></div><span id="runState" class="status live">READY</span></div>
           <div class="control-grid">
             <button id="cycleButton" type="button">Clock cycle</button>
             <button id="stepButton" type="button">Instruction</button>
-            <button id="runButton" type="button">Run to BRK</button>
-            <button id="resetButton" type="button">Reset</button>
+            <button id="runButton" class="dark-control" type="button">Run</button>
+            <button id="resetButton" class="dark-control" type="button">Reset</button>
           </div>
           <p id="statusMessage" class="status-message" role="status">Sample loaded. Reset sequencing is ready.</p>
+        </article>
+
+        <article class="tool-card interrupt-card">
+          <div class="tool-heading"><div><span>INTERRUPTS</span><h2>Signal lines</h2></div><span id="interruptState" class="address-pill">QUIET</span></div>
+          <label class="switch-row"><span><strong>IRQ</strong><small>Level-sensitive input</small></span><input id="irqToggle" type="checkbox" role="switch"></label>
+          <button id="nmiButton" class="wide-action" type="button">Pulse NMI</button>
         </article>
 
         <article class="tool-card registers-card">
@@ -65,6 +95,15 @@
             <span data-flag="n">N</span><span data-flag="v">V</span><span class="fixed-flag">–</span><span class="fixed-flag">B</span>
             <span data-flag="d">D</span><span data-flag="i">I</span><span data-flag="z">Z</span><span data-flag="c">C</span>
           </div>
+        </article>
+
+        <article class="tool-card state-card">
+          <div class="tool-heading"><div><span>PORTABLE STATE</span><h2>Save + restore</h2></div><span class="address-pill">JSON · 64K</span></div>
+          <div class="state-actions">
+            <button id="exportStateButton" type="button">Download state</button>
+            <label class="file-button">Open state<input id="stateInput" type="file" accept=".json,application/json"></label>
+          </div>
+          <p>Snapshots include CPU, all memory, trace, origin, signal levels and breakpoints.</p>
         </article>
 
         <article class="tool-card next-card">

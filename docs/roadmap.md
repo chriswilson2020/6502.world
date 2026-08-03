@@ -36,13 +36,15 @@
 
 **Evidence:** 1,510,000 SingleStepTests scenarios pass across all 151 documented opcodes with exact ordered address, data and read/write comparisons. Repository tests separately assert reset, BRK, IRQ, NMI, branch, page-cross and RMW traces. See `validation.md` for pinned revisions.
 
-## 0.4 — Minimal machine release
+## 0.4 — Minimal machine release (implemented)
 
 - Binary loading
 - Cycle and instruction debugger
 - Memory inspector
 - IRQ/NMI controls
 - Portable state files
+
+**Evidence:** the browser workbench loads raw binaries and hex programs at selectable origins, stops on address breakpoints, exposes cycle/instruction/chunked execution, navigates all 64K of memory, drives IRQ/NMI inputs, and round-trips versioned full-memory JSON states. Machine-model tests and browser interaction checks cover the release paths.
 
 ## 0.5 — BBC bootstrap
 

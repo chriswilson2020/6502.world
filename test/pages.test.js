@@ -17,3 +17,11 @@ test("landing page leads with recognisable machine context", async () => {
   assert.match(html, /Apple II/);
   assert.match(html, /Commodore/);
 });
+
+test("CPU workbench exposes the milestone 0.4 debugger surfaces", async () => {
+  const html = await readFile("public/cpu-lab.html", "utf8");
+  for (const id of ["binaryInput", "debuggerList", "memoryBody", "irqToggle", "nmiButton", "exportStateButton", "stateInput"]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(html, /0\.4 · MINIMAL MACHINE/);
+});

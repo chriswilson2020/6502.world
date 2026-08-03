@@ -17,9 +17,18 @@ This repository begins with a deliberately small but complete vertical slice:
 
 The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom and Commodore-family targets remain future work until the BBC implementation is stable.
 
-## Current CPU slice
+## Current release
 
-The 0.3 core implements all 151 documented NMOS 6502 opcodes and addressing modes, including:
+The 0.4 minimal machine wraps the validated processor in a portable 64K workbench with:
+
+- raw binary and hexadecimal loading at a selectable origin;
+- cycle, instruction and chunked run controls;
+- address breakpoints and a live disassembly window;
+- a navigable 128-byte memory inspector;
+- IRQ level and NMI edge controls;
+- versioned JSON state files containing the CPU, full memory, trace and debugger state.
+
+The core implements all 151 documented NMOS 6502 opcodes and addressing modes, including:
 
 - binary and NMOS decimal `ADC`/`SBC`;
 - stack operations, subroutines and returns;
@@ -73,6 +82,7 @@ See [`docs/validation.md`](docs/validation.md) for the pinned corpus revisions a
 ```text
 src/cpu/       processor core
 src/bus/       machine-independent bus implementations
+src/machine/   minimal machine composition and portable state
 public/        static website and CPU Lab
 scripts/       local server and Pages build
 test/          CPU and website tests
