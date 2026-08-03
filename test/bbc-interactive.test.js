@@ -17,6 +17,15 @@ test("system VIA timers raise and clear maskable interrupts", () => {
   assert.equal(via.irq, false);
 });
 
+test("6850 control writes do not masquerade as an asserted serial IRQ", () => {
+  const bus = new BbcModelBBus();
+  bus.write8(0xfe08, 0x96);
+  assert.equal(bus.read8(0xfe08), 0x02);
+  assert.equal(bus.devices.acia.irq, false);
+  bus.write8(0xfe09, 0x41);
+  assert.equal(bus.read8(0xfe08), 0x02);
+});
+
 test("system VIA scans the browser-backed keyboard matrix", () => {
   const bus = new BbcModelBBus();
   const via = bus.devices.systemVia;
@@ -50,4 +59,16 @@ test("CRTC start address feeds a 40-column browser text snapshot", () => {
   const video = new BbcVideoOutput({ bus });
   assert.equal(video.screenBase, 0x7c00);
   assert.equal(video.textSnapshot()[0].slice(0, 9), "BBC BASIC");
+});
+
+test("bitmap text snapshot decodes the MOS font from an 80-column screen", () => {
+  const bus = new BbcModelBBus(); const glyph = Uint8Array.of(0x18, 0x24, 0x42, 0x7e, 0x42, 0x42, 0x42, 0);
+  bus.osRom.set(glyph, (0x41 - 0x20) * 8);
+  bus.write8(0xfe00, 1); bus.write8(0xfe01, 80);
+  bus.write8(0xfe00, 6); bus.write8(0xfe01, 32);
+  bus.write8(0xfe00, 12); bus.write8(0xfe01, 0x06);
+  bus.write8(0xfe00, 13); bus.write8(0xfe01, 0x00);
+  bus.ram.set(glyph, 0x3000);
+  const rows = new BbcVideoOutput({ bus }).textSnapshot();
+  assert.equal(rows.length, 32); assert.equal(rows[0].length, 80); assert.equal(rows[0][0], "A");
 });

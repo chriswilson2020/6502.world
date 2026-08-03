@@ -1,6 +1,6 @@
 {
   "name": "6502-world",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -8,6 +8,7 @@
     "test": "node --test test/*.test.js",
     "test:bbc-software": "node scripts/run-bbc-software-corpus.js",
     "test:bbc-z80": "node scripts/run-z80-tube-rom.js",
+    "test:bbc-cpm": "node scripts/run-acorn-cpm.js",
     "inventory:acorn-media": "node scripts/inventory-acorn-z80-media.js",
     "build:pages": "node scripts/build-pages.js",
     "dev": "node scripts/dev-server.js"

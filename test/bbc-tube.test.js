@@ -8,6 +8,7 @@ import { Z80TubeSecondProcessor } from "../src/machine/bbc/z80-second-processor.
 test("Tube ULA carries bytes in both directions with hardware-style status", () => {
   const tube = new TubeUla();
   assert.equal(tube.read(0) & 0xc0, 0x40);
+  assert.equal(tube.read(2) & 0x3f, 0x3f);
   tube.write(1, 0x42);
   assert.equal(tube.parasiteRead(0) & 0xc0, 0xc0);
   assert.equal(tube.parasiteRead(1), 0x42);
@@ -49,6 +50,27 @@ test("shared Z80 World core exchanges a byte through Tube ports", () => {
   assert.equal(parasite.ram[0x4000], 0x99);
   assert.equal(tube.read(1), 0x42);
   assert.ok(parasite.cpu.tStates > 0);
+});
+
+test("Acorn Z80 FEF8-FEFF is RAM and Tube access is I/O-only", () => {
+  const tube = new TubeUla();
+  const parasite = new Z80TubeSecondProcessor({ tube });
+  for (let offset = 0; offset < 8; offset += 1) parasite.write8(0xfef8 + offset, 0x80 + offset);
+  assert.deepEqual(Array.from(parasite.ram.slice(0xfef8, 0xff00)), [0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87]);
+  assert.deepEqual(tube.parasiteToHost.map((queue) => queue.length), [0, 0, 1, 0]);
+});
+
+test("Acorn Z80 Tube IRQ supplies the board's FE mode-2 vector", () => {
+  const tube = new TubeUla();
+  const parasite = new Z80TubeSecondProcessor({ tube });
+  parasite.load(0x0000, [0xfb, 0x76]); // EI; HALT
+  parasite.load(0x1234, [0x76]);
+  parasite.ram[0xfffe] = 0x34; parasite.ram[0xffff] = 0x12;
+  parasite.cpu.I = 0xff; parasite.cpu.interruptMode = 2; parasite.cpu.SP = 0x8000;
+  parasite.step(); parasite.step();
+  tube.write(0, 0x84); tube.write(7, 0x01);
+  parasite.step();
+  assert.equal(parasite.cpu.PC, 0x1234);
 });
 
 test("Z80 parasite scheduler maintains a 6MHz-to-2MHz clock ratio", () => {

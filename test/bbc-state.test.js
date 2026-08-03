@@ -48,10 +48,10 @@ test("BBC state v2 resumes an active side-aware FDC transfer", () => {
   const machine = new BbcMicroModelB(); machine.step();
   const source = new Uint8Array(40 * 2 * 10 * 256); source.fill(0x5a, 10 * 256, 11 * 256);
   machine.mountDsd(source);
-  const fdc = machine.bus.devices.fdc; fdc.write(0, 0x93); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21);
-  fdc.tick(20); assert.equal(fdc.read(4), 0x5a); fdc.tick(21); assert.equal(fdc.read(4), 0x5a);
+  const fdc = machine.bus.devices.fdc; fdc.write(0, 0x7a); fdc.write(1, 0x23); fdc.write(1, 0x60); fdc.write(0, 0x53); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21);
+  fdc.tick(20); assert.equal(fdc.read(4), 0x5a); fdc.tick(148); assert.equal(fdc.read(4), 0x5a);
   const restored = new BbcMicroModelB().importState(JSON.parse(JSON.stringify(machine.exportState())));
   assert.equal(restored.bus.devices.fdc.transfer.drive, 0); assert.equal(restored.bus.devices.fdc.transfer.side, 1); assert.equal(restored.bus.devices.fdc.transfer.index, 2);
-  for (let index = 2; index < 256; index += 1) { assert.equal(restored.bus.devices.fdc.tick(20 + index), true); assert.equal(restored.bus.devices.fdc.read(4), 0x5a); }
+  for (let index = 2; index < 256; index += 1) { assert.equal(restored.bus.devices.fdc.tick(20 + index * 128), true); assert.equal(restored.bus.devices.fdc.read(4), 0x5a); }
   assert.equal(restored.bus.devices.fdc.read(1), 0);
 });

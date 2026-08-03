@@ -24,12 +24,10 @@ export class Z80TubeSecondProcessor {
 
   read8(address) {
     const mapped = address & 0xffff;
-    if (mapped >= 0xfef8 && mapped <= 0xfeff) return this.tube.parasiteRead(mapped & 0x07);
     return this.romEnabled && mapped < this.bootRom.length ? this.bootRom[mapped] : this.ram[mapped];
   }
   write8(address, value) {
     const mapped = address & 0xffff;
-    if (mapped >= 0xfef8 && mapped <= 0xfeff) { this.tube.parasiteWrite(mapped & 0x07, value); return; }
     this.ram[mapped] = value & 0xff;
   }
   read16(address) { const low = this.read8(address); return low | (this.read8(address + 1) << 8); }
@@ -44,9 +42,14 @@ export class Z80TubeSecondProcessor {
     // the underlying RAM.
     if ((this.cpu.PC & 0xffff) === 0x0066 && this.bootRom.length) this.romEnabled = true;
     else if (this.romEnabled && (this.cpu.PC & 0xffff) >= 0x8000) this.romEnabled = false;
-    if (this.tube.parasiteNmi) this.cpu.requestNmi();
-    if (this.tube.parasiteIrq) this.cpu.requestInterrupt(); else this.cpu.clearInterrupt();
-    return this.cpu.step();
+    const serviceNmi = this.tube.parasiteNmi;
+    if (serviceNmi) this.cpu.requestNmi();
+    // IC28 drives FE onto D0-D7 during the Z80 interrupt acknowledge
+    // cycle. The firmware uses IM 2 with I=FF, so its vector is FFFE.
+    if (this.tube.parasiteIrq) this.cpu.requestInterrupt(0xfe); else this.cpu.clearInterrupt();
+    const result = this.cpu.step();
+    if (serviceNmi) this.tube.acknowledgeParasiteNmi();
+    return result;
   }
 
   runForHostTicks(hostTicks) {

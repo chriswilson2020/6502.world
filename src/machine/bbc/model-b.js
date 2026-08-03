@@ -37,11 +37,11 @@ export class BbcMicroModelB {
       cpu: this.cpu.saveState(), ram: encodeBytes(this.bus.ram), osRom: encodeBytes(this.bus.osRom),
       sidewaysRoms: this.bus.sidewaysRoms.map((rom) => rom ? encodeBytes(rom) : null), selectedRom: this.bus.selectedRom,
       devices: {
-        crtc: { registers: Array.from(this.bus.devices.crtc.registers), selectedRegister: this.bus.devices.crtc.selectedRegister },
+        crtc: { registers: Array.from(this.bus.devices.crtc.registers), selectedRegister: this.bus.devices.crtc.selectedRegister }, acia: this.bus.devices.acia.saveState(),
         videoUla: this.bus.devices.videoUla.saveState(), systemVia: this.bus.devices.systemVia.saveState(), sound: this.bus.devices.sound.saveState(), tube: this.bus.devices.tube.saveState(),
         fdc: {
-          status: fdc.status, result: fdc.result, command: fdc.command, rawCommand: fdc.rawCommand, logicalDrive: fdc.logicalDrive,
-          parameters: [...fdc.parameters], expectedParameters: fdc.expectedParameters, dataRegister: fdc.dataRegister, nmiPending: fdc.nmiPending, nmiSignaled: fdc.nmiSignaled,
+          status: fdc.status, result: fdc.result, command: fdc.command, rawCommand: fdc.rawCommand, logicalDrive: fdc.logicalDrive, selectedDrive: fdc.selectedDrive, selectedSide: fdc.selectedSide, driveControlOutputPort: fdc.driveControlOutputPort, driveControlInputPort: fdc.driveControlInputPort,
+          parameters: [...fdc.parameters], expectedParameters: fdc.expectedParameters, dataRegister: fdc.dataRegister, nmiPending: fdc.nmiPending, nmiSignaled: fdc.nmiSignaled, nextDataTick: fdc.nextDataTick, nextNmiTick: fdc.nextNmiTick,
           transfer: fdc.transfer ? { ...fdc.transfer, bytes: encodeBytes(fdc.transfer.bytes) } : null,
           drives: fdc.drives.map((drive) => ({ currentTrack: drive.currentTrack, writeProtected: drive.writeProtected, disk: drive.disk ? { format: drive.disk.format, bytes: encodeBytes(drive.disk.export()), dirty: drive.disk.dirty } : null })),
         },
@@ -56,10 +56,10 @@ export class BbcMicroModelB {
     const bus = new BbcModelBBus({ accessLogLimit: this.bus.accessLogLimit });
     bus.ram.set(decodeBytes(state.ram, 0x8000, "RAM")); bus.loadOsRom(decodeBytes(state.osRom, 0x4000, "OS ROM"));
     state.sidewaysRoms.forEach((rom, bank) => { if (rom) bus.loadSidewaysRom(bank, decodeBytes(rom, 0x4000, `sideways ROM ${bank}`)); });
-    bus.romSelect.write(0, state.selectedRom); bus.devices.crtc.registers.set(state.devices.crtc.registers); bus.devices.crtc.selectedRegister = state.devices.crtc.selectedRegister;
+    bus.romSelect.write(0, state.selectedRom); bus.devices.crtc.registers.set(state.devices.crtc.registers); bus.devices.crtc.selectedRegister = state.devices.crtc.selectedRegister; if (state.devices.acia) bus.devices.acia.loadState(state.devices.acia);
     bus.devices.videoUla.loadState(state.devices.videoUla); bus.devices.systemVia.loadState(state.devices.systemVia); bus.devices.sound.loadState(state.devices.sound); if (state.devices.tube) bus.devices.tube.loadState(state.devices.tube);
     const savedFdc = state.devices.fdc; const fdc = bus.devices.fdc;
-    Object.assign(fdc, { status: savedFdc.status, result: savedFdc.result, command: savedFdc.command, rawCommand: savedFdc.rawCommand ?? savedFdc.command, logicalDrive: savedFdc.logicalDrive ?? 0, parameters: [...savedFdc.parameters], expectedParameters: savedFdc.expectedParameters, dataRegister: savedFdc.dataRegister, nmiPending: savedFdc.nmiPending, nmiSignaled: Boolean(savedFdc.nmiSignaled) });
+    Object.assign(fdc, { status: savedFdc.status, result: savedFdc.result, command: savedFdc.command, rawCommand: savedFdc.rawCommand ?? savedFdc.command, logicalDrive: savedFdc.logicalDrive ?? 0, selectedDrive: savedFdc.selectedDrive ?? ((savedFdc.logicalDrive ?? 0) & 1), selectedSide: savedFdc.selectedSide ?? ((savedFdc.logicalDrive ?? 0) >> 1), driveControlOutputPort: savedFdc.driveControlOutputPort ?? ((((savedFdc.logicalDrive ?? 0) & 1) === 0 ? 0x40 : 0x80) | (((savedFdc.logicalDrive ?? 0) >> 1) << 5)), driveControlInputPort: savedFdc.driveControlInputPort ?? 0, parameters: [...savedFdc.parameters], expectedParameters: savedFdc.expectedParameters, dataRegister: savedFdc.dataRegister, nmiPending: savedFdc.nmiPending, nmiSignaled: Boolean(savedFdc.nmiSignaled), nextDataTick: savedFdc.nextDataTick ?? 0, nextNmiTick: savedFdc.nextNmiTick ?? 0 });
     if (state.version === 1) {
       fdc.currentTrack = savedFdc.currentTrack;
       if (savedFdc.disk) { fdc.mount(new SsdDisk(decodeBytes(savedFdc.disk.bytes, null, "SSD"))); fdc.disk.dirty = Boolean(savedFdc.disk.dirty); }
@@ -92,7 +92,7 @@ export class BbcMicroModelB {
     this.video.tick(ticks);
     this.parasite?.runForHostTicks(ticks);
     if (this.bus.devices.fdc.tick(this.machineTicks)) this.cpu.requestNmi();
-    this.cpu.setIrq(this.bus.devices.systemVia.irq || this.bus.devices.tube.hostIrq);
+    this.cpu.setIrq(this.bus.devices.systemVia.irq || this.bus.devices.acia.irq || this.bus.devices.tube.hostIrq);
     return { ...cycle, ticks, machineTicks: this.machineTicks, domain: ticks === 2 ? "1MHz" : "2MHz" };
   }
 

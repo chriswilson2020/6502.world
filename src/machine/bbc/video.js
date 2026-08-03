@@ -29,7 +29,9 @@ export class BbcVideoOutput {
     const configured = (start << 3) & 0x7fff;
     return configured || 0x7c00;
   }
-  textSnapshot({ columns = 40, rows = 25 } = {}) {
+  textSnapshot({ columns, rows } = {}) {
+    if (this.screenBase < 0x7c00) return this.#bitmapTextSnapshot({ columns, rows });
+    columns ??= 40; rows ??= 25;
     const lines = [];
     for (let row = 0; row < rows; row += 1) {
       let line = "";
@@ -41,4 +43,26 @@ export class BbcVideoOutput {
     }
     return lines;
   }
+  #bitmapTextSnapshot({ columns, rows }) {
+    const crtc = this.bus.devices.crtc.registers;
+    columns ??= crtc[1] || 80; rows ??= crtc[6] || 32;
+    const glyphs = new Map();
+    for (let code = 0x20; code < 0x7f; code += 1) {
+      const offset = (code - 0x20) * 8;
+      glyphs.set(glyphKey(this.bus.osRom.subarray(offset, offset + 8)), String.fromCharCode(code));
+    }
+    const lines = [];
+    for (let row = 0; row < rows; row += 1) {
+      let line = "";
+      for (let column = 0; column < columns; column += 1) {
+        const address = (this.screenBase + (row * columns + column) * 8) & 0x7fff;
+        const bytes = this.bus.ram.subarray(address, address + 8);
+        line += glyphs.get(glyphKey(bytes)) ?? (bytes.every((value) => value === 0) ? " " : "?");
+      }
+      lines.push(line);
+    }
+    return lines;
+  }
 }
+
+function glyphKey(bytes) { return Array.from(bytes).join(","); }

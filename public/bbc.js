@@ -1,10 +1,10 @@
 import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
 import { bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
 
-const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "mediaState", "mediaStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus", "tubeRomInput", "attachTubeButton", "tubeState", "tubeStatus", "tubePc", "tubeTstates", "tubeTranscript"].map((id) => [id, document.querySelector(`#${id}`)]));
+const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "mediaState", "mediaStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus", "tubeRomInput", "attachTubeButton", "bootCpmButton", "tubeState", "tubeStatus", "tubePc", "tubeTstates", "tubeTranscript"].map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.bbcScreen.getContext("2d");
 let machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
-let osRom = null; let basicRom = null; let dnfsRom = null; let running = false; let frame = null; let demo = true;
+let osRom = null; let basicRom = null; let dnfsRom = null; let running = false; let frame = null; let demo = true; let cpmBoot = false;
 const activeBrowserKeys = new Map();
 const mountedMediaNames = ["drive-0.ssd", "drive-1.ssd"]; let audio = null; let tubeBootRom = null; let tubeEnabled = false; let tubeOutput = [];
 const bbcBreakpoints = new Set();
@@ -17,9 +17,11 @@ function status(message, label = "READY") { elements.bbcStatus.textContent = mes
 function draw() {
   const rows = machine.video.textSnapshot();
   context.fillStyle = "#050706"; context.fillRect(0, 0, 640, 500);
-  context.fillStyle = "#f4f4ec"; context.font = '18px "SFMono-Regular", Consolas, monospace'; context.textBaseline = "top";
-  rows.forEach((row, index) => context.fillText(row, 12, 10 + index * 19));
+  const wide = rows.some((row) => row.length > 40); const lineHeight = wide ? 15 : 19;
+  context.fillStyle = "#f4f4ec"; context.font = `${wide ? 9 : 18}px "SFMono-Regular", Consolas, monospace`; context.textBaseline = "top";
+  rows.forEach((row, index) => context.fillText(row, wide ? 4 : 12, 10 + index * lineHeight));
   const textScreen = rows.join("\n"); if (elements.bbcTextMirror.textContent !== textScreen) elements.bbcTextMirror.textContent = textScreen;
+  if (cpmBoot && textScreen.includes("Acorn CP/M 2.2 - Bios 1.20") && textScreen.includes("A>")) status("Acorn CP/M 2.2 is ready. Click the display to type.", "RUNNING");
   for (let drive = 0; drive < 2; drive += 1) {
     const slot = machine.bus.devices.fdc.drives[drive];
     const protect = drive ? elements.drive1WriteProtect : elements.drive0WriteProtect;
@@ -38,7 +40,7 @@ function draw() {
 }
 
 function demoScreen() {
-  stop(); demo = true; machine = new BbcMicroModelB();
+  stop(); demo = true; cpmBoot = false; machine = new BbcMicroModelB();
   const text = ["BBC Computer 32K", "", "Acorn DFS", "", "BASIC", "", ">_"];
   text.forEach((line, row) => machine.bus.ram.set(new TextEncoder().encode(line), 0x7c00 + row * 40));
   status("Firmware-free renderer demo. Load OS and BASIC ROMs for a machine boot.", "DEMO"); draw(); elements.bbcScreen.focus();
@@ -124,12 +126,26 @@ bindDriveControls({ drive: 1, input: elements.drive1Input, writeProtect: element
 
 elements.attachTubeButton.addEventListener("click", async () => {
   try {
+    cpmBoot = false;
     tubeBootRom = await readSelected(elements.tubeRomInput, tubeBootRom);
     tubeEnabled = true; if (!await boot()) throw new Error(elements.bbcStatus.textContent);
     elements.tubeState.textContent = "Z80 6MHz"; elements.tubeState.className = "status live";
     elements.tubeStatus.textContent = `${tubeBootRom.length.toLocaleString()}-byte ${elements.tubeRomInput.files.length ? "local" : "bundled"} Z80 ROM booting through DNFS.`;
     draw();
   } catch (error) { elements.tubeState.textContent = "ERROR"; elements.tubeState.className = "status error"; elements.tubeStatus.textContent = error.message; }
+});
+
+elements.bootCpmButton.addEventListener("click", async () => {
+  try {
+    stop(); cpmBoot = true; const utilities = await fetchRom("MEDIA/CPM_Utilities_Disc.dsd");
+    machine.mountDsd(utilities, { drive: 0, writeProtected: true }); mountedMediaNames[0] = "CPM_Utilities_Disc.dsd";
+    elements.drive0WriteProtect.checked = true; elements.exportSsdButton.disabled = false; tubeEnabled = true;
+    if (!await boot()) throw new Error(elements.bbcStatus.textContent);
+    elements.tubeState.textContent = "CP/M BOOT"; elements.tubeState.className = "status live";
+    elements.mediaState.textContent = "DSD"; elements.mediaState.className = "status live";
+    elements.mediaStatus.textContent = "Bundled CP/M Utilities DSD mounted read-only in physical drive 0 / CP/M A:.";
+    elements.tubeStatus.textContent = "Acorn CP/M is booting through OS 1.20, DNFS, the 8271 and the real Tube protocol."; draw();
+  } catch (error) { status(error.message, "ERROR"); elements.tubeStatus.textContent = error.message; }
 });
 
 async function startBundledMachine() {

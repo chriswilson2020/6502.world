@@ -1,4 +1,4 @@
-import { Crtc6845Shell, RegisterDevice, RomSelectLatch } from "./register-device.js";
+import { Crtc6845Shell, Mc6850Acia, RegisterDevice, RomSelectLatch } from "./register-device.js";
 import { BbcKeyboardMatrix, SystemVia6522 } from "./system-via.js";
 import { VideoUla } from "./video.js";
 import { Sn76489 } from "./sn76489.js";
@@ -22,7 +22,7 @@ export class BbcModelBBus {
     const sound = new Sn76489();
     this.devices = {
       crtc: new Crtc6845Shell(),
-      acia: new RegisterDevice("6850 ACIA", 4),
+      acia: new Mc6850Acia(),
       serialUla: new RegisterDevice("Serial ULA", 16),
       videoUla: new VideoUla(),
       systemVia: new SystemVia6522({ keyboard: this.keyboard, onSoundWrite: (value) => sound.write(value) }),

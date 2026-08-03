@@ -8,14 +8,14 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | Model B memory and ROMSEL | Implemented | 32K RAM, OS ROM and sixteen 8K/16K sideways banks |
 | OS 1.20 + BASIC II | Validated | Bundled real-ROM test reaches the mode 7 prompt and accepts matrix input |
 | System VIA | Partial | Port A/B, IC32, keyboard, timer 1/2 and IRQ behavior used by the boot path; serial/shift details remain |
-| CRTC / Video ULA | Partial | Mode 7 text window, scrolling address and register state; bitmap modes and full teletext attributes remain |
+| CRTC / Video ULA | Partial | Mode 7 text plus MOS-font decoding of the 80-column bitmap screen used by CP/M; pixel rendering and full teletext attributes remain |
 | Keyboard | Implemented for browser use | BBC matrix, two-key chords and shifted double quote verified; international-layout coverage remains |
 | SN76489 | Partial | Tone/noise registers and browser audio voices; waveform/timing corpus remains |
 | UEF cassette | Partial | Standard `$0100` data chunks and transport; waveform/security chunks and MOS ACIA loading remain |
 | SSD / Intel 8271 | Partial | Seek and normal sector read/write with NMI requests; protected/nonstandard layouts and full DFS corpus remain |
-| DSD sector media | Implemented core | 80-track, two-sided interleaved geometry, bounds, isolated writes, source immutability and exact export; FDC side selection is milestone 1.3 |
-| Portable BBC state | Stable v1 | CPU, memory, ROMs, core devices and local media round-trip at instruction boundaries; incompatible future formats must use a new version |
-| Tube | Z80 ROM validated | Four duplex channels, Acorn control/FIFO behavior, interrupts, state resume and 6MHz scheduling; Acorn Z80 1.20 boots through DNFS and reaches its command loop; no CP/M application corpus yet |
+| DSD / Intel 8271 | CP/M validated | Two physical drives, both DSD sides, observed commands/special registers, FM-paced NMI transfers, isolated writes and exact export |
+| Portable BBC state | Stable v2 | CPU, memory, ROMs, core devices, two drives and active FDC transfers round-trip; version 1 SSD states migrate |
+| Tube | Acorn CP/M validated | Four duplex channels, Acorn control/FIFO behavior, interrupts, state resume and 6MHz scheduling; real CP/M 2.2 boots and runs `DIR`/`STAT` |
 
 ## Browser support
 

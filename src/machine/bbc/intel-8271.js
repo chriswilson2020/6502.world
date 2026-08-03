@@ -2,6 +2,9 @@ const STATUS_BUSY = 0x80;
 const STATUS_RESULT = 0x10;
 const STATUS_NMI = 0x08;
 const STATUS_DATA = 0x04;
+// BBC DFS uses the 8271 in single-density FM mode: one encoded byte arrives
+// every 64 microseconds, or 128 ticks on the BBC's 2 MHz CPU clock.
+const BYTE_TRANSFER_TICKS = 128;
 
 const RESULT_OK = 0x00;
 const RESULT_NOT_READY = 0x10;
@@ -48,12 +51,18 @@ export class Intel8271 {
     this.command = 0;
     this.rawCommand = 0;
     this.logicalDrive = 0;
+    this.selectedDrive = 0;
+    this.selectedSide = 0;
+    this.driveControlOutputPort = 0;
+    this.driveControlInputPort = 0;
     this.parameters = [];
     this.expectedParameters = 0;
     this.transfer = null;
     this.dataRegister = 0;
     this.nmiPending = false;
     this.nmiSignaled = false;
+    this.nextDataTick = 0;
+    this.nextNmiTick = 0;
     this.drives.forEach((drive) => { drive.currentTrack = 0; });
     this.#record("reset");
   }
@@ -86,12 +95,13 @@ export class Intel8271 {
   tick(machineTicks = this.machineTicks) {
     this.machineTicks = Number(machineTicks) || 0;
     if (this.nmiPending) {
+      if (this.machineTicks < this.nextNmiTick) return false;
       if (this.nmiSignaled) return false;
       this.nmiSignaled = true;
       this.#record("nmi-request", this.#transferSummary());
       return true;
     }
-    if (!this.transfer || (this.status & STATUS_DATA)) return false;
+    if (!this.transfer || (this.status & STATUS_DATA) || this.machineTicks < this.nextDataTick) return false;
     if (this.transfer.direction === "read" && this.transfer.index < this.transfer.bytes.length) this.dataRegister = this.transfer.bytes[this.transfer.index];
     this.status |= STATUS_DATA | STATUS_NMI;
     this.nmiPending = true;
@@ -103,12 +113,12 @@ export class Intel8271 {
   #command(rawCommand) {
     this.rawCommand = rawCommand;
     this.command = rawCommand & 0x3f;
-    this.logicalDrive = rawCommand >> 6;
+    this.#applyCommandSelects();
     this.parameters = [];
     this.result = 0;
     this.status = STATUS_BUSY;
     this.nmiPending = false;
-    this.#record("command", { rawCommand, command: this.command, logicalDrive: this.logicalDrive, drive: this.logicalDrive & 1, side: this.logicalDrive >> 1 });
+    this.#record("command", { rawCommand, command: this.command, logicalDrive: this.logicalDrive, drive: this.selectedDrive, side: this.selectedSide });
     if (this.command === 0x29 || this.command === 0x3d) this.expectedParameters = 1;
     else if (this.command === 0x0a || this.command === 0x0e || this.command === 0x12 || this.command === 0x16 || this.command === 0x1e) this.expectedParameters = 2;
     else if (this.command === 0x0b || this.command === 0x0f || this.command === 0x13 || this.command === 0x17 || this.command === 0x1f) this.expectedParameters = 3;
@@ -135,8 +145,8 @@ export class Intel8271 {
 
   #startSectorCommand() {
     const slot = this.#selectedDrive();
-    const drive = this.logicalDrive & 1;
-    const side = this.logicalDrive >> 1;
+    const drive = this.selectedDrive;
+    const side = this.selectedSide;
     if (!slot.disk) { this.#finish(RESULT_NOT_READY); return; }
     const write = this.command === 0x0a || this.command === 0x0b || this.command === 0x0e || this.command === 0x0f;
     const verify = this.command === 0x1e || this.command === 0x1f;
@@ -156,6 +166,7 @@ export class Intel8271 {
       slot.currentTrack = track;
       if (verify) { this.#record("verify", { drive, side, track, sector, count, sectorSize }); this.#finish(RESULT_OK); return; }
       this.transfer = { direction: write ? "write" : "read", drive, side, track, sector, count, sectorSize, bytes, index: 0 };
+      this.nextDataTick = this.machineTicks;
       this.status = STATUS_BUSY;
       this.#record("transfer-start", this.#transferSummary());
     } catch {
@@ -171,7 +182,8 @@ export class Intel8271 {
     this.nmiPending = false;
     this.nmiSignaled = false;
     if (this.transfer.index === 1) this.#record("nmi-ack", this.#transferSummary());
-    if (this.transfer.index >= this.transfer.bytes.length) this.#finish(RESULT_OK);
+    if (this.transfer.index >= this.transfer.bytes.length) this.#finish(RESULT_OK, { delayTicks: BYTE_TRANSFER_TICKS });
+    else this.nextDataTick = this.machineTicks + BYTE_TRANSFER_TICKS;
     return value;
   }
 
@@ -182,7 +194,7 @@ export class Intel8271 {
     this.nmiPending = false;
     this.nmiSignaled = false;
     if (this.transfer.index === 1) this.#record("nmi-ack", this.#transferSummary());
-    if (this.transfer.index < this.transfer.bytes.length) return;
+    if (this.transfer.index < this.transfer.bytes.length) { this.nextDataTick = this.machineTicks + BYTE_TRANSFER_TICKS; return; }
     const { drive, side, track, sector, count, sectorSize, bytes } = this.transfer;
     const disk = this.drives[drive].disk;
     for (let index = 0; index < count; index += 1) {
@@ -190,16 +202,16 @@ export class Intel8271 {
       if (sectorSize === disk.sectorSize) disk.writeSector(track, side, sector + index, data);
       else { const physical = disk.readSector(track, side, sector + index); physical.set(data); disk.writeSector(track, side, sector + index, physical); }
     }
-    this.#finish(RESULT_OK);
+    this.#finish(RESULT_OK, { delayTicks: BYTE_TRANSFER_TICKS });
   }
 
   #readDriveStatus() {
     const selected = this.#selectedDrive();
-    const ready0 = this.drives[0].disk ? 0x04 : 0;
-    const ready1 = this.drives[1].disk ? 0x40 : 0;
+    const ready0 = (this.rawCommand & 0x40) !== 0 ? 0x04 : 0;
+    const ready1 = (this.rawCommand & 0x80) !== 0 ? 0x40 : 0;
     const writeProtected = selected.writeProtected ? 0x08 : 0;
     const trackZero = selected.currentTrack === 0 ? 0x02 : 0;
-    this.#finish(ready0 | ready1 | writeProtected | trackZero, { interrupt: false });
+    this.#finish(0x80 | ready0 | ready1 | writeProtected | trackZero, { interrupt: false });
   }
 
   #readSpecialRegister(register) {
@@ -207,29 +219,43 @@ export class Intel8271 {
     if (register === 0x12) value = this.drives[0].currentTrack;
     else if (register === 0x1a) value = this.drives[1].currentTrack;
     else if (register === 0x17) value = 0xc1;
-    else if (register === 0x22) {
-      value = (this.drives[0].disk ? 0x04 : 0) | (this.drives[1].disk ? 0x40 : 0) | (this.#selectedDrive().writeProtected ? 0x08 : 0) | (this.#selectedDrive().currentTrack === 0 ? 0x02 : 0);
-    } else if (register === 0x23) value = (this.logicalDrive & 1) === 0 ? 0x40 : 0x80;
+    else if (register === 0x22) value = this.driveControlInputPort;
+    else if (register === 0x23) value = this.driveControlOutputPort;
     this.#finish(value, { interrupt: false });
   }
 
   #writeSpecialRegister(register, value) {
     if (register === 0x12) this.drives[0].currentTrack = value;
     else if (register === 0x1a) this.drives[1].currentTrack = value;
+    else if (register === 0x22) this.driveControlInputPort = value;
+    else if (register === 0x23) {
+      this.driveControlOutputPort = value;
+      this.selectedDrive = (value & 0x40) !== 0 ? 0 : (value & 0x80) !== 0 ? 1 : this.selectedDrive;
+      this.selectedSide = (value >> 5) & 1;
+      this.logicalDrive = this.selectedDrive | (this.selectedSide << 1);
+    }
     this.#finish(RESULT_OK, { interrupt: false });
   }
 
-  #finish(result, { interrupt = true } = {}) {
+  #finish(result, { interrupt = true, delayTicks = 0 } = {}) {
     const summary = this.#transferSummary();
     this.result = result;
     this.transfer = null;
     this.status = STATUS_RESULT | (interrupt ? STATUS_NMI : 0);
     this.nmiPending = interrupt;
     this.nmiSignaled = false;
+    this.nextNmiTick = this.machineTicks + delayTicks;
     this.#record("finish", { ...summary, parameters: [...this.parameters], result, interrupt });
   }
 
-  #selectedDrive() { return this.drives[this.logicalDrive & 1]; }
+  #applyCommandSelects() {
+    this.driveControlOutputPort = (this.driveControlOutputPort & 0x3f) | (this.rawCommand & 0xc0);
+    if (this.rawCommand & 0x40) this.selectedDrive = 0;
+    else if (this.rawCommand & 0x80) this.selectedDrive = 1;
+    this.selectedSide = (this.driveControlOutputPort >> 5) & 1;
+    this.logicalDrive = this.selectedDrive | (this.selectedSide << 1);
+  }
+  #selectedDrive() { return this.drives[this.selectedDrive]; }
   #drive(drive) {
     if (!Number.isInteger(drive) || drive < 0 || drive >= this.drives.length) throw new RangeError("FDC drive must be 0 or 1");
     return this.drives[drive];

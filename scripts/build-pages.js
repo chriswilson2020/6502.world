@@ -10,6 +10,7 @@ for (const entry of await readdir("public", { withFileTypes: true })) {
 await cp("src", "dist/src", { recursive: true });
 await cp("docs", "dist/docs", { recursive: true });
 await cp("ROM", "dist/ROM", { recursive: true });
+await cp("MEDIA", "dist/MEDIA", { recursive: true });
 await mkdir("dist/vendor/z80-world/src", { recursive: true });
 await cp("vendor/z80-world/src/z80.js", "dist/vendor/z80-world/src/z80.js");
 

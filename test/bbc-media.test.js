@@ -36,11 +36,11 @@ test("8271 reads and writes SSD sectors through FE80-style registers", () => {
 
   fdc.write(0, 0x13); fdc.write(1, 0); fdc.write(1, 2); fdc.write(1, 0x21);
   const read = new Uint8Array(256);
-  for (let index = 0; index < read.length; index += 1) { assert.equal(fdc.tick(), true); read[index] = fdc.read(4); }
+  for (let index = 0; index < read.length; index += 1) { assert.equal(fdc.tick(index * 128), true); read[index] = fdc.read(4); }
   assert.deepEqual(read, image.subarray(2 * 256, 3 * 256)); assert.equal(fdc.read(1), 0);
 
   fdc.write(0, 0x0b); fdc.write(1, 1); fdc.write(1, 3); fdc.write(1, 0x21);
-  for (let index = 0; index < 256; index += 1) { assert.equal(fdc.tick(), true); fdc.write(4, 255 - index); }
+  for (let index = 0; index < 256; index += 1) { assert.equal(fdc.tick(40000 + index * 128), true); fdc.write(4, 255 - index); }
   assert.equal(disk.dirty, true); assert.equal(disk.readSector(1, 3)[0], 255); assert.equal(disk.readSector(1, 3)[255], 0);
 });
 
@@ -63,30 +63,33 @@ test("DSD maps track-major interleaved sides and isolates writes", () => {
   assert.deepEqual(source, original); assert.equal(disk.dirty, true);
 });
 
-test("8271 maps logical drives 0-3 onto two drives and two DSD sides", () => {
+test("8271 command selects drives and drive-control bit 5 selects the DSD side", () => {
   const first = new Uint8Array(40 * 2 * 10 * 256); const second = new Uint8Array(40 * 2 * 10 * 256);
   first[10 * 256] = 0xa2; second[0] = 0xb1;
-  const fdc = new Intel8271({ traceLimit: 16 });
+  const fdc = new Intel8271({ traceLimit: 32 });
   fdc.mount(new DsdDisk(first), { drive: 0 }); fdc.mount(new DsdDisk(second), { drive: 1, writeProtected: true });
-  fdc.write(0, 0x93); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21); // logical drive 2: physical 0, side 1
+  fdc.write(0, 0x7a); fdc.write(1, 0x23); fdc.write(1, 0x60); // drive 0, side 1
+  fdc.write(0, 0x53); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21);
   assert.equal(fdc.tick(100), true); assert.equal(fdc.read(4), 0xa2);
-  for (let index = 1; index < 256; index += 1) { fdc.tick(100 + index); fdc.read(4); }
+  for (let index = 1; index < 256; index += 1) { fdc.tick(100 + index * 128); fdc.read(4); }
   assert.equal(fdc.read(1), 0);
-  fdc.write(0, 0x4b); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21); // logical drive 1: physical 1, side 0
+  fdc.write(0, 0xba); fdc.write(1, 0x23); fdc.write(1, 0x80); // drive 1, side 0
+  fdc.write(0, 0x8b); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21);
   assert.equal(fdc.read(1), 0x12);
-  fdc.write(0, 0x29); fdc.write(1, 7); fdc.read(1);
-  fdc.write(0, 0x69); fdc.write(1, 12); fdc.read(1);
+  fdc.write(0, 0x69); fdc.write(1, 7); fdc.read(1);
+  fdc.write(0, 0xa9); fdc.write(1, 12); fdc.read(1);
   assert.equal(fdc.drives[0].currentTrack, 7); assert.equal(fdc.drives[1].currentTrack, 12);
   assert.ok(fdc.trace.some((entry) => entry.event === "command" && entry.drive === 0 && entry.side === 1));
-  assert.ok(fdc.trace.length <= 16); assert.ok(fdc.trace.every((entry) => Number.isFinite(entry.ticks)));
+  assert.ok(fdc.trace.length <= 32); assert.ok(fdc.trace.every((entry) => Number.isFinite(entry.ticks)));
 });
 
 test("8271 reports missing media and keeps multi-sector DSD writes on the selected side", () => {
   const fdc = new Intel8271();
   fdc.write(0, 0x53); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21); assert.equal(fdc.read(1), 0x10);
   const disk = new DsdDisk(new Uint8Array(40 * 2 * 10 * 256)); fdc.mount(disk);
-  fdc.write(0, 0x8b); fdc.write(1, 2); fdc.write(1, 8); fdc.write(1, 0x22);
-  for (let index = 0; index < 512; index += 1) { assert.equal(fdc.tick(index), true); fdc.write(4, index < 256 ? 0x41 : 0x42); }
+  fdc.write(0, 0x7a); fdc.write(1, 0x23); fdc.write(1, 0x60);
+  fdc.write(0, 0x4b); fdc.write(1, 2); fdc.write(1, 8); fdc.write(1, 0x22);
+  for (let index = 0; index < 512; index += 1) { assert.equal(fdc.tick(index * 128), true); fdc.write(4, index < 256 ? 0x41 : 0x42); }
   assert.equal(fdc.read(1), 0); assert.equal(disk.readSector(2, 1, 8)[0], 0x41); assert.equal(disk.readSector(2, 1, 9)[0], 0x42); assert.equal(disk.readSector(2, 0, 8)[0], 0);
 });
 

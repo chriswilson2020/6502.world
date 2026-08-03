@@ -10,4 +10,4 @@ The Z80 implementation is not forked into 6502 World. Git submodule `vendor/z80-
 
 ## Current boundary
 
-The bundled Acorn TUBE Z80 64K 1.20 firmware is exercised with OS 1.20 and DNFS by `npm run test:bbc-z80`. The integration gate observes its startup transcript crossing R1, confirms the BBC host drains it, and verifies that the parasite reaches its R2 command-input loop. The browser uses this image by default when Z80 Tube mode is selected and still accepts a local replacement. The bridge does not yet claim an exhaustive electrical timing model or a CP/M application corpus.
+The bundled Acorn TUBE Z80 64K 1.20 firmware is exercised with OS 1.20 and DNFS by `npm run test:bbc-z80`. The full `npm run test:bbc-cpm` gate then boots the unmodified Utilities DSD, observes the real BBC bitmap screen and types `DIR` and `STAT` through the keyboard matrix. The browser uses this image by default and still accepts a local replacement. The bridge does not claim an exhaustive electrical timing model.

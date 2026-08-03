@@ -313,6 +313,8 @@ Add tests for:
 
 ## 1.4 — Real Acorn CP/M 2.2 boot
 
+**Implemented:** the hash-pinned, unmodified Utilities DSD boots through OS 1.20, DNFS, the paced 8271 and Tube to the real 80-column `A>` screen. The deterministic integration runner types `DIR` and `STAT` through the BBC keyboard matrix, and the browser exposes a bundled **Boot Acorn CP/M 2.2** action.
+
 This is the first user-visible Z80 software milestone. Do not add the application catalogue before it passes.
 
 ### Machine composition

@@ -17,9 +17,9 @@ This repository begins with a deliberately small but complete vertical slice:
 
 The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom and Commodore-family targets remain future work until the BBC implementation is stable.
 
-## Current release
+## Current release — 1.4
 
-The 1.2 release extends the stable Model B and Tube bridge with geometry-aware sector media:
+The 1.4 release extends the stable Model B and Tube bridge into a real Acorn CP/M system:
 
 - the 32K RAM, sideways ROM, OS ROM, FRED, JIM and SHEILA map;
 - sixteen sideways banks selected by `ROMSEL` at `$FE30`;
@@ -39,7 +39,10 @@ The 1.2 release extends the stable Model B and Tube bridge with geometry-aware s
 - bundled Acorn TUBE Z80 64K 1.20 firmware, local replacement loading and parasite telemetry;
 - a real OS 1.20 + DNFS + Z80 ROM integration gate that observes the startup transcript and command loop;
 - backward-compatible SSD plus interleaved two-sided DSD images with immutable sources and byte-exact export;
-- an inventoried, hash-pinned optional Acorn CP/M media corpus that remains outside Git history.
+- the owner-approved, hash-pinned Acorn Z80 media corpus bundled under `MEDIA/`;
+- an unmodified Acorn CP/M 2.2 boot through OS 1.20, DNFS, the paced 8271 and Tube;
+- a deterministic `DIR` and `STAT` gate driven through the BBC keyboard matrix;
+- a first-class browser action and 80-column MOS-font screen decoding.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 
@@ -99,7 +102,7 @@ node scripts/run-bus-vectors.js /path/to/legal-opcode-vectors
 
 See [`docs/validation.md`](docs/validation.md) for the pinned corpus revisions and published evidence.
 
-Run the bundled BBC software corpora separately with `npm run test:bbc-software` and `npm run test:bbc-z80`. See [`docs/bbc-validation.md`](docs/bbc-validation.md) for BASIC results, [`docs/tube.md`](docs/tube.md) for Z80 evidence, and [`docs/state-format.md`](docs/state-format.md) for the stable state contract.
+Run the bundled BBC software corpora separately with `npm run test:bbc-software`, `npm run test:bbc-z80` and `npm run test:bbc-cpm`. See [`docs/bbc-validation.md`](docs/bbc-validation.md) for BASIC results, [`docs/tube.md`](docs/tube.md) for Z80 evidence, [`docs/acorn-z80-cpm.md`](docs/acorn-z80-cpm.md) for CP/M evidence, and [`docs/state-format.md`](docs/state-format.md) for the stable state contract.
 
 ## Project structure
 

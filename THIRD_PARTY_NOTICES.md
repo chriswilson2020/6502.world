@@ -1,5 +1,9 @@
 # Third-party notices
 
+## Recovered Acorn Z80 media
+
+The repository owner supplied and explicitly approved publication of the DSD images under `MEDIA/`. They contain historical third-party software, are emulator inputs, and are not covered by the source code's MIT licence. See `MEDIA/README.md` and `docs/acorn-z80-media.md` for hashes and validation status.
+
 ## Z80 World core
 
 6502 World links to the Z80 CPU core from `chriswilson2020/zx-spectrum-emulator` through the pinned `vendor/z80-world` Git submodule.
