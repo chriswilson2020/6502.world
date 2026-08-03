@@ -66,6 +66,21 @@ test("Tube P control holds and releases the Z80 reset line", () => {
   tube.write(0, 0x20); parasite.runForHostTicks(20); assert.ok(parasite.cpu.tStates >= 60);
 });
 
+test("Acorn Z80 shadow ROM unmaps on high fetch, remaps on NMI fetch, and resets mapped", () => {
+  const tube = new TubeUla();
+  const rom = new Uint8Array(0x1000);
+  rom.set([0xc3, 0x00, 0x80], 0x0000); // JP 8000
+  rom.set([0xc3, 0x00, 0x90], 0x0066); // NMI shadow-ROM entry
+  const parasite = new Z80TubeSecondProcessor({ tube, bootRom: rom });
+  parasite.ram[0x8000] = 0x76; parasite.ram[0x9000] = 0x76;
+  parasite.step(); assert.equal(parasite.cpu.PC, 0x8000); assert.equal(parasite.romEnabled, true);
+  parasite.step(); assert.equal(parasite.romEnabled, false);
+  parasite.cpu.requestNmi(); parasite.step(); assert.equal(parasite.cpu.PC, 0x0066);
+  parasite.step(); assert.equal(parasite.cpu.PC, 0x9000); assert.equal(parasite.romEnabled, true);
+  parasite.step(); assert.equal(parasite.romEnabled, false);
+  tube.write(0, 0xa0); parasite.runForHostTicks(1); assert.equal(parasite.romEnabled, true);
+});
+
 test("BBC portable state resumes Tube FIFOs and the Z80 parasite", () => {
   const machine = new BbcMicroModelB();
   const parasite = machine.attachZ80SecondProcessor();

@@ -1,12 +1,12 @@
 import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
 import { bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
 
-const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "exportSsdButton", "mediaState", "mediaStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus", "tubeRomInput", "attachTubeButton", "tubeState", "tubeStatus", "tubePc", "tubeTstates", "tubeTranscript"].map((id) => [id, document.querySelector(`#${id}`)]));
+const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "mediaState", "mediaStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus", "tubeRomInput", "attachTubeButton", "tubeState", "tubeStatus", "tubePc", "tubeTstates", "tubeTranscript"].map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.bbcScreen.getContext("2d");
 let machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
 let osRom = null; let basicRom = null; let dnfsRom = null; let running = false; let frame = null; let demo = true;
 const activeBrowserKeys = new Map();
-let mountedSsdName = "disc.ssd"; let audio = null; let tubeBootRom = null; let tubeEnabled = false; let tubeOutput = [];
+const mountedMediaNames = ["drive-0.ssd", "drive-1.ssd"]; let audio = null; let tubeBootRom = null; let tubeEnabled = false; let tubeOutput = [];
 const bbcBreakpoints = new Set();
 const hex = (value, width = 4) => value.toString(16).toUpperCase().padStart(width, "0");
 
@@ -20,6 +20,11 @@ function draw() {
   context.fillStyle = "#f4f4ec"; context.font = '18px "SFMono-Regular", Consolas, monospace'; context.textBaseline = "top";
   rows.forEach((row, index) => context.fillText(row, 12, 10 + index * 19));
   const textScreen = rows.join("\n"); if (elements.bbcTextMirror.textContent !== textScreen) elements.bbcTextMirror.textContent = textScreen;
+  for (let drive = 0; drive < 2; drive += 1) {
+    const slot = machine.bus.devices.fdc.drives[drive];
+    const protect = drive ? elements.drive1WriteProtect : elements.drive0WriteProtect;
+    if (protect.checked !== slot.writeProtected) protect.checked = slot.writeProtected;
+  }
   elements.bbcPc.textContent = hex(machine.cpu.pc);
   elements.bbcCycles.textContent = machine.cpu.cycles.toLocaleString();
   elements.bbcTicks.textContent = machine.machineTicks.toLocaleString();
@@ -42,10 +47,12 @@ function demoScreen() {
 async function boot() {
   try {
     stop();
+    const mountedDrives = machine.bus.devices.fdc.drives.map(({ disk, writeProtected }) => ({ disk, writeProtected }));
     osRom = await readSelected(elements.osRomInput, osRom); basicRom = await readSelected(elements.basicRomInput, basicRom);
     if (!osRom || osRom.length !== 0x4000) throw new Error("Choose a 16K BBC Model B OS ROM.");
     if (basicRom && basicRom.length !== 0x2000 && basicRom.length !== 0x4000) throw new Error("BASIC ROM must be 8K or 16K.");
     machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
+    mountedDrives.forEach(({ disk, writeProtected }, drive) => { if (disk) machine.bus.devices.fdc.mount(disk, { drive, writeProtected }); });
     if (basicRom) machine.loadSidewaysRom(15, basicRom);
     if (tubeEnabled) {
       if (!tubeBootRom || !dnfsRom) throw new Error("Z80 Tube mode requires the Z80 and DNFS ROMs.");
@@ -90,7 +97,7 @@ function boundary() { while (!machine.cpu.instructionBoundary) machine.clock(); 
 elements.toggleBbcBreakpointButton.addEventListener("click", () => { try { const address = parseBbcAddress(elements.bbcBreakpointInput.value); if (bbcBreakpoints.has(address)) bbcBreakpoints.delete(address); else bbcBreakpoints.add(address); elements.bbcDebuggerStatus.textContent = `Breakpoint ${bbcBreakpoints.has(address) ? "set" : "cleared"} at $${hex(address)}.`; draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; } });
 elements.stepBbcButton.addEventListener("click", () => { stop(); boundary(); const at = machine.cpu.pc; const result = machine.step(); elements.bbcDebuggerStatus.textContent = `Stepped $${hex(at)} in ${result.cycles} cycles.`; status("Machine paused after one instruction.", "PAUSED"); draw(); });
 elements.exportBbcStateButton.addEventListener("click", () => { stop(); boundary(); const state = machine.exportState(); state.debugger = { breakpoints: [...bbcBreakpoints] }; const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(state)], { type: "application/json" })); link.download = `6502-world-bbc-${hex(machine.cpu.pc)}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0); elements.bbcDebuggerStatus.textContent = `Portable BBC state captured at $${hex(machine.cpu.pc)}.`; status("Machine paused for state export.", "PAUSED"); draw(); });
-elements.bbcStateInput.addEventListener("change", async () => { try { const [file] = elements.bbcStateInput.files; if (!file) return; stop(); const state = JSON.parse(await file.text()); machine.importState(state); tubeEnabled = Boolean(machine.parasite); if (tubeEnabled) { captureTubeOutput(); elements.tubeState.textContent = "Z80 6MHz"; elements.tubeState.className = "status live"; } bbcBreakpoints.clear(); for (const address of state.debugger?.breakpoints ?? []) bbcBreakpoints.add(address & 0xffff); demo = false; mountedSsdName = "restored-disc.ssd"; elements.exportSsdButton.disabled = !machine.bus.devices.fdc.disk; elements.bbcDebuggerStatus.textContent = `${file.name} restored at $${hex(machine.cpu.pc)}.`; status("Portable BBC state restored.", "PAUSED"); draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; status(error.message, "ERROR"); } finally { elements.bbcStateInput.value = ""; } });
+elements.bbcStateInput.addEventListener("change", async () => { try { const [file] = elements.bbcStateInput.files; if (!file) return; stop(); const state = JSON.parse(await file.text()); machine.importState(state); tubeEnabled = Boolean(machine.parasite); if (tubeEnabled) { captureTubeOutput(); elements.tubeState.textContent = "Z80 6MHz"; elements.tubeState.className = "status live"; } bbcBreakpoints.clear(); for (const address of state.debugger?.breakpoints ?? []) bbcBreakpoints.add(address & 0xffff); demo = false; mountedMediaNames[0] = "restored-drive-0.ssd"; mountedMediaNames[1] = "restored-drive-1.ssd"; elements.exportSsdButton.disabled = !machine.bus.devices.fdc.drives[0].disk; elements.exportDrive1Button.disabled = !machine.bus.devices.fdc.drives[1].disk; elements.bbcDebuggerStatus.textContent = `${file.name} restored at $${hex(machine.cpu.pc)}.`; status("Portable BBC state restored.", "PAUSED"); draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; status(error.message, "ERROR"); } finally { elements.bbcStateInput.value = ""; } });
 
 elements.enableAudioButton.addEventListener("click", async () => {
   audio ??= new BrowserSnAudio(); await audio.enable();
@@ -102,13 +109,18 @@ elements.uefInput.addEventListener("change", async () => {
 });
 elements.playTapeButton.addEventListener("click", () => { if (!machine.cassette) return; machine.cassette.playing ? machine.cassette.pause() : machine.cassette.play(); elements.playTapeButton.textContent = machine.cassette.playing ? "Pause" : "Play"; });
 elements.rewindTapeButton.addEventListener("click", () => { machine.cassette?.rewind(); elements.mediaStatus.textContent = machine.cassette ? "Cassette rewound to the first decoded block." : "Choose a UEF cassette first."; });
-elements.ssdInput.addEventListener("change", async () => {
-  try { const [file] = elements.ssdInput.files; if (!file) return; mountedSsdName = file.name; const disk = machine.mountSsd(new Uint8Array(await file.arrayBuffer())); elements.exportSsdButton.disabled = false; elements.mediaStatus.textContent = `${file.name}: ${disk.tracks} tracks mounted read/write.`; elements.mediaState.textContent = "SSD"; elements.mediaState.className = "status live"; }
-  catch (error) { elements.mediaStatus.textContent = error.message; elements.mediaState.textContent = "ERROR"; elements.mediaState.className = "status error"; }
-});
-elements.exportSsdButton.addEventListener("click", () => {
-  const disk = machine.bus.devices.fdc.disk; if (!disk) return; const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([disk.export()], { type: "application/octet-stream" })); link.download = mountedSsdName; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
-});
+function bindDriveControls({ drive, input, writeProtect, exportButton }) {
+  input.addEventListener("change", async () => {
+    try { const [file] = input.files; if (!file) return; mountedMediaNames[drive] = file.name; const disk = machine.mountMedia(new Uint8Array(await file.arrayBuffer()), { filename: file.name, drive, writeProtected: writeProtect.checked }); exportButton.disabled = false; elements.mediaStatus.textContent = `${file.name}: ${disk.tracks} tracks × ${disk.sides} side${disk.sides === 1 ? "" : "s"} mounted in physical drive ${drive}${writeProtect.checked ? " read-only" : " read/write"}.`; elements.mediaState.textContent = disk.format.toUpperCase(); elements.mediaState.className = "status live"; }
+    catch (error) { elements.mediaStatus.textContent = error.message; elements.mediaState.textContent = "ERROR"; elements.mediaState.className = "status error"; }
+  });
+  writeProtect.addEventListener("change", () => { machine.bus.devices.fdc.drives[drive].writeProtected = writeProtect.checked; });
+  exportButton.addEventListener("click", () => {
+    const disk = machine.bus.devices.fdc.drives[drive].disk; if (!disk) return; const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([disk.export()], { type: "application/octet-stream" })); link.download = mountedMediaNames[drive]; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
+  });
+}
+bindDriveControls({ drive: 0, input: elements.ssdInput, writeProtect: elements.drive0WriteProtect, exportButton: elements.exportSsdButton });
+bindDriveControls({ drive: 1, input: elements.drive1Input, writeProtect: elements.drive1WriteProtect, exportButton: elements.exportDrive1Button });
 
 elements.attachTubeButton.addEventListener("click", async () => {
   try {
