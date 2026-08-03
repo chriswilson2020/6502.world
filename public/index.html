@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore the MOS 6502 processor and the classic machines it powered, beginning with a transparent browser CPU Lab and the BBC Micro.">
+  <title>6502 World</title>
+  <link rel="icon" href="6502-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="landing-page">
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="6502 World home">
+      <img src="6502-mark.svg" alt="" width="40" height="40">
+      <span><strong>6502</strong> WORLD</span>
+    </a>
+    <nav aria-label="Primary navigation">
+      <a href="cpu-lab.html">CPU Lab</a>
+      <a href="#machines">Machines</a>
+      <a href="docs/roadmap.md">Roadmap</a>
+      <a class="sibling-link" href="https://z80.world">Z80 World ↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">A NEW SIBLING TO Z80 WORLD</p>
+        <h1>The processor behind a generation of computers.</h1>
+        <p class="hero-intro">A transparent, browser-based MOS 6502 platform—built to power the BBC Micro first, then the Apple II, Commodore and other classic machines from the same validated core.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="cpu-lab.html">Open the CPU Lab</a>
+          <a class="button secondary" href="#architecture">See the architecture</a>
+        </div>
+        <dl class="hero-metrics" aria-label="Project status">
+          <div><dt>1 cycle</dt><dd>per clock call</dd></div>
+          <div><dt>64K</dt><dd>visible memory</dd></div>
+          <div><dt>BBC B</dt><dd>first full target</dd></div>
+        </dl>
+      </div>
+
+      <div class="chip-stage" aria-label="Stylised MOS 6502 processor diagram">
+        <div class="signal signal-a"><span>ADDR</span></div>
+        <div class="signal signal-b"><span>DATA</span></div>
+        <div class="signal signal-c"><span>SYNC</span></div>
+        <div class="chip">
+          <div class="chip-notch"></div>
+          <span class="chip-kicker">MOS TECHNOLOGY</span>
+          <strong>6502</strong>
+          <span class="chip-caption">cycle-stepped virtual hardware</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="statement-band" aria-label="Project proposition">
+      <p>ONE CAREFULLY VALIDATED CORE</p>
+      <span></span>
+      <p>MULTIPLE CLASSIC MACHINES</p>
+    </section>
+
+    <section class="section" id="machines">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">MACHINE ROADMAP</p>
+          <h2>Start focused. Expand only when the core is ready.</h2>
+        </div>
+        <p>6502 World is processor-led, not a loose collection of unrelated emulators.</p>
+      </div>
+
+      <div class="machine-grid">
+        <article class="machine-card featured">
+          <div class="card-topline"><span>FIRST FULL MACHINE</span><span class="status planned">NEXT</span></div>
+          <h3>BBC Micro Model B</h3>
+          <p>32K RAM, sideways ROMs, 6522 VIA, 6845 display, keyboard, sound, cassette and DFS disc support.</p>
+          <div class="machine-visual bbc-visual" aria-hidden="true"><span>BBC BASIC</span><span>&gt;_</span></div>
+        </article>
+
+        <article class="machine-card">
+          <div class="card-topline"><span>AVAILABLE NOW</span><span class="status live">LIVE</span></div>
+          <h3>Minimal 6502 Lab</h3>
+          <p>Load bytes, reset the processor, step one bus cycle, step one instruction and inspect the ordered trace.</p>
+          <a class="text-link" href="cpu-lab.html">Launch CPU Lab →</a>
+        </article>
+
+        <article class="machine-card muted-card">
+          <div class="card-topline"><span>AFTER BBC 1.0</span><span class="status future">FUTURE</span></div>
+          <h3>Acorn Atom</h3>
+          <p>A compact second machine that tests whether the CPU and device boundaries genuinely generalise.</p>
+        </article>
+
+        <article class="machine-card muted-card">
+          <div class="card-topline"><span>LATER</span><span class="status future">FUTURE</span></div>
+          <h3>Apple II</h3>
+          <p>A major software ecosystem and a very different machine architecture around the same processor family.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section architecture" id="architecture">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ARCHITECTURE</p>
+          <h2>The machine surrounds the CPU. It does not contaminate it.</h2>
+        </div>
+      </div>
+
+      <div class="architecture-flow" aria-label="6502 World architecture">
+        <div class="architecture-node core-node"><small>REUSABLE CORE</small><strong>MOS 6502</strong><span>registers · flags · microcycles · interrupts</span></div>
+        <div class="connector-arrow">→</div>
+        <div class="architecture-node"><small>BUS</small><strong>Mapped hardware</strong><span>memory · timing · reads · writes</span></div>
+        <div class="connector-arrow">→</div>
+        <div class="architecture-node"><small>MACHINE</small><strong>BBC Micro</strong><span>video · VIA · keyboard · sound · media</span></div>
+        <div class="connector-arrow">→</div>
+        <div class="architecture-node"><small>HOST</small><strong>Browser</strong><span>canvas · audio · files · debugger</span></div>
+      </div>
+    </section>
+
+    <section class="section validation-section">
+      <div class="validation-copy">
+        <p class="eyebrow">VALIDATION BEFORE CLAIMS</p>
+        <h2>Booting a ROM is not enough.</h2>
+        <p>The first release exposes the bus trace because accuracy must be inspectable. Complete legal-opcode coverage and ordered-bus corpus validation are explicit gates before any cycle-accuracy claim.</p>
+      </div>
+      <ol class="validation-steps">
+        <li><span>01</span><div><strong>Functional tests</strong><p>Registers, flags, addressing and decimal arithmetic.</p></div></li>
+        <li><span>02</span><div><strong>Bus vectors</strong><p>Exact reads, writes, dummy accesses and cycle counts.</p></div></li>
+        <li><span>03</span><div><strong>Machine workflows</strong><p>BBC boot, keyboard, video, sound and media paths.</p></div></li>
+      </ol>
+    </section>
+  </main>
+
+  <footer>
+    <span>6502 World · open virtual hardware</span>
+    <span>A sibling project to <a href="https://z80.world">Z80 World</a></span>
+  </footer>
+</body>
+</html>

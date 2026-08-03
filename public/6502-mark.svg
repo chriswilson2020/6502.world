@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="6502 World processor mark">
+  <rect x="11" y="6" width="42" height="52" rx="5" fill="#111514" stroke="#77e7c8" stroke-width="2"/>
+  <path d="M26 6a6 6 0 0 0 12 0" fill="#0b0e0d" stroke="#77e7c8" stroke-width="2"/>
+  <g stroke="#77e7c8" stroke-width="2">
+    <path d="M5 14h6M5 24h6M5 34h6M5 44h6M5 54h6M53 14h6M53 24h6M53 34h6M53 44h6M53 54h6"/>
+  </g>
+  <text x="32" y="34" text-anchor="middle" fill="#f4f4ec" font-family="system-ui,sans-serif" font-size="14" font-weight="800">6502</text>
+  <text x="32" y="45" text-anchor="middle" fill="#77e7c8" font-family="monospace" font-size="5" letter-spacing="1">WORLD</text>
+</svg>
