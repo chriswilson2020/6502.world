@@ -39,7 +39,7 @@ The claim covers the documented opcode surface validated by the ordered-bus corp
 
 State files use a versioned `6502-world-state` envelope and capture the instruction-boundary CPU state, all 64K of memory, the visible trace, interrupt level and debugger breakpoints. Loading a state reconstructs both the bus and CPU so the processor always retains the restored bus reference.
 
-## Planned BBC layer
+## BBC layer
 
 The BBC Model B will own:
 
@@ -52,4 +52,4 @@ The BBC Model B will own:
 - cassette and disc hardware;
 - machine timing and state serialisation.
 
-None of those concerns belong inside `M6502`.
+The 0.5 bus implements the memory map, ROM selection, timing domains and address-decoded device shells. Interactive behavior is filled in incrementally by later milestones. None of those concerns belong inside `M6502`.

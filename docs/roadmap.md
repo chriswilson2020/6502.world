@@ -46,7 +46,7 @@
 
 **Evidence:** the browser workbench loads raw binaries and hex programs at selectable origins, stops on address breakpoints, exposes cycle/instruction/chunked execution, navigates all 64K of memory, drives IRQ/NMI inputs, and round-trips versioned full-memory JSON states. Machine-model tests and browser interaction checks cover the release paths.
 
-## 0.5 — BBC bootstrap
+## 0.5 — BBC bootstrap (implemented)
 
 - Model B memory map
 - OS and sideways ROMs
@@ -54,6 +54,8 @@
 - slow-access timing
 - VIA and CRTC shells
 - headless boot diagnostics
+
+**Evidence:** synthetic-ROM tests reset through the OS vector, select sideways bank 15, read the paged ROM, write main RAM, access the system VIA shell and settle in an OS loop. Focused tests cover 8K/16K ROM banking, OS write protection, CRTC/VIA mirrors and 1 MHz timing classification. See `bbc-model-b.md`.
 
 ## 0.6 — Interactive BBC
 
