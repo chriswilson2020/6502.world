@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BbcModelBBus } from "../src/machine/bbc/model-b-bus.js";
-import { BBC_KEYBOARD_CODES } from "../src/machine/bbc/system-via.js";
+import { BBC_KEYBOARD_CODES, bbcKeyboardCodeForBrowserEvent } from "../src/machine/bbc/system-via.js";
 import { BbcVideoOutput } from "../src/machine/bbc/video.js";
 
 test("system VIA timers raise and clear maskable interrupts", () => {
@@ -29,6 +29,17 @@ test("system VIA scans the browser-backed keyboard matrix", () => {
   assert.ok(via.read(1) & 0x80);
   bus.keyboard.release(`${column}:${row}`);
   assert.equal(via.read(1) & 0x80, 0);
+});
+
+test("browser double quote maps to the BBC Shift+2 matrix key", () => {
+  assert.deepEqual(bbcKeyboardCodeForBrowserEvent("Quote", '"'), BBC_KEYBOARD_CODES.Digit2);
+});
+
+test("keyboard matrix revisions interrupt for a second key in a chord", () => {
+  const bus = new BbcModelBBus(); const via = bus.devices.systemVia;
+  via.write(14, 0x81); bus.keyboard.press("0:0"); via.tick(2); via.write(13, 1);
+  bus.keyboard.press("1:3"); via.tick(2);
+  assert.equal(via.irq, true);
 });
 
 test("CRTC start address feeds a 40-column browser text snapshot", () => {

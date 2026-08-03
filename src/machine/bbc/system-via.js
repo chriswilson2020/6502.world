@@ -4,10 +4,10 @@ const IFR_CA1 = 0x02;
 const IFR_CA2 = 0x01;
 
 export class BbcKeyboardMatrix {
-  constructor() { this.keys = new Set(); }
-  press(code) { this.keys.add(code); }
-  release(code) { this.keys.delete(code); }
-  clear() { this.keys.clear(); }
+  constructor() { this.keys = new Set(); this.revision = 0; }
+  press(code) { if (!this.keys.has(code)) { this.keys.add(code); this.revision += 1; } }
+  release(code) { if (this.keys.delete(code)) this.revision += 1; }
+  clear() { if (this.keys.size) { this.keys.clear(); this.revision += 1; } }
   get anyPressed() { return this.keys.size > 0; }
   hasColumn(column) { return [...this.keys].some((code) => Number(code.split(":", 1)[0]) === (column & 0x0f)); }
   isPressed(column, row) { return this.keys.has(`${column & 0x0f}:${row & 0x07}`); }
@@ -25,7 +25,7 @@ export class SystemVia6522 {
     this.outputA = 0xff; this.outputB = 0xff; this.ddra = 0; this.ddrb = 0;
     this.timer1 = 0xffff; this.timer1Latch = 0xffff; this.timer1Running = false;
     this.timer2 = 0xffff; this.timer2Running = false; this.timerRemainder = 0;
-    this.ifr = 0; this.ier = 0; this.latch = new Array(8).fill(true); this.keyboardWasPressed = false;
+    this.ifr = 0; this.ier = 0; this.latch = new Array(8).fill(true); this.keyboardRevision = this.keyboard.revision;
   }
 
   get irq() { return (this.ifr & this.ier & 0x7f) !== 0; }
@@ -80,8 +80,8 @@ export class SystemVia6522 {
       if (this.timer2Running && this.timer2-- === 0) { this.ifr |= IFR_T2; this.timer2Running = false; }
     }
     if (this.keyboard.anyPressed && !this.latch[3] && this.keyboard.hasColumn(this.outputA)) this.ifr |= IFR_CA2;
-    else if (this.keyboard.anyPressed && !this.keyboardWasPressed) this.ifr |= IFR_CA2;
-    this.keyboardWasPressed = this.keyboard.anyPressed;
+    else if (this.keyboard.anyPressed && this.keyboard.revision !== this.keyboardRevision) this.ifr |= IFR_CA2;
+    this.keyboardRevision = this.keyboard.revision;
   }
 
   signalVerticalSync() { this.ifr |= IFR_CA1; }
@@ -109,3 +109,11 @@ export const BBC_KEYBOARD_CODES = Object.freeze({
   Escape: [0, 7], F1: [1, 7], F2: [2, 7], F3: [3, 7], F5: [4, 7], F6: [5, 7], F8: [6, 7], F9: [7, 7], Backslash: [8, 7], ArrowRight: [9, 7],
   ShiftLeft: [0, 0], ShiftRight: [0, 0], ControlLeft: [1, 0], ControlRight: [1, 0],
 });
+
+export function bbcKeyboardCodeForBrowserEvent(code, key) {
+  // A modern US keyboard produces double quote from Shift+Quote, while the
+  // BBC keyboard produces it from Shift+2. Preserve the character the user
+  // intended and let the separately held Shift matrix key provide the case.
+  if (key === '"') return BBC_KEYBOARD_CODES.Digit2;
+  return BBC_KEYBOARD_CODES[code] ?? null;
+}

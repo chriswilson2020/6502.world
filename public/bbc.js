@@ -1,10 +1,11 @@
 import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
-import { BBC_KEYBOARD_CODES } from "./src/machine/bbc/system-via.js";
+import { bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
 
 const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton"].map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.bbcScreen.getContext("2d");
 let machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
 let osRom = null; let basicRom = null; let running = false; let frame = null; let demo = true;
+const activeBrowserKeys = new Map();
 const hex = (value, width = 4) => value.toString(16).toUpperCase().padStart(width, "0");
 
 async function readSelected(input, fallback) { const [file] = input.files; return file ? new Uint8Array(await file.arrayBuffer()) : fallback; }
@@ -56,9 +57,9 @@ function stop() { running = false; if (frame != null) cancelAnimationFrame(frame
 elements.bootBbcButton.addEventListener("click", boot);
 elements.demoBbcButton.addEventListener("click", demoScreen);
 elements.pauseBbcButton.addEventListener("click", () => { if (demo) return; running = !running; status(running ? "Machine running." : "Machine paused.", running ? "RUNNING" : "PAUSED"); if (running) schedule(); });
-elements.bbcScreen.addEventListener("keydown", (event) => { const key = BBC_KEYBOARD_CODES[event.code]; if (!key) return; event.preventDefault(); machine.bus.keyboard.press(`${key[0]}:${key[1]}`); });
-elements.bbcScreen.addEventListener("keyup", (event) => { const key = BBC_KEYBOARD_CODES[event.code]; if (!key) return; event.preventDefault(); machine.bus.keyboard.release(`${key[0]}:${key[1]}`); });
-elements.bbcScreen.addEventListener("blur", () => machine.bus.keyboard.clear());
+elements.bbcScreen.addEventListener("keydown", (event) => { const key = bbcKeyboardCodeForBrowserEvent(event.code, event.key); if (!key) return; event.preventDefault(); const matrixCode = `${key[0]}:${key[1]}`; activeBrowserKeys.set(event.code, matrixCode); machine.bus.keyboard.press(matrixCode); });
+elements.bbcScreen.addEventListener("keyup", (event) => { const matrixCode = activeBrowserKeys.get(event.code); if (!matrixCode) return; event.preventDefault(); machine.bus.keyboard.release(matrixCode); activeBrowserKeys.delete(event.code); });
+elements.bbcScreen.addEventListener("blur", () => { machine.bus.keyboard.clear(); activeBrowserKeys.clear(); });
 
 async function startBundledMachine() {
   try {
