@@ -10,7 +10,7 @@
 - Ordered trace display
 - Tests and documentation
 
-## 0.2 — Complete legal NMOS instruction set
+## 0.2 — Complete legal NMOS instruction set (implemented)
 
 - All documented opcodes
 - All addressing modes
@@ -21,6 +21,8 @@
 - Disassembler coverage
 
 **Gate:** functional, decimal and interrupt test suites pass.
+
+**Evidence:** repository unit tests cover the opcode matrix, decimal arithmetic and interrupt entry/return; the core also reaches the `$3469` success loop in Klaus Dormann's 64K functional test after 30,646,177 instructions.
 
 ## 0.3 — Ordered-bus validation
 

@@ -23,15 +23,15 @@ bus.write8(address, value)
 
 This allows future machines to observe dummy reads, page-crossing activity, interrupt entry and slow-device accesses without adding machine-specific conditions to the processor.
 
-## Current limitation
+## Current accuracy boundary
 
-The initial pull request establishes the execution model with the instruction subset used by the CPU Lab. It is not a complete NMOS 6502 implementation.
+The 0.2 processor implements the complete documented NMOS instruction set while preserving the cycle-stepped execution model. Undocumented opcodes remain deliberately unsupported.
 
-The public accuracy language must therefore remain:
+The public accuracy language must remain:
 
-> Cycle-stepped 6502 foundation with an intentionally limited instruction set.
+> Complete legal NMOS 6502 instruction set with a cycle-stepped bus interface.
 
-A cycle-accuracy claim is gated on complete legal-opcode support and ordered-bus validation.
+A cycle-accuracy claim remains gated on ordered-bus validation in milestone 0.3.
 
 ## Planned BBC layer
 

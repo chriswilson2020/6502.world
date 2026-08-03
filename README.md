@@ -19,19 +19,18 @@ The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom
 
 ## Current CPU slice
 
-The initial core implements the instructions needed by the bundled CPU Lab program and establishes the public API that the complete core will retain:
+The 0.2 core implements all 151 documented NMOS 6502 opcodes and addressing modes, including:
 
-- reset sequencing;
-- `LDA #`, `LDX #`, `LDY #`;
-- `STA abs`, `STX abs`, `STY abs`;
-- `INX`, `INY`, `DEX`, `DEY`;
-- `CPX #`, `CPY #`, `CMP #`;
-- `BNE`, `BEQ`, `BCC`, `BCS`, `BMI`, `BPL`;
-- `JMP abs`, `NOP`, flag operations and `BRK`;
+- binary and NMOS decimal `ADC`/`SBC`;
+- stack operations, subroutines and returns;
+- reset, `BRK`, IRQ and NMI sequencing;
+- the original indirect-`JMP` page-wrap behavior;
+- instruction-boundary state save and restore;
+- disassembly of every documented opcode;
 - one externally visible bus transaction per `clock()` call;
 - instruction stepping layered on top of cycle stepping.
 
-This is intentionally **not yet described as a complete or cycle-accurate 6502**. The next CPU milestone is complete legal-opcode coverage followed by ordered-bus validation against established test corpora.
+The core is **not yet described as cycle-accurate**. That claim remains gated on ordered-bus validation against established processor test corpora in milestone 0.3.
 
 ## Run locally
 
@@ -49,6 +48,16 @@ npm run build:pages
 ```
 
 The deployable site is written to `dist/`.
+
+## External CPU validation
+
+The repository does not redistribute third-party processor-test binaries. After obtaining Klaus Dormann's `6502_functional_test.bin`, run:
+
+```sh
+node scripts/run-functional-test.js /path/to/6502_functional_test.bin
+```
+
+The runner loads the 64K image, starts it at `$0400`, and reports success only when the suite reaches its `$3469` completion loop.
 
 ## Project structure
 
