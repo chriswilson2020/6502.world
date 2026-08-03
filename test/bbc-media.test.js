@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Intel8271 } from "../src/machine/bbc/intel-8271.js";
-import { SsdDisk, UefCassette } from "../src/machine/bbc/media.js";
+import { createSectorDisk, DsdDisk, restoreSectorDisk, serializeSectorDisk, SsdDisk, UefCassette } from "../src/machine/bbc/media.js";
 import { BbcModelBBus } from "../src/machine/bbc/model-b-bus.js";
 
 test("system VIA sound strobe programs SN76489 tone and attenuation", () => {
@@ -42,4 +42,38 @@ test("8271 reads and writes SSD sectors through FE80-style registers", () => {
   fdc.write(0, 0x0b); fdc.write(1, 1); fdc.write(1, 3); fdc.write(1, 0x21);
   for (let index = 0; index < 256; index += 1) { assert.equal(fdc.tick(), true); fdc.write(4, 255 - index); }
   assert.equal(disk.dirty, true); assert.equal(disk.readSector(1, 3)[0], 255); assert.equal(disk.readSector(1, 3)[255], 0);
+});
+
+test("SSD retains side-zero compatibility and rejects side one", () => {
+  const source = new Uint8Array(80 * 10 * 256); source[256] = 0x41;
+  const disk = new SsdDisk(source); source[256] = 0;
+  assert.equal(disk.readSector(0, 1)[0], 0x41); assert.equal(disk.readSector(0, 0, 1)[0], 0x41);
+  assert.throws(() => disk.readSector(0, 1, 0), /out of range/);
+  const read = disk.readSector(0, 1); read[0] = 0; assert.equal(disk.readSector(0, 1)[0], 0x41);
+});
+
+test("DSD maps track-major interleaved sides and isolates writes", () => {
+  const source = new Uint8Array(80 * 2 * 10 * 256);
+  for (let track = 0; track < 80; track += 1) for (let side = 0; side < 2; side += 1) for (let sector = 0; sector < 10; sector += 1) source[(((track * 2 + side) * 10 + sector) * 256)] = (track ^ (side << 7) ^ sector) & 0xff;
+  const original = source.slice(); const disk = new DsdDisk(source);
+  assert.equal(disk.readSector(0, 0, 0)[0], 0); assert.equal(disk.readSector(0, 1, 0)[0], 0x80);
+  assert.equal(disk.readSector(79, 0, 9)[0], 79 ^ 9); assert.equal(disk.readSector(79, 1, 9)[0], 79 ^ 0x80 ^ 9);
+  disk.writeSector(10, 1, 4, new Uint8Array(256).fill(0xa5));
+  assert.equal(disk.readSector(10, 1, 4)[0], 0xa5); assert.notEqual(disk.readSector(10, 0, 4)[0], 0xa5); assert.notEqual(disk.readSector(10, 1, 5)[0], 0xa5);
+  assert.deepEqual(source, original); assert.equal(disk.dirty, true);
+});
+
+test("sector images export byte-identically and serialize format", () => {
+  const source = new Uint8Array(409600); source[409599] = 0x7e;
+  const disk = createSectorDisk(source, { filename: "utilities.dsd" }); assert.deepEqual(disk.export(), source);
+  const state = serializeSectorDisk(disk); const restored = restoreSectorDisk(state);
+  assert.equal(restored.format, "dsd"); assert.deepEqual(restored.export(), source); assert.equal(restored.dirty, false);
+});
+
+test("sector image geometry rejects incomplete, oversized and ambiguous data", () => {
+  assert.throws(() => new DsdDisk(new Uint8Array(409599)), /geometry/);
+  assert.throws(() => new DsdDisk(new Uint8Array(81 * 2 * 10 * 256)), /1-80/);
+  assert.throws(() => createSectorDisk(new Uint8Array(40 * 10 * 256)), /ambiguous/);
+  assert.ok(createSectorDisk(new Uint8Array(80 * 10 * 256)) instanceof SsdDisk);
+  assert.ok(createSectorDisk(new Uint8Array(80 * 2 * 10 * 256)) instanceof DsdDisk);
 });

@@ -13,6 +13,7 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | SN76489 | Partial | Tone/noise registers and browser audio voices; waveform/timing corpus remains |
 | UEF cassette | Partial | Standard `$0100` data chunks and transport; waveform/security chunks and MOS ACIA loading remain |
 | SSD / Intel 8271 | Partial | Seek and normal sector read/write with NMI requests; protected/nonstandard layouts and full DFS corpus remain |
+| DSD sector media | Implemented core | 80-track, two-sided interleaved geometry, bounds, isolated writes, source immutability and exact export; FDC side selection is milestone 1.3 |
 | Portable BBC state | Stable v1 | CPU, memory, ROMs, core devices and local media round-trip at instruction boundaries; incompatible future formats must use a new version |
 | Tube | Z80 ROM validated | Four duplex channels, Acorn control/FIFO behavior, interrupts, state resume and 6MHz scheduling; Acorn Z80 1.20 boots through DNFS and reaches its command loop; no CP/M application corpus yet |
 

@@ -19,7 +19,7 @@ The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom
 
 ## Current release
 
-The 1.1 release extends the stable Model B with a BBC Tube bridge and the pinned Z80 World core:
+The 1.2 release extends the stable Model B and Tube bridge with geometry-aware sector media:
 
 - the 32K RAM, sideways ROM, OS ROM, FRED, JIM and SHEILA map;
 - sixteen sideways banks selected by `ROMSEL` at `$FE30`;
@@ -37,7 +37,9 @@ The 1.1 release extends the stable Model B with a BBC Tube bridge and the pinned
 - four duplex Tube channels with status/control and host/parasite interrupt lines;
 - a stateful 6MHz Z80 second processor scheduled beside the 2MHz BBC host;
 - bundled Acorn TUBE Z80 64K 1.20 firmware, local replacement loading and parasite telemetry;
-- a real OS 1.20 + DNFS + Z80 ROM integration gate that observes the startup transcript and command loop.
+- a real OS 1.20 + DNFS + Z80 ROM integration gate that observes the startup transcript and command loop;
+- backward-compatible SSD plus interleaved two-sided DSD images with immutable sources and byte-exact export;
+- an inventoried, hash-pinned optional Acorn CP/M media corpus that remains outside Git history.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 

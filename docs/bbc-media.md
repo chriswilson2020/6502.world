@@ -1,5 +1,11 @@
 # BBC audio and media
 
+## Sector images
+
+Milestone 1.2 generalizes local sector media behind a geometry contract. SSD remains one-sided and backward compatible with `readSector(track, sector)`; DSD uses `readSector(track, side, sector)` and maps the standard track-major, side-interleaved layout. Both clone input bytes, return fresh sector copies, preserve the exact image on an unmodified export and isolate writes in memory.
+
+The optional Acorn CP/M Utilities corpus image is 409,600 bytes with geometry 80 tracks × 2 sides × 10 sectors × 256 bytes and SHA-256 `9147393d301af384c0c2cea1dc3299b8c98877180515ec0f4d87a71787332b3a`. See `acorn-z80-media.md`; the local binary is not part of the repository.
+
 Milestone 0.7 keeps host APIs at the browser boundary while exposing deterministic hardware and media models to the BBC machine.
 
 ## SN76489 sound

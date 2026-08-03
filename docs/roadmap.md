@@ -156,7 +156,7 @@ Create `docs/acorn-z80-media.md` from the inventory. It should distinguish:
 - unknown or duplicate variants;
 - source, copyright and redistribution uncertainty.
 
-## 1.2 — General sector media and DSD images
+## 1.2 — General sector media and DSD images (implemented)
 
 The current `SsdDisk` class assumes one side and exposes `readSector(track, sector)`. Generalize this without regressing existing SSD support.
 
@@ -219,6 +219,8 @@ Add focused tests for:
 **Gate:** the CP/M Utilities DSD mounts, sectors on both sides can be read and written deterministically, export is byte-identical before modification, and every existing SSD test remains green.
 
 **Evidence to publish:** media geometry, image SHA-256 and focused test counts in `docs/bbc-media.md` and `docs/acorn-z80-media.md`.
+
+**Implemented evidence:** the geometry-aware `SectorDisk`, compatible `SsdDisk`, interleaved `DsdDisk`, format-aware factory and serialization helpers pass focused source-immutability, side mapping, boundary, isolation, export and rejection tests. The optional utilities image is inventoried by content and hash without entering Git history.
 
 ## 1.3 — Two physical drives and 8271 drive/side fidelity
 
