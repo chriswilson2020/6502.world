@@ -14,7 +14,7 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | UEF cassette | Partial | Standard `$0100` data chunks and transport; waveform/security chunks and MOS ACIA loading remain |
 | SSD / Intel 8271 | Partial | Seek and normal sector read/write with NMI requests; protected/nonstandard layouts and full DFS corpus remain |
 | Portable BBC state | Stable v1 | CPU, memory, ROMs, core devices and local media round-trip at instruction boundaries; incompatible future formats must use a new version |
-| Tube | Not implemented | An absent interface is exposed today; host/parasite protocol is milestone 1.1 |
+| Tube | Bridge implemented | Four duplex channels, status/control, host IRQ, parasite IRQ/NMI, state resume and 6MHz Z80 scheduling; no Z80 firmware or application corpus is bundled |
 
 ## Browser support
 

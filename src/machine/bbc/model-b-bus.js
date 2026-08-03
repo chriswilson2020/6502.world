@@ -1,8 +1,9 @@
-import { AbsentDevice, Crtc6845Shell, RegisterDevice, RomSelectLatch } from "./register-device.js";
+import { Crtc6845Shell, RegisterDevice, RomSelectLatch } from "./register-device.js";
 import { BbcKeyboardMatrix, SystemVia6522 } from "./system-via.js";
 import { VideoUla } from "./video.js";
 import { Sn76489 } from "./sn76489.js";
 import { Intel8271 } from "./intel-8271.js";
+import { TubeUla } from "./tube-ula.js";
 
 const OS_ROM_SIZE = 0x4000;
 const SIDEWAYS_ROM_SIZE = 0x4000;
@@ -29,7 +30,7 @@ export class BbcModelBBus {
       fdc: new Intel8271(),
       econet: new RegisterDevice("Econet", 32),
       adc: new RegisterDevice("uPD7002 ADC", 32),
-      tube: new AbsentDevice("Tube ULA"),
+      tube: new TubeUla(),
       fred: new RegisterDevice("FRED 1MHz expansion", 256),
       jim: new RegisterDevice("JIM 1MHz expansion", 256),
       sound,

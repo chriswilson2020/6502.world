@@ -10,7 +10,7 @@ BBC Model B state files use JSON with this identifying header:
 }
 ```
 
-Version 1 records machine ticks; processor state; 32K RAM; OS and all populated sideways ROM banks; ROM selection; CRTC, Video ULA, system VIA and SN76489 state; 8271 registers and any in-progress transfer; mounted writable SSD data; and UEF source, position and transport state.
+Version 1 records machine ticks; processor state; 32K RAM; OS and all populated sideways ROM banks; ROM selection; CRTC, Video ULA, system VIA, SN76489 and Tube state; 8271 registers and any in-progress transfer; mounted writable SSD data; UEF source, position and transport state; and an attached Z80 parasite when present.
 
 States are exported and restored at an instruction boundary. Binary fields are base64 text. A loader must reject a different format, machine or version instead of interpreting it as version 1. Additive metadata may be ignored, but changing or removing a version 1 field requires a new state version and an explicit migration path.
 

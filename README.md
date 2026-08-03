@@ -19,7 +19,7 @@ The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom
 
 ## Current release
 
-The 1.0 stable release provides a validated, portable browser surface for the interactive Model B console:
+The 1.1 release extends the stable Model B with a BBC Tube bridge and the pinned Z80 World core:
 
 - the 32K RAM, sideways ROM, OS ROM, FRED, JIM and SHEILA map;
 - sixteen sideways banks selected by `ROMSEL` at `$FE30`;
@@ -33,7 +33,10 @@ The 1.0 stable release provides a validated, portable browser surface for the in
 - full-machine portable states, instruction stepping, disassembly and address breakpoints;
 - responsive keyboard-accessible controls, a screen-reader text mirror and an explicit compatibility matrix;
 - a repeatable real-ROM software corpus plus the headless boot diagnostic;
-- a stable version 1 full-machine state contract.
+- a stable version 1 full-machine state contract;
+- four duplex Tube channels with status/control and host/parasite interrupt lines;
+- a stateful 6MHz Z80 second processor scheduled beside the 2MHz BBC host;
+- optional local Z80 boot-ROM loading and parasite telemetry in the browser.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 
@@ -101,7 +104,8 @@ Run the bundled BBC software corpus separately with `npm run test:bbc-software`.
 src/cpu/       processor core
 src/bus/       machine-independent bus implementations
 src/machine/   minimal machine composition and portable state
-src/machine/bbc/ Model B bus, video, system VIA and machine composition
+src/machine/bbc/ Model B bus, devices, Tube bridge and machine composition
+vendor/z80-world/ pinned shared Z80 World source dependency
 ROM/           bundled BBC firmware and checksum/provenance notes
 public/        static website and CPU Lab
 scripts/       local server and Pages build
@@ -111,4 +115,4 @@ docs/          architecture, roadmap and ROM policy
 
 ## Relationship to Z80 World
 
-6502 World is a sibling to [Z80 World](https://z80.world), not a replacement for it. The sites share a design language while keeping CPU cores, validation suites and machine implementations independent. A future BBC Tube implementation is the intended technical bridge between the two projects.
+6502 World is a sibling to [Z80 World](https://z80.world), not a replacement for it. The 1.1 BBC Tube implementation pins and directly imports Z80 World's validated CPU core, while the projects retain independent machine layers and validation suites.

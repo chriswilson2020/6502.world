@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a aria-current="page" href="bbc.html">BBC Micro</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">1.0 · STABLE</p><h1>Model B console.</h1></div><p>Boot BASIC, debug and save the complete machine, enable sound, or mount local UEF and writable SSD media from a responsive browser workbench.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">1.1 · TUBE BRIDGE</p><h1>Model B console.</h1></div><p>Boot BASIC, debug and save the complete machine, enable sound, mount local media, or attach the shared Z80 World core through the Tube.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>6845 + VIDEO ULA</span><h2>40 × 25 display</h2></div><span id="bbcRunState" class="status planned">NO ROM</span></div>
@@ -37,6 +37,12 @@
           <label class="rom-field">SSD disc image<input id="ssdInput" type="file" accept=".ssd,application/octet-stream"></label>
           <button id="exportSsdButton" class="wide-action" type="button" disabled>Export writable SSD</button>
           <p id="mediaStatus" class="bbc-help">Choose a UEF cassette or SSD disc; media remains local to this browser.</p>
+        </article>
+        <article class="tool-card"><div class="tool-heading"><div><span>1.1 SHARED CORE</span><h2>Z80 Tube processor</h2></div><span id="tubeState" class="status planned">DETACHED</span></div>
+          <label class="rom-field">Z80 boot ROM · up to 4K<input id="tubeRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
+          <button id="attachTubeButton" class="wide-action" type="button">Attach Z80 processor</button>
+          <dl class="bbc-stats"><div><dt>Z80 PC</dt><dd id="tubePc">0000</dd></div><div><dt>T-states</dt><dd id="tubeTstates">0</dd></div></dl>
+          <p id="tubeStatus" class="bbc-help">Uses the pinned, validated Z80 World core at 6MHz. A boot ROM is optional and remains local.</p>
         </article>
       </aside>
     </section>

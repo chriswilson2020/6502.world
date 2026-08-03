@@ -49,7 +49,7 @@ test("Model B I/O shells decode mirrors and report 1MHz timing", () => {
   bus.write8(0xfe42, 0xff);
   bus.write8(0xfe40, 0x77);
   assert.equal(bus.read8(0xfe50), 0x77);
-  assert.equal(bus.read8(0xfee0), 0xff);
+  assert.equal(bus.read8(0xfee0), 0x40);
 
   bus.reset();
   bus.read8(0x0000);

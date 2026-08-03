@@ -105,12 +105,16 @@
 
 **Evidence:** `npm test` covers the CPU, machine, browser assets and state contract. `npm run test:bbc-software` reports the exact ROM hashes, reaches the BASIC prompt in 173,000 instructions and executes `PRINT "HI"`. See `bbc-validation.md`, `state-format.md` and `compatibility.md`.
 
-## 1.1 — Tube bridge
+## 1.1 — Tube bridge (implemented)
 
 - Tube ULA
 - host and parasite protocols
 - multi-CPU scheduling
 - reuse of the existing Z80 World core as a Z80 second processor
+
+**Gate:** host and parasite exchange bytes through four Tube channels and hardware-style status flags; control writes assert host IRQ and parasite IRQ/NMI lines; the pinned Z80 World core executes through Tube ports at a scheduled 6MHz against the 2MHz host clock; the complete bridge round-trips in a BBC portable state.
+
+**Evidence:** focused tests cover duplex FIFOs, set/clear control semantics, `$FEE0-$FEEF` host mapping, Z80 `IN`/`OUT`, clock scheduling and state resume. The browser accepts an optional local Z80 boot ROM and exposes parasite PC and T-states. See `tube.md`.
 
 ## Scope rule
 

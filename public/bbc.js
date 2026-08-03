@@ -1,12 +1,12 @@
 import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
 import { bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
 
-const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "exportSsdButton", "mediaState", "mediaStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus"].map((id) => [id, document.querySelector(`#${id}`)]));
+const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "exportSsdButton", "mediaState", "mediaStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus", "tubeRomInput", "attachTubeButton", "tubeState", "tubeStatus", "tubePc", "tubeTstates"].map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.bbcScreen.getContext("2d");
 let machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
 let osRom = null; let basicRom = null; let running = false; let frame = null; let demo = true;
 const activeBrowserKeys = new Map();
-let mountedSsdName = "disc.ssd"; let audio = null;
+let mountedSsdName = "disc.ssd"; let audio = null; let tubeBootRom = null;
 const bbcBreakpoints = new Set();
 const hex = (value, width = 4) => value.toString(16).toUpperCase().padStart(width, "0");
 
@@ -25,6 +25,8 @@ function draw() {
   elements.bbcTicks.textContent = machine.machineTicks.toLocaleString();
   elements.bbcIrq.textContent = machine.cpu.irqLine ? "HIGH" : "LOW";
   elements.bbcRomBank.textContent = `ROM ${machine.bus.selectedRom}`;
+  elements.tubePc.textContent = machine.parasite ? hex(machine.parasite.cpu.PC) : "0000";
+  elements.tubeTstates.textContent = machine.parasite ? machine.parasite.cpu.tStates.toLocaleString() : "0";
   renderBbcDebugger();
   audio?.sync(machine.bus.devices.sound.channelState());
 }
@@ -42,6 +44,7 @@ async function boot() {
     if (!osRom || osRom.length !== 0x4000) throw new Error("Choose a 16K BBC Model B OS ROM.");
     if (basicRom && basicRom.length !== 0x2000 && basicRom.length !== 0x4000) throw new Error("BASIC ROM must be 8K or 16K.");
     machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
+    if (tubeBootRom) machine.attachZ80SecondProcessor({ bootRom: tubeBootRom });
     if (basicRom) machine.loadSidewaysRom(15, basicRom);
     machine.loadOsRom(osRom); demo = false; running = true;
     status(`Booting local OS${basicRom ? " + BASIC" : ""}. Click the display to type.`, "RUNNING");
@@ -95,6 +98,16 @@ elements.ssdInput.addEventListener("change", async () => {
 });
 elements.exportSsdButton.addEventListener("click", () => {
   const disk = machine.bus.devices.fdc.disk; if (!disk) return; const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([disk.export()], { type: "application/octet-stream" })); link.download = mountedSsdName; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
+});
+
+elements.attachTubeButton.addEventListener("click", async () => {
+  try {
+    tubeBootRom = await readSelected(elements.tubeRomInput, tubeBootRom ?? new Uint8Array());
+    const parasite = machine.attachZ80SecondProcessor({ bootRom: tubeBootRom });
+    elements.tubeState.textContent = "Z80 6MHz"; elements.tubeState.className = "status live";
+    elements.tubeStatus.textContent = `${tubeBootRom.length ? `${tubeBootRom.length.toLocaleString()}-byte boot ROM loaded; ` : "No boot ROM; "}shared Z80 World core attached at PC $${hex(parasite.cpu.PC)}.`;
+    draw();
+  } catch (error) { elements.tubeState.textContent = "ERROR"; elements.tubeState.className = "status error"; elements.tubeStatus.textContent = error.message; }
 });
 
 async function startBundledMachine() {
