@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a aria-current="page" href="bbc.html">BBC Micro</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">1.7 · ACORN Z80 CATALOGUE</p><h1>Model B console.</h1></div><p>Boot validated BBC and Acorn Z80 software, inspect honestly classified preservation media, and preserve writable working discs locally without altering the bundled sources.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">1.8 · PRESERVATION RELEASE</p><h1>Model B console.</h1></div><p>Boot validated BBC and Acorn Z80 software, inspect honestly classified preservation media, and preserve writable working discs and portable states without altering bundled sources.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>6845 + VIDEO ULA</span><h2>40 / 80-column display</h2></div><span id="bbcRunState" class="status planned">NO ROM</span></div>
@@ -55,6 +55,7 @@
           <label class="rom-field">Persistence target<select id="persistenceDriveSelect"><option value="0">Physical drive 0</option><option value="1">Physical drive 1</option></select></label>
           <div class="button-row compact-row"><button id="saveMediaButton" class="button primary" type="button">Save locally</button><button id="restoreMediaButton" class="button secondary" type="button">Restore saved</button></div>
           <button id="duplicateMediaButton" class="wide-action" type="button">Duplicate as working copy</button>
+          <button id="createBlankDsdButton" class="wide-action" type="button">Create blank writable DSD</button>
           <button id="clearStoredMediaButton" class="wide-action" type="button">Clear stored copy</button>
           <p id="persistenceStatus" class="bbc-help" role="status">IndexedDB keeps 400K working images in this browser only.</p>
         </article>

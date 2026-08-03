@@ -672,6 +672,8 @@ Hash recognition and launch metadata may be committed even when the binary canno
 
 ## 1.8 — Original installation experience and release hardening
 
+**Implemented within the available corpus:** the original seven-disc installer is explicitly unavailable because its source set is absent; the project does not fake it from prepared media. The UI nevertheless supplies blank writable DSD targets and manual two-drive preservation primitives. Release hardening adds detailed state migration, real CP/M-prompt and active-transfer resume gates, bounded diagnostics, repeatable performance evidence, narrow keyboard-only browser validation, normal/no-media Pages builds, complete ROM/DSD provenance notices and explicit protected-layout exclusions.
+
 This is an advanced preservation milestone, not part of the first CP/M release.
 
 ### Original installation

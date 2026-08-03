@@ -17,9 +17,9 @@ This repository begins with a deliberately small but complete vertical slice:
 
 The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom and Commodore-family targets remain future work until the BBC implementation is stable.
 
-## Current release — 1.7
+## Current release — 1.8
 
-The 1.7 release turns the stable, writable Acorn CP/M path into an evidence-backed software catalogue:
+The 1.8 preservation release hardens the complete BBC Model B and Acorn Z80 path:
 
 - the 32K RAM, sideways ROM, OS ROM, FRED, JIM and SHEILA map;
 - sixteen sideways banks selected by `ROMSEL` at `$FE30`;
@@ -57,6 +57,14 @@ The 1.7 release turns the stable, writable Acorn CP/M path into an evidence-back
 - a repeatable BBC BASIC 2.20 title gate and committed bounded text transcript;
 - coherent Accountant and Nucleus multi-disc metadata with writable-disc guidance;
 - an explicit metadata-only record for the absent original seven-disc installation set.
+- version 1-to-2 state migration details plus CP/M-prompt and active-FDC resume gates;
+- bounded CPU, bus, 8271 and browser Tube diagnostics;
+- measured dual-CPU/FDC CP/M performance with a repeatable benchmark command;
+- narrow-screen, keyboard-only system/media workflows verified in Chromium;
+- normal and optional-media Pages builds, with local import controls retained when DSDs are absent;
+- blank writable 80-track DSD targets for preservation work;
+- per-corpus provenance, permission and third-party copyright notices;
+- an honest unavailable original-installer record until its authentic seven-disc source set is supplied.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 

@@ -28,12 +28,16 @@ test("CPU workbench exposes the milestone 0.4 debugger surfaces", async () => {
 
 test("BBC console exposes the debugger, persistent dual-drive media and Tube controls", async () => {
   const html = await readFile("public/bbc.html", "utf8");
-  for (const id of ["bbcScreen", "bbcTextMirror", "systemSelect", "softwareSelect", "bootSystemButton", "resetSystemButton", "configurationStatus", "advancedHardware", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "ejectDrive0Button", "ejectDrive1Button", "resetDrive0Button", "resetDrive1Button", "swapDrivesButton", "persistenceDriveSelect", "saveMediaButton", "restoreMediaButton", "duplicateMediaButton", "clearStoredMediaButton", "persistenceStatus", "catalogueList", "catalogueStatus", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput", "advancedTube", "tubeRomInput", "attachTubeButton", "bootCpmButton", "tubePc", "tubeTranscript"]) {
+  for (const id of ["bbcScreen", "bbcTextMirror", "systemSelect", "softwareSelect", "bootSystemButton", "resetSystemButton", "configurationStatus", "advancedHardware", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "ejectDrive0Button", "ejectDrive1Button", "resetDrive0Button", "resetDrive1Button", "swapDrivesButton", "persistenceDriveSelect", "saveMediaButton", "restoreMediaButton", "duplicateMediaButton", "createBlankDsdButton", "clearStoredMediaButton", "persistenceStatus", "catalogueList", "catalogueStatus", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput", "advancedTube", "tubeRomInput", "attachTubeButton", "bootCpmButton", "tubePc", "tubeTranscript"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /1\.7 · ACORN Z80 CATALOGUE/);
+  assert.match(html, /1\.8 · PRESERVATION RELEASE/);
   assert.match(html, /aria-describedby=["']bbcKeyboardHelp bbcTextMirror["']/);
   assert.match(html, /<summary>Advanced hardware<\/summary>/);
+});
+
+test("BBC browser diagnostics and responsive controls have bounded accessible contracts", async () => {
+  const [source, styles] = await Promise.all([readFile("public/bbc.js", "utf8"), readFile("public/styles.css", "utf8")]); assert.match(source, /TUBE_OUTPUT_LIMIT = 8192/); assert.match(source, /tubeOutput\.length > TUBE_OUTPUT_LIMIT/); assert.match(source, /bindKeyboardSelect/); assert.match(styles, /@media \(max-width: 720px\)/); assert.match(styles, /\.bbc-console-grid/);
 });
 
 test("browser modules stay inside the GitHub Pages project path", async () => {

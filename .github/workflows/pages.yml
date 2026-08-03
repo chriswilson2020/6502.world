@@ -30,6 +30,7 @@ jobs:
           node-version: 24
       - run: npm test
       - run: npm run build:pages
+      - run: MEDIA_SOURCE=.github/media-not-present BUILD_OUTPUT=dist-no-media npm run build:pages
 
   deploy:
     if: github.event_name != 'pull_request'

@@ -60,8 +60,8 @@ test("Model B I/O shells decode mirrors and report 1MHz timing", () => {
   assert.deepEqual(bus.accessLog.map(({ domain }) => domain), ["2MHz", "1MHz", "1MHz", "2MHz"]);
 });
 
-test("headless BBC bootstrap selects a ROM, touches the VIA and reaches an OS loop", () => {
-  const machine = new BbcMicroModelB();
+test("headless BBC bootstrap selects a ROM, touches the VIA and bounds diagnostic history", () => {
+  const machine = new BbcMicroModelB({ traceLimit: 16, accessLogLimit: 8 });
   const sideways = new Uint8Array(0x4000).fill(0xff);
   sideways[0] = 0xa5;
   machine.loadSidewaysRom(15, sideways);
@@ -76,4 +76,5 @@ test("headless BBC bootstrap selects a ROM, touches the VIA and reaches an OS lo
   assert.ok(report.machineTicks > machine.cpu.cycles);
   assert.ok(report.deviceAccesses.ROMSEL > 0);
   assert.ok(report.deviceAccesses["System 6522 VIA"] > 0);
+  assert.ok(machine.cpu.trace.length <= 16); assert.ok(machine.bus.accessLog.length <= 8); assert.ok(machine.bus.devices.fdc.trace.length <= machine.bus.devices.fdc.traceLimit);
 });

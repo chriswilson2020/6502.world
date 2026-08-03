@@ -7,6 +7,7 @@ import { BBC_KEYBOARD_CODES } from "../src/machine/bbc/system-via.js";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const UTILITIES_HASH = "9147393d301af384c0c2cea1dc3299b8c98877180515ec0f4d87a71787332b3a";
+const TUBE_TRANSCRIPT_LIMIT = 8192;
 const KEY_FOR_CHARACTER = Object.freeze({
   A: "KeyA", B: "KeyB", C: "KeyC", D: "KeyD", E: "KeyE", F: "KeyF", G: "KeyG", H: "KeyH", I: "KeyI", J: "KeyJ", K: "KeyK", L: "KeyL", M: "KeyM",
   N: "KeyN", O: "KeyO", P: "KeyP", Q: "KeyQ", R: "KeyR", S: "KeyS", T: "KeyT", U: "KeyU", V: "KeyV", W: "KeyW", X: "KeyX", Y: "KeyY", Z: "KeyZ",
@@ -14,7 +15,7 @@ const KEY_FOR_CHARACTER = Object.freeze({
   " ": "Space", ".": "Period", ":": "Semicolon", "/": "Slash", "-": "Minus", "\r": "Enter", "\n": "Enter",
 });
 
-export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], commandExpectations = [], writeProtected = true, mediaBytes, drive1MediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false } = {}) {
+export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], commandExpectations = [], writeProtected = true, mediaBytes, drive1MediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false, returnMachine = false } = {}) {
   const names = ["os12.rom", "basic2.rom", "dnfs.rom", "z80.rom"];
   const [os, basic, dnfs, z80, utilities] = await Promise.all([
     ...names.map(async (name) => new Uint8Array(await readFile(join(ROOT, "ROM", name)))),
@@ -31,7 +32,7 @@ export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandIns
   const tubeTranscript = []; const tube = machine.bus.devices.tube; const parasiteWrite = tube.parasiteWrite.bind(tube);
   tube.parasiteWrite = (offset, value) => {
     const before = tube.parasiteToHost[0].length; parasiteWrite(offset, value);
-    if ((offset & 7) === 1 && tube.parasiteToHost[0].length > before) tubeTranscript.push(value & 0xff);
+    if ((offset & 7) === 1 && tube.parasiteToHost[0].length > before) { tubeTranscript.push(value & 0xff); if (tubeTranscript.length > TUBE_TRANSCRIPT_LIMIT) tubeTranscript.splice(0, tubeTranscript.length - TUBE_TRANSCRIPT_LIMIT); }
   };
   // Loading the OS performs the same machine reset used by the browser.
   machine.loadOsRom(os);
@@ -63,6 +64,7 @@ export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandIns
   const promptGate = commandExpectations.some(Boolean) || promptCount(screen) >= requestedCommands.length + 1;
   const result = report({ passed: booted && commands.every(({ completed }) => completed) && directoryPlausible && statPlausible && promptGate, reason: "complete", machine, parasite, hashes, hostInstructions, tubeTranscript, commands });
   if (returnMedia) result.exportedMedia = machine.bus.devices.fdc.drives[0].disk.export();
+  if (returnMachine) result.machine = machine;
   return result;
 }
 

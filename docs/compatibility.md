@@ -16,9 +16,10 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | DSD / Intel 8271 | CP/M read/write validated | Two physical drives, both DSD sides, observed commands/special registers, FM-paced NMI transfers, CP/M-created files, warm-boot survival and exact export |
 | Browser media persistence | Implemented | IndexedDB full-image working copies with SHA-256 base identity, revision-aware warnings, restore, duplicate, clear and original reset |
 | Acorn Z80 software catalogue | BBC BASIC validated | All 12 bundled DSDs hash-accounted; Utilities and BBC BASIC have repeatable launch gates; other titles remain visibly identified but unvalidated |
+| Pages / optional media | Validated | CI builds with the approved corpus and with `MEDIA_SOURCE` absent; local imports and blank DSD targets remain available |
 | Portable BBC state | Stable v2 | CPU, memory, ROMs, core devices, two drives and active FDC transfers round-trip; version 1 SSD states migrate |
 | Tube | Acorn CP/M validated | Four duplex channels, Acorn control/FIFO behavior, interrupts, state resume and 6MHz scheduling; real CP/M 2.2 boots and runs `DIR`/`STAT` |
 
 ## Browser support
 
-The static application uses standard ES modules, Canvas 2D, Web Audio, File/Blob and IndexedDB APIs and `requestAnimationFrame`. Current Chromium is exercised in the browser checks. Explicit hardware profiles and compatible software presets support deterministic deep links, cold switching and independent two-drive controls. Controls have visible keyboard focus, advanced controls use native disclosures, the BBC canvas has a text alternative, audio starts only after a user gesture, and the workbench collapses to one column below 1050 pixels.
+The static application uses standard ES modules, Canvas 2D, Web Audio, File/Blob and IndexedDB APIs and `requestAnimationFrame`. Current Chromium is exercised at desktop and 390-pixel widths. Explicit hardware profiles and compatible software presets support deterministic deep links, cold switching and independent two-drive controls. Controls have visible keyboard focus, advanced controls use native disclosures, the BBC canvas has a text alternative, audio starts only after a user gesture, and the console collapses without horizontal document overflow. Protected/nonstandard disc layouts remain unsupported.
