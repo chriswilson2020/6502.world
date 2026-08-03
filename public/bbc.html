@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a aria-current="page" href="bbc.html">BBC Micro</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">0.6 · INTERACTIVE BBC</p><h1>Model B console.</h1></div><p>The bundled OS 1.20 and BASIC II images boot automatically. Choose replacement ROMs below at any time; selected files stay in your browser.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">0.7 · AUDIO + MEDIA</p><h1>Model B console.</h1></div><p>The bundled OS 1.20 and BASIC II images boot automatically. Add sound, UEF cassette transport or a writable SSD image—all kept local to your browser.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>6845 + VIDEO ULA</span><h2>40 × 25 display</h2></div><span id="bbcRunState" class="status planned">NO ROM</span></div>
@@ -23,6 +23,14 @@
           <button id="pauseBbcButton" class="wide-action" type="button">Run / pause</button>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>KEYBOARD</span><h2>Matrix input</h2></div></div><p class="bbc-help">Click the display, then type. Browser key codes are translated into the Model B keyboard matrix read through the system VIA.</p></article>
+        <article class="tool-card"><div class="tool-heading"><div><span>0.7 AUDIO + MEDIA</span><h2>Local peripherals</h2></div><span id="mediaState" class="status planned">EMPTY</span></div>
+          <button id="enableAudioButton" class="wide-action" type="button">Enable BBC sound</button>
+          <label class="rom-field">UEF cassette<input id="uefInput" type="file" accept=".uef,application/octet-stream"></label>
+          <div class="button-row compact-row"><button id="playTapeButton" class="button secondary" type="button">Play</button><button id="rewindTapeButton" class="button secondary" type="button">Rewind</button></div>
+          <label class="rom-field">SSD disc image<input id="ssdInput" type="file" accept=".ssd,application/octet-stream"></label>
+          <button id="exportSsdButton" class="wide-action" type="button" disabled>Export writable SSD</button>
+          <p id="mediaStatus" class="bbc-help">Choose a UEF cassette or SSD disc; media remains local to this browser.</p>
+        </article>
       </aside>
     </section>
   </main><script type="module" src="bbc.js"></script>

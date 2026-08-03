@@ -1,6 +1,8 @@
-import { Crtc6845Shell, RegisterDevice, RomSelectLatch } from "./register-device.js";
+import { AbsentDevice, Crtc6845Shell, RegisterDevice, RomSelectLatch } from "./register-device.js";
 import { BbcKeyboardMatrix, SystemVia6522 } from "./system-via.js";
 import { VideoUla } from "./video.js";
+import { Sn76489 } from "./sn76489.js";
+import { Intel8271 } from "./intel-8271.js";
 
 const OS_ROM_SIZE = 0x4000;
 const SIDEWAYS_ROM_SIZE = 0x4000;
@@ -16,19 +18,21 @@ export class BbcModelBBus {
     this.accessLog = [];
     this.deviceAccessCounts = {};
     this.keyboard = new BbcKeyboardMatrix();
+    const sound = new Sn76489();
     this.devices = {
       crtc: new Crtc6845Shell(),
       acia: new RegisterDevice("6850 ACIA", 4),
       serialUla: new RegisterDevice("Serial ULA", 16),
       videoUla: new VideoUla(),
-      systemVia: new SystemVia6522({ keyboard: this.keyboard }),
+      systemVia: new SystemVia6522({ keyboard: this.keyboard, onSoundWrite: (value) => sound.write(value) }),
       userVia: new RegisterDevice("User 6522 VIA", 16),
-      fdc: new RegisterDevice("8271 FDC", 32),
+      fdc: new Intel8271(),
       econet: new RegisterDevice("Econet", 32),
       adc: new RegisterDevice("uPD7002 ADC", 32),
-      tube: new RegisterDevice("Tube ULA", 32),
+      tube: new AbsentDevice("Tube ULA"),
       fred: new RegisterDevice("FRED 1MHz expansion", 256),
       jim: new RegisterDevice("JIM 1MHz expansion", 256),
+      sound,
     };
     this.romSelect = new RomSelectLatch((bank) => { this.selectedRom = bank; });
   }

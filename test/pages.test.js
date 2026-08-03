@@ -26,12 +26,12 @@ test("CPU workbench exposes the milestone 0.4 debugger surfaces", async () => {
   assert.match(html, /0\.4 · MINIMAL MACHINE/);
 });
 
-test("BBC console exposes the milestone 0.6 display and ROM controls", async () => {
+test("BBC console exposes the milestone 0.7 display and local media controls", async () => {
   const html = await readFile("public/bbc.html", "utf8");
-  for (const id of ["bbcScreen", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq"]) {
+  for (const id of ["bbcScreen", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "exportSsdButton"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /0\.6 · INTERACTIVE BBC/);
+  assert.match(html, /0\.7 · AUDIO \+ MEDIA/);
 });
 
 test("browser modules stay inside the GitHub Pages project path", async () => {

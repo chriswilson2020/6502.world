@@ -14,6 +14,13 @@ export class RegisterDevice {
   }
 }
 
+export class AbsentDevice {
+  constructor(name) { this.name = name; }
+  read() { return 0xff; }
+  write() {}
+  reset() {}
+}
+
 export class Crtc6845Shell extends RegisterDevice {
   constructor() { super("6845 CRTC", 18); this.selectedRegister = 0; }
   read(offset) { return (offset & 1) === 0 ? this.selectedRegister : super.read(this.selectedRegister); }

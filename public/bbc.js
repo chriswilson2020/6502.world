@@ -1,11 +1,12 @@
 import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
 import { bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
 
-const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton"].map((id) => [id, document.querySelector(`#${id}`)]));
+const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "exportSsdButton", "mediaState", "mediaStatus"].map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.bbcScreen.getContext("2d");
 let machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
 let osRom = null; let basicRom = null; let running = false; let frame = null; let demo = true;
 const activeBrowserKeys = new Map();
+let mountedSsdName = "disc.ssd"; let audio = null;
 const hex = (value, width = 4) => value.toString(16).toUpperCase().padStart(width, "0");
 
 async function readSelected(input, fallback) { const [file] = input.files; return file ? new Uint8Array(await file.arrayBuffer()) : fallback; }
@@ -22,6 +23,7 @@ function draw() {
   elements.bbcTicks.textContent = machine.machineTicks.toLocaleString();
   elements.bbcIrq.textContent = machine.cpu.irqLine ? "HIGH" : "LOW";
   elements.bbcRomBank.textContent = `ROM ${machine.bus.selectedRom}`;
+  audio?.sync(machine.bus.devices.sound.channelState());
 }
 
 function demoScreen() {
@@ -61,6 +63,24 @@ elements.bbcScreen.addEventListener("keydown", (event) => { const key = bbcKeybo
 elements.bbcScreen.addEventListener("keyup", (event) => { const matrixCode = activeBrowserKeys.get(event.code); if (!matrixCode) return; event.preventDefault(); machine.bus.keyboard.release(matrixCode); activeBrowserKeys.delete(event.code); });
 elements.bbcScreen.addEventListener("blur", () => { machine.bus.keyboard.clear(); activeBrowserKeys.clear(); });
 
+elements.enableAudioButton.addEventListener("click", async () => {
+  audio ??= new BrowserSnAudio(); await audio.enable();
+  elements.enableAudioButton.textContent = "BBC sound enabled"; elements.mediaState.textContent = "AUDIO"; elements.mediaState.className = "status live";
+});
+elements.uefInput.addEventListener("change", async () => {
+  try { const bytes = await readSelected(elements.uefInput, null); const tape = machine.loadUef(bytes); elements.mediaStatus.textContent = `UEF ${tape.version}: ${tape.data.length.toLocaleString()} decoded data bytes.`; elements.mediaState.textContent = "TAPE"; elements.mediaState.className = "status live"; }
+  catch (error) { elements.mediaStatus.textContent = error.message; elements.mediaState.textContent = "ERROR"; elements.mediaState.className = "status error"; }
+});
+elements.playTapeButton.addEventListener("click", () => { if (!machine.cassette) return; machine.cassette.playing ? machine.cassette.pause() : machine.cassette.play(); elements.playTapeButton.textContent = machine.cassette.playing ? "Pause" : "Play"; });
+elements.rewindTapeButton.addEventListener("click", () => { machine.cassette?.rewind(); elements.mediaStatus.textContent = machine.cassette ? "Cassette rewound to the first decoded block." : "Choose a UEF cassette first."; });
+elements.ssdInput.addEventListener("change", async () => {
+  try { const [file] = elements.ssdInput.files; if (!file) return; mountedSsdName = file.name; const disk = machine.mountSsd(new Uint8Array(await file.arrayBuffer())); elements.exportSsdButton.disabled = false; elements.mediaStatus.textContent = `${file.name}: ${disk.tracks} tracks mounted read/write.`; elements.mediaState.textContent = "SSD"; elements.mediaState.className = "status live"; }
+  catch (error) { elements.mediaStatus.textContent = error.message; elements.mediaState.textContent = "ERROR"; elements.mediaState.className = "status error"; }
+});
+elements.exportSsdButton.addEventListener("click", () => {
+  const disk = machine.bus.devices.fdc.disk; if (!disk) return; const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([disk.export()], { type: "application/octet-stream" })); link.download = mountedSsdName; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
+});
+
 async function startBundledMachine() {
   try {
     [osRom, basicRom] = await Promise.all([fetchRom("ROM/os12.rom"), fetchRom("ROM/basic2.rom")]);
@@ -71,3 +91,20 @@ async function startBundledMachine() {
 }
 
 startBundledMachine();
+
+class BrowserSnAudio {
+  async enable() {
+    if (!this.context) {
+      this.context = new AudioContext(); this.master = this.context.createGain(); this.master.gain.value = 0.08; this.master.connect(this.context.destination);
+      this.voices = Array.from({ length: 3 }, () => { const oscillator = this.context.createOscillator(); const gain = this.context.createGain(); oscillator.type = "square"; oscillator.connect(gain).connect(this.master); gain.gain.value = 0; oscillator.start(); return { oscillator, gain }; });
+      const buffer = this.context.createBuffer(1, this.context.sampleRate, this.context.sampleRate); const data = buffer.getChannelData(0); for (let index = 0; index < data.length; index += 1) data[index] = Math.random() * 2 - 1;
+      this.noise = this.context.createBufferSource(); this.noise.buffer = buffer; this.noise.loop = true; this.noiseGain = this.context.createGain(); this.noiseGain.gain.value = 0; this.noise.connect(this.noiseGain).connect(this.master); this.noise.start();
+    }
+    await this.context.resume();
+  }
+  sync(state) {
+    if (!this.context) return; const now = this.context.currentTime;
+    state.tones.forEach((tone, index) => { this.voices[index].oscillator.frequency.setTargetAtTime(Math.min(20000, tone.frequency), now, 0.005); this.voices[index].gain.gain.setTargetAtTime(tone.gain, now, 0.005); });
+    this.noiseGain.gain.setTargetAtTime(state.noise.gain * 0.5, now, 0.005);
+  }
+}

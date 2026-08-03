@@ -52,4 +52,4 @@ The BBC Model B will own:
 - cassette and disc hardware;
 - machine timing and state serialisation.
 
-The 0.5 bus implements the memory map, ROM selection, timing domains and address-decoded device shells. Interactive behavior is filled in incrementally by later milestones. None of those concerns belong inside `M6502`.
+The 0.7 machine implements the memory map, ROM selection, timing domains, interactive system VIA and mode 7 output, plus separate SN76489, UEF/SSD media and 8271 components. The FDC requests CPU NMI service through the machine scheduler; browser audio and file APIs remain outside the hardware models. None of those concerns belong inside `M6502`.

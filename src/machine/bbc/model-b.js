@@ -1,17 +1,22 @@
 import { M6502 } from "../../cpu/m6502.js";
 import { BbcModelBBus } from "./model-b-bus.js";
 import { BbcVideoOutput } from "./video.js";
+import { SsdDisk, UefCassette } from "./media.js";
 
 export class BbcMicroModelB {
   constructor({ traceLimit = 512, accessLogLimit = 4096 } = {}) {
     this.bus = new BbcModelBBus({ accessLogLimit });
     this.cpu = new M6502({ bus: this.bus, traceLimit });
     this.video = new BbcVideoOutput({ bus: this.bus });
+    this.cassette = null;
     this.machineTicks = 0;
   }
 
   loadOsRom(bytes) { this.bus.loadOsRom(bytes); this.reset(); }
   loadSidewaysRom(bank, bytes) { this.bus.loadSidewaysRom(bank, bytes); }
+  loadUef(bytes) { this.cassette = new UefCassette(bytes); return this.cassette; }
+  mountSsd(bytes) { const disk = new SsdDisk(bytes); this.bus.devices.fdc.mount(disk); return disk; }
+  ejectSsd() { return this.bus.devices.fdc.eject(); }
   reset() { this.bus.reset(); this.video.reset(); this.cpu.reset(); this.machineTicks = 0; }
 
   clock() {
@@ -21,6 +26,7 @@ export class BbcMicroModelB {
     this.machineTicks += ticks;
     this.bus.devices.systemVia.tick(ticks);
     this.video.tick(ticks);
+    if (this.bus.devices.fdc.tick(ticks)) this.cpu.requestNmi();
     this.cpu.setIrq(this.bus.devices.systemVia.irq);
     return { ...cycle, ticks, machineTicks: this.machineTicks, domain: ticks === 2 ? "1MHz" : "2MHz" };
   }

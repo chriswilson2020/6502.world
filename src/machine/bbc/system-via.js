@@ -14,9 +14,10 @@ export class BbcKeyboardMatrix {
 }
 
 export class SystemVia6522 {
-  constructor({ keyboard = new BbcKeyboardMatrix() } = {}) {
+  constructor({ keyboard = new BbcKeyboardMatrix(), onSoundWrite = () => {} } = {}) {
     this.name = "System 6522 VIA";
     this.keyboard = keyboard;
+    this.onSoundWrite = onSoundWrite;
     this.reset();
   }
 
@@ -86,7 +87,11 @@ export class SystemVia6522 {
 
   signalVerticalSync() { this.ifr |= IFR_CA1; }
 
-  #updateLatch() { this.latch[this.outputB & 7] = (this.outputB & 8) !== 0; }
+  #updateLatch() {
+    const address = this.outputB & 7; const value = (this.outputB & 8) !== 0;
+    this.latch[address] = value;
+    if (address === 0 && !value) this.onSoundWrite(this.outputA);
+  }
   #readPortA() {
     let input = 0xff;
     if (!this.latch[3]) {

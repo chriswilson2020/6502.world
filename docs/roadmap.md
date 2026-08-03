@@ -70,13 +70,17 @@
 
 **Evidence:** the real-ROM integration test executes five million instructions, recognizes the mode 7 boot banner and prompt, presses internal key `$41`, and observes `>A` on screen. Focused tests cover timer interrupts, keyboard scanning and CRTC address translation. The browser console auto-boots the same images and exposes live machine state.
 
-## 0.7 — Audio and media
+## 0.7 — Audio and media (implemented)
 
 - SN76489 sound
 - UEF cassette
 - SSD disc images
 - 8271 controller
 - writable local media
+
+**Gate:** VIA sound strobes program audible SN76489 channel state; a standard UEF data stream can be transported; and 8271 register transfers round-trip a writable SSD sector without mutating the source file.
+
+**Evidence:** focused tests cover SN latch/data writes and attenuation, UEF signature/chunk parsing and transport, and complete 256-byte 8271 read/write transfers. The browser enables sound only after a user gesture, mounts UEF/SSD files locally, reports transport state and exports the current writable SSD image. See `bbc-media.md`.
 
 ## 0.8 — Public beta
 
