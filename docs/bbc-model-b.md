@@ -20,15 +20,21 @@ The initial SHEILA decode provides register shells for the 6845 CRTC, 6850 ACIA,
 
 Every bus access is classified into a 2 MHz or stretched 1 MHz timing domain. Machine clocks return both the CPU bus cycle and the number of half-microsecond machine ticks it consumed.
 
-## ROM policy and diagnostics
+## Interactive 0.6 layer
 
-No BBC firmware is distributed by this repository. Load a legally obtained 16K OS image, with optional sideways ROMs, into the headless diagnostic runner:
+The system VIA implements timer 1/2 interrupt state, the IC32 addressable latch and the keyboard path on slow data bus port A. Browser key codes map to the Model B's ten-column/eight-row internal matrix. The mode 7 renderer translates the CRTC's MA13-selected 1K window to `$7C00–$7FFF`, including hardware scrolling within that window.
+
+The browser console boots bundled OS 1.20 and BASIC II images by default, while its file controls can replace either image locally. See [`../ROM/README.md`](../ROM/README.md) for the complete bundled set and checksums.
+
+## ROM diagnostics
+
+Load a 16K OS image, with optional sideways ROMs, into the headless diagnostic runner:
 
 ```sh
 node scripts/diagnose-bbc-boot.js /path/to/os.rom 15:/path/to/basic.rom
 ```
 
-The JSON report records the reset vector, terminal PC, selected ROM, machine ticks and per-device access counts. Automated tests use a synthetic ROM created in memory, so the public repository and CI remain independent of proprietary firmware.
+The JSON report records the reset vector, terminal PC, selected ROM, machine ticks and cumulative per-device access counts. Automated tests include both a synthetic bootstrap and the bundled OS/BASIC prompt-and-keyboard path.
 
 ## Hardware references
 

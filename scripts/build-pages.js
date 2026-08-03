@@ -9,5 +9,6 @@ for (const entry of await readdir("public", { withFileTypes: true })) {
 
 await cp("src", "dist/src", { recursive: true });
 await cp("docs", "dist/docs", { recursive: true });
+await cp("ROM", "dist/ROM", { recursive: true });
 
 console.log("Built 6502 World into dist/");

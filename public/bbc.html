@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Boot and interact with the BBC Micro Model B layer in 6502 World.">
+  <title>BBC Micro · 6502 World</title><link rel="icon" href="6502-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="styles.css">
+</head><body>
+  <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a aria-current="page" href="bbc.html">BBC Micro</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
+  <main class="bbc-shell">
+    <section class="bbc-heading"><div><p class="eyebrow">0.6 · INTERACTIVE BBC</p><h1>Model B console.</h1></div><p>The bundled OS 1.20 and BASIC II images boot automatically. Choose replacement ROMs below at any time; selected files stay in your browser.</p></section>
+    <section class="bbc-console-grid">
+      <article class="bbc-display-card">
+        <div class="tool-heading"><div><span>6845 + VIDEO ULA</span><h2>40 × 25 display</h2></div><span id="bbcRunState" class="status planned">NO ROM</span></div>
+        <canvas id="bbcScreen" width="640" height="500" tabindex="0" aria-label="BBC Micro display; focus here to type"></canvas>
+        <p id="bbcStatus" class="status-message" role="status">Loading the bundled BBC firmware…</p>
+      </article>
+      <aside class="bbc-controls">
+        <article class="tool-card"><div class="tool-heading"><div><span>BUNDLED + LOCAL</span><h2>Boot media</h2></div></div>
+          <label class="rom-field">OS ROM · 16K<input id="osRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
+          <label class="rom-field">BASIC · 8K/16K<input id="basicRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
+          <div class="button-row compact-row"><button id="bootBbcButton" class="button primary" type="button">Restart / load</button><button id="demoBbcButton" class="button secondary" type="button">Display demo</button></div>
+        </article>
+        <article class="tool-card"><div class="tool-heading"><div><span>MACHINE</span><h2>Live state</h2></div><span id="bbcRomBank" class="address-pill">ROM 0</span></div>
+          <dl class="bbc-stats"><div><dt>PC</dt><dd id="bbcPc">0000</dd></div><div><dt>Cycles</dt><dd id="bbcCycles">0</dd></div><div><dt>Ticks</dt><dd id="bbcTicks">0</dd></div><div><dt>IRQ</dt><dd id="bbcIrq">LOW</dd></div></dl>
+          <button id="pauseBbcButton" class="wide-action" type="button">Run / pause</button>
+        </article>
+        <article class="tool-card"><div class="tool-heading"><div><span>KEYBOARD</span><h2>Matrix input</h2></div></div><p class="bbc-help">Click the display, then type. Browser key codes are translated into the Model B keyboard matrix read through the system VIA.</p></article>
+      </aside>
+    </section>
+  </main><script type="module" src="bbc.js"></script>
+</body></html>

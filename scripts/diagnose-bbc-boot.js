@@ -12,12 +12,12 @@ for (const argument of romArguments) {
   machine.loadSidewaysRom(Number(match[1]), new Uint8Array(await readFile(resolve(match[2]))));
 }
 machine.loadOsRom(new Uint8Array(await readFile(resolve(osPath))));
-const report = machine.diagnoseBoot({ maxInstructions: 1_000_000 });
+const report = machine.diagnoseBoot({ maxInstructions: 5_000_000 });
 
 console.log(JSON.stringify({
   ...report,
   pc: `$${report.pc.toString(16).toUpperCase().padStart(4, "0")}`,
   resetVector: `$${report.resetVector.toString(16).toUpperCase().padStart(4, "0")}`,
-  deviceAccesses: report.deviceAccesses.reduce((counts, access) => ({ ...counts, [access.device]: (counts[access.device] ?? 0) + 1 }), {}),
+  deviceAccesses: report.deviceAccesses,
 }, null, 2));
 if (!report.passed) process.exitCode = 1;

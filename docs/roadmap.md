@@ -57,7 +57,7 @@
 
 **Evidence:** synthetic-ROM tests reset through the OS vector, select sideways bank 15, read the paged ROM, write main RAM, access the system VIA shell and settle in an OS loop. Focused tests cover 8K/16K ROM banking, OS write protection, CRTC/VIA mirrors and 1 MHz timing classification. See `bbc-model-b.md`.
 
-## 0.6 — Interactive BBC
+## 0.6 — Interactive BBC (implemented)
 
 - display and Video ULA
 - system VIA
@@ -65,6 +65,10 @@
 - timers and interrupts
 - BASIC prompt and editing
 - browser renderer
+
+**Gate:** bundled OS 1.20 and BASIC II reach the prompt, and a browser key travels through the system VIA matrix into BASIC.
+
+**Evidence:** the real-ROM integration test executes five million instructions, recognizes the mode 7 boot banner and prompt, presses internal key `$41`, and observes `>A` on screen. Focused tests cover timer interrupts, keyboard scanning and CRTC address translation. The browser console auto-boots the same images and exposes live machine state.
 
 ## 0.7 — Audio and media
 

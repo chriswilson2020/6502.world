@@ -1,4 +1,6 @@
 import { Crtc6845Shell, RegisterDevice, RomSelectLatch } from "./register-device.js";
+import { BbcKeyboardMatrix, SystemVia6522 } from "./system-via.js";
+import { VideoUla } from "./video.js";
 
 const OS_ROM_SIZE = 0x4000;
 const SIDEWAYS_ROM_SIZE = 0x4000;
@@ -12,12 +14,14 @@ export class BbcModelBBus {
     this.timingTicks = 0;
     this.accessLogLimit = accessLogLimit;
     this.accessLog = [];
+    this.deviceAccessCounts = {};
+    this.keyboard = new BbcKeyboardMatrix();
     this.devices = {
       crtc: new Crtc6845Shell(),
       acia: new RegisterDevice("6850 ACIA", 4),
       serialUla: new RegisterDevice("Serial ULA", 16),
-      videoUla: new RegisterDevice("Video ULA", 16),
-      systemVia: new RegisterDevice("System 6522 VIA", 16),
+      videoUla: new VideoUla(),
+      systemVia: new SystemVia6522({ keyboard: this.keyboard }),
       userVia: new RegisterDevice("User 6522 VIA", 16),
       fdc: new RegisterDevice("8271 FDC", 32),
       econet: new RegisterDevice("Econet", 32),
@@ -68,6 +72,7 @@ export class BbcModelBBus {
   reset() {
     this.timingTicks = 0;
     this.accessLog = [];
+    this.deviceAccessCounts = {};
     this.romSelect.reset();
     for (const device of Object.values(this.devices)) device.reset();
   }
@@ -106,6 +111,8 @@ export class BbcModelBBus {
   #record(address, operation, data, device) {
     const timing = this.timingFor(address);
     this.timingTicks += timing.ticks;
+    if (device) this.deviceAccessCounts[device] = (this.deviceAccessCounts[device] ?? 0) + 1;
+    if (this.accessLogLimit === 0) return;
     this.accessLog.push({ address, operation, data, device, ...timing, totalTicks: this.timingTicks });
     if (this.accessLog.length > this.accessLogLimit) this.accessLog.splice(0, this.accessLog.length - this.accessLogLimit);
   }

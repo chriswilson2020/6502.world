@@ -46,6 +46,7 @@ test("Model B I/O shells decode mirrors and report 1MHz timing", () => {
   bus.write8(0xfe00, 5);
   bus.write8(0xfe01, 0x44);
   assert.equal(bus.read8(0xfe01), 0x44);
+  bus.write8(0xfe42, 0xff);
   bus.write8(0xfe40, 0x77);
   assert.equal(bus.read8(0xfe50), 0x77);
 
@@ -70,8 +71,8 @@ test("headless BBC bootstrap selects a ROM, touches the VIA and reaches an OS lo
   assert.equal(report.resetVector, 0xc000);
   assert.equal(report.selectedRom, 15);
   assert.equal(machine.bus.ram[0x0200], 0xa5);
-  assert.equal(machine.bus.devices.systemVia.read(0), 0x55);
+  assert.equal(machine.bus.devices.systemVia.outputB, 0x55);
   assert.ok(report.machineTicks > machine.cpu.cycles);
-  assert.ok(report.deviceAccesses.some(({ device }) => device === "ROMSEL"));
-  assert.ok(report.deviceAccesses.some(({ device }) => device === "System 6522 VIA"));
+  assert.ok(report.deviceAccesses.ROMSEL > 0);
+  assert.ok(report.deviceAccesses["System 6522 VIA"] > 0);
 });

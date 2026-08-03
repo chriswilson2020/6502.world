@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 
-for (const page of ["index.html", "cpu-lab.html"]) {
+for (const page of ["index.html", "cpu-lab.html", "bbc.html"]) {
   test(`${page} has the shared identity and valid core assets`, async () => {
     const html = await readFile(`public/${page}`, "utf8");
     assert.match(html, /6502 World/i);
@@ -24,4 +24,12 @@ test("CPU workbench exposes the milestone 0.4 debugger surfaces", async () => {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
   assert.match(html, /0\.4 · MINIMAL MACHINE/);
+});
+
+test("BBC console exposes the milestone 0.6 display and ROM controls", async () => {
+  const html = await readFile("public/bbc.html", "utf8");
+  for (const id of ["bbcScreen", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq"]) {
+    assert.match(html, new RegExp(`id=["']${id}["']`));
+  }
+  assert.match(html, /0\.6 · INTERACTIVE BBC/);
 });

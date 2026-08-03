@@ -19,13 +19,15 @@ The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom
 
 ## Current release
 
-The 0.5 release adds the BBC Micro Model B bootstrap layer:
+The 0.6 release turns the BBC layer into an interactive Model B console:
 
 - the 32K RAM, sideways ROM, OS ROM, FRED, JIM and SHEILA map;
 - sixteen sideways banks selected by `ROMSEL` at `$FE30`;
 - 1 MHz access classification and stretched machine timing;
-- address-decoded 6845, VIA, ULA, FDC, ADC, Econet and Tube shells;
-- a headless boot diagnostic for user-supplied OS and sideways ROM images.
+- system VIA timers, IRQs, IC32 latch behavior and the Model B keyboard matrix;
+- CRTC/Video ULA state and a browser-rendered 40-column mode 7 display;
+- bundled OS 1.20 and BASIC II booting to an editable prompt;
+- a real-ROM regression test plus the headless boot diagnostic.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 
@@ -91,7 +93,8 @@ See [`docs/validation.md`](docs/validation.md) for the pinned corpus revisions a
 src/cpu/       processor core
 src/bus/       machine-independent bus implementations
 src/machine/   minimal machine composition and portable state
-src/machine/bbc/ Model B bus, device shells and bootstrap machine
+src/machine/bbc/ Model B bus, video, system VIA and machine composition
+ROM/           bundled BBC firmware and checksum/provenance notes
 public/        static website and CPU Lab
 scripts/       local server and Pages build
 test/          CPU and website tests

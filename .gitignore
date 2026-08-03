@@ -2,5 +2,3 @@ dist/
 node_modules/
 .DS_Store
 *.log
-ROM/*.rom
-ROM/*.bin
