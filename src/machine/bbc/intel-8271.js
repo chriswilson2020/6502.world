@@ -63,6 +63,8 @@ export class Intel8271 {
     this.nmiSignaled = false;
     this.nextDataTick = 0;
     this.nextNmiTick = 0;
+    this.readTransfers = 0;
+    this.writeTransfers = 0;
     this.drives.forEach((drive) => { drive.currentTrack = 0; });
     this.#record("reset");
   }
@@ -166,6 +168,7 @@ export class Intel8271 {
       slot.currentTrack = track;
       if (verify) { this.#record("verify", { drive, side, track, sector, count, sectorSize }); this.#finish(RESULT_OK); return; }
       this.transfer = { direction: write ? "write" : "read", drive, side, track, sector, count, sectorSize, bytes, index: 0 };
+      if (write) this.writeTransfers += 1; else this.readTransfers += 1;
       this.nextDataTick = this.machineTicks;
       this.status = STATUS_BUSY;
       this.#record("transfer-start", this.#transferSummary());

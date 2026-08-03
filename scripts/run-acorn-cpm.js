@@ -10,21 +10,22 @@ const UTILITIES_HASH = "9147393d301af384c0c2cea1dc3299b8c98877180515ec0f4d87a717
 const KEY_FOR_CHARACTER = Object.freeze({
   A: "KeyA", B: "KeyB", C: "KeyC", D: "KeyD", E: "KeyE", F: "KeyF", G: "KeyG", H: "KeyH", I: "KeyI", J: "KeyJ", K: "KeyK", L: "KeyL", M: "KeyM",
   N: "KeyN", O: "KeyO", P: "KeyP", Q: "KeyQ", R: "KeyR", S: "KeyS", T: "KeyT", U: "KeyU", V: "KeyV", W: "KeyW", X: "KeyX", Y: "KeyY", Z: "KeyZ",
-  " ": "Space", "\r": "Enter", "\n": "Enter",
+  "0": "Digit0", "1": "Digit1", "2": "Digit2", "3": "Digit3", "4": "Digit4", "5": "Digit5", "6": "Digit6", "7": "Digit7", "8": "Digit8", "9": "Digit9",
+  " ": "Space", ".": "Period", ":": "Semicolon", "/": "Slash", "-": "Minus", "\r": "Enter", "\n": "Enter",
 });
 
-export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000 } = {}) {
+export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], writeProtected = true, mediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false } = {}) {
   const names = ["os12.rom", "basic2.rom", "dnfs.rom", "z80.rom"];
   const [os, basic, dnfs, z80, utilities] = await Promise.all([
     ...names.map(async (name) => new Uint8Array(await readFile(join(ROOT, "ROM", name)))),
-    readFile(join(ROOT, "MEDIA", "CPM_Utilities_Disc.dsd")).then((bytes) => new Uint8Array(bytes)),
+    mediaBytes ? Uint8Array.from(mediaBytes) : readFile(join(ROOT, "MEDIA", "CPM_Utilities_Disc.dsd")).then((bytes) => new Uint8Array(bytes)),
   ]);
   const hashes = Object.fromEntries([...names.map((name, index) => [name, sha256([os, basic, dnfs, z80][index])]), ["CPM_Utilities_Disc.dsd", sha256(utilities)]]);
-  if (hashes["CPM_Utilities_Disc.dsd"] !== UTILITIES_HASH) throw new Error(`CP/M Utilities DSD hash mismatch: ${hashes["CPM_Utilities_Disc.dsd"]}`);
+  if (expectedMediaHash && hashes["CPM_Utilities_Disc.dsd"] !== expectedMediaHash) throw new Error(`CP/M Utilities DSD hash mismatch: ${hashes["CPM_Utilities_Disc.dsd"]}`);
 
   const machine = new BbcMicroModelB({ traceLimit: 64, accessLogLimit: 0 });
   machine.loadSidewaysRom(15, basic); machine.loadSidewaysRom(14, dnfs);
-  machine.mountDsd(utilities, { drive: 0, writeProtected: true });
+  machine.mountDsd(utilities, { drive: 0, writeProtected });
   const parasite = machine.attachZ80SecondProcessor({ bootRom: z80 });
   const tubeTranscript = []; const tube = machine.bus.devices.tube; const parasiteWrite = tube.parasiteWrite.bind(tube);
   tube.parasiteWrite = (offset, value) => {
@@ -46,21 +47,25 @@ export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandIns
   if (!booted) return report({ passed: false, reason: "boot-limit", machine, parasite, hashes, hostInstructions, tubeTranscript, commands: [] });
 
   const commands = [];
-  for (const command of ["DIR", "STAT"]) {
+  for (const command of requestedCommands) {
     const promptsBefore = promptCount(screenText(machine));
-    typeThroughKeyboard(machine, command + "\r", () => { hostInstructions += 1; });
+    typeThroughKeyboard(machine, command === "\x03" ? command : command + "\r", () => { hostInstructions += 1; });
     const completed = runUntil((screen) => promptCount(screen) > promptsBefore, commandInstructionLimit);
     commands.push({ command, completed, screen: machine.video.textSnapshot() });
     if (!completed) return report({ passed: false, reason: `${command.toLowerCase()}-limit`, machine, parasite, hashes, hostInstructions, tubeTranscript, commands });
   }
   const screen = screenText(machine);
-  const directoryPlausible = /(?:\.COM|\.ASM|\.SUB|\bSTAT\b|\bDIR\b)/.test(commands[0].screen.join("\n"));
-  const statPlausible = /(?:STAT|Bytes|K\s|Read Only|R\/O)/i.test(commands[1].screen.join("\n"));
-  return report({ passed: booted && directoryPlausible && statPlausible && promptCount(screen) >= 3, reason: "complete", machine, parasite, hashes, hostInstructions, tubeTranscript, commands });
+  const defaultGate = requestedCommands.length === 2 && requestedCommands[0] === "DIR" && requestedCommands[1] === "STAT";
+  const directoryPlausible = !defaultGate || /(?:\.COM|\.ASM|\.SUB|\bSTAT\b|\bDIR\b)/.test(commands[0].screen.join("\n"));
+  const statPlausible = !defaultGate || /(?:STAT|Bytes|K\s|Read Only|R\/O)/i.test(commands[1].screen.join("\n"));
+  const result = report({ passed: booted && commands.every(({ completed }) => completed) && directoryPlausible && statPlausible && promptCount(screen) >= requestedCommands.length + 1, reason: "complete", machine, parasite, hashes, hostInstructions, tubeTranscript, commands });
+  if (returnMedia) result.exportedMedia = machine.bus.devices.fdc.drives[0].disk.export();
+  return result;
 }
 
 function typeThroughKeyboard(machine, text, onInstruction) {
   for (const character of text) {
+    if (character === "\x03") { pressChord(machine, [BBC_KEYBOARD_CODES.ControlLeft, BBC_KEYBOARD_CODES.KeyC], onInstruction); continue; }
     const code = KEY_FOR_CHARACTER[character.toUpperCase() === character ? character : character.toUpperCase()];
     const matrix = BBC_KEYBOARD_CODES[code];
     if (!matrix) throw new Error(`No BBC keyboard mapping for ${JSON.stringify(character)}`);
@@ -69,6 +74,7 @@ function typeThroughKeyboard(machine, text, onInstruction) {
     machine.bus.keyboard.release(key); runInstructions(machine, 12_000, onInstruction);
   }
 }
+function pressChord(machine, matrices, onInstruction) { const keys = matrices.map(([column, row]) => `${column}:${row}`); keys.forEach((key) => machine.bus.keyboard.press(key)); runInstructions(machine, 12_000, onInstruction); keys.reverse().forEach((key) => machine.bus.keyboard.release(key)); runInstructions(machine, 12_000, onInstruction); }
 function runInstructions(machine, count, onInstruction) { for (let index = 0; index < count; index += 1) { machine.step(); onInstruction(); } }
 function screenText(machine) { return machine.video.textSnapshot().map((line) => line.replace(/\s+$/, "")).join("\n"); }
 function promptCount(text) { return text.match(/A>/g)?.length ?? 0; }
@@ -81,7 +87,7 @@ function report({ passed, reason, machine, parasite, hashes, hostInstructions, t
     z80Pc: parasite.cpu.PC, z80TStates: parasite.cpu.tStates, z80Instructions: parasite.cpu.instructionFetches,
     screen: machine.video.textSnapshot(), transcript: cleanTranscript(tubeTranscript), commands,
     tube: { control: tube.control, fifoLengths: { hostToParasite: tube.hostToParasite.map((queue) => queue.length), parasiteToHost: tube.parasiteToHost.map((queue) => queue.length) }, hostIrq: tube.hostIrq, parasiteIrq: tube.parasiteIrq, parasiteNmi: tube.parasiteNmi },
-    fdc: { status: fdc.status, result: fdc.result, trace: fdc.trace.slice(-32) },
+    mediaDirty: Boolean(fdc.drives[0].disk?.dirty), fdc: { status: fdc.status, result: fdc.result, readTransfers: fdc.readTransfers, writeTransfers: fdc.writeTransfers, trace: fdc.trace.slice(-32) },
     hostTrace: machine.cpu.trace.slice(-32), z80Bytes: Array.from(parasite.ram.slice(parasite.cpu.PC, parasite.cpu.PC + 16)),
   };
 }

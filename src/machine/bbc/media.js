@@ -43,7 +43,7 @@ export class SectorDisk {
     this.bytes = source.slice();
     this.format = format; this.tracks = tracks; this.sides = sides; this.sectorsPerTrack = SECTORS_PER_TRACK; this.sectorSize = SECTOR_SIZE;
     this.geometry = Object.freeze({ format, tracks, sides, sectorsPerTrack: SECTORS_PER_TRACK, sectorSize: SECTOR_SIZE });
-    this.dirty = false;
+    this.dirty = false; this.revision = 0;
   }
 
   readSector(track, sideOrSector, maybeSector) {
@@ -54,7 +54,7 @@ export class SectorDisk {
     const legacy = maybeData === undefined; const side = legacy ? 0 : sideOrSector; const sector = legacy ? sideOrSector : sectorOrData; const data = legacy ? sectorOrData : maybeData;
     const source = Uint8Array.from(data);
     if (source.length !== SECTOR_SIZE) throw new Error(`${this.format.toUpperCase()} sectors are ${SECTOR_SIZE} bytes`);
-    this.bytes.set(source, this.#offset(track, side, sector)); this.dirty = true;
+    this.bytes.set(source, this.#offset(track, side, sector)); this.dirty = true; this.revision += 1;
   }
   export() { return this.bytes.slice(); }
   #offset(track, side, sector) {
@@ -76,8 +76,8 @@ export function createSectorDisk(bytes, { format, filename } = {}) {
   throw new Error("sector image format is ambiguous; specify SSD or DSD");
 }
 
-export function serializeSectorDisk(disk) { return { format: disk.format, bytes: disk.export(), dirty: disk.dirty }; }
-export function restoreSectorDisk(state) { const disk = createSectorDisk(state.bytes, { format: state.format }); disk.dirty = Boolean(state.dirty); return disk; }
+export function serializeSectorDisk(disk) { return { format: disk.format, bytes: disk.export(), dirty: disk.dirty, revision: disk.revision }; }
+export function restoreSectorDisk(state) { const disk = createSectorDisk(state.bytes, { format: state.format }); disk.dirty = Boolean(state.dirty); disk.revision = state.revision ?? (disk.dirty ? 1 : 0); return disk; }
 
 function normalizeSectorArguments(sideOrSector, maybeSector) { return maybeSector === undefined ? [0, sideOrSector] : [sideOrSector, maybeSector]; }
 

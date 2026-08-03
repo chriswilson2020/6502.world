@@ -17,9 +17,9 @@ This repository begins with a deliberately small but complete vertical slice:
 
 The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom and Commodore-family targets remain future work until the BBC implementation is stable.
 
-## Current release — 1.5
+## Current release — 1.6
 
-The 1.5 release turns the stable Model B and real Acorn CP/M path into an understandable selectable system:
+The 1.6 release makes the stable Model B and real Acorn CP/M path writable without risking the source media:
 
 - the 32K RAM, sideways ROM, OS ROM, FRED, JIM and SHEILA map;
 - sixteen sideways banks selected by `ROMSEL` at `$FE30`;
@@ -47,6 +47,10 @@ The 1.5 release turns the stable Model B and real Acorn CP/M path into an unders
 - cold profile switching, independent per-drive controls and dirty-media warnings;
 - stable BASIC and CP/M deep links with visible safe fallback behavior;
 - advanced ROM and Tube controls moved behind keyboard-accessible disclosures.
+- hardware-mediated CP/M file creation that survives warm boot and exported-image remount;
+- revision-aware dirty tracking, per-drive write protection and immutable bundled source images;
+- IndexedDB working copies with base hashes, geometry, full image bytes and catalogue association;
+- local save, restore, duplicate, clear, reset-original and `.ssd`/`.dsd` export controls.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 
@@ -106,7 +110,7 @@ node scripts/run-bus-vectors.js /path/to/legal-opcode-vectors
 
 See [`docs/validation.md`](docs/validation.md) for the pinned corpus revisions and published evidence.
 
-Run the bundled BBC software corpora separately with `npm run test:bbc-software`, `npm run test:bbc-z80` and `npm run test:bbc-cpm`. See [`docs/bbc-validation.md`](docs/bbc-validation.md) for BASIC results, [`docs/tube.md`](docs/tube.md) for Z80 evidence, [`docs/acorn-z80-cpm.md`](docs/acorn-z80-cpm.md) for CP/M evidence, and [`docs/state-format.md`](docs/state-format.md) for the stable state contract.
+Run the bundled BBC software corpora separately with `npm run test:bbc-software`, `npm run test:bbc-z80`, `npm run test:bbc-cpm` and `npm run test:bbc-cpm-write`. See [`docs/bbc-validation.md`](docs/bbc-validation.md) for BASIC results, [`docs/tube.md`](docs/tube.md) for Z80 evidence, [`docs/acorn-z80-cpm.md`](docs/acorn-z80-cpm.md) for CP/M evidence, [`docs/bbc-media-persistence.md`](docs/bbc-media-persistence.md) for writable-media behavior, and [`docs/state-format.md`](docs/state-format.md) for the stable state contract.
 
 ## Project structure
 

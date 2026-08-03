@@ -13,10 +13,11 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | SN76489 | Partial | Tone/noise registers and browser audio voices; waveform/timing corpus remains |
 | UEF cassette | Partial | Standard `$0100` data chunks and transport; waveform/security chunks and MOS ACIA loading remain |
 | SSD / Intel 8271 | Partial | Seek and normal sector read/write with NMI requests; protected/nonstandard layouts and full DFS corpus remain |
-| DSD / Intel 8271 | CP/M validated | Two physical drives, both DSD sides, observed commands/special registers, FM-paced NMI transfers, isolated writes and exact export |
+| DSD / Intel 8271 | CP/M read/write validated | Two physical drives, both DSD sides, observed commands/special registers, FM-paced NMI transfers, CP/M-created files, warm-boot survival and exact export |
+| Browser media persistence | Implemented | IndexedDB full-image working copies with SHA-256 base identity, revision-aware warnings, restore, duplicate, clear and original reset |
 | Portable BBC state | Stable v2 | CPU, memory, ROMs, core devices, two drives and active FDC transfers round-trip; version 1 SSD states migrate |
 | Tube | Acorn CP/M validated | Four duplex channels, Acorn control/FIFO behavior, interrupts, state resume and 6MHz scheduling; real CP/M 2.2 boots and runs `DIR`/`STAT` |
 
 ## Browser support
 
-The static application uses standard ES modules, Canvas 2D, Web Audio, File/Blob APIs and `requestAnimationFrame`. Current Chromium is exercised in the browser checks. Explicit hardware profiles and compatible software presets support deterministic deep links, cold switching and independent two-drive controls. Controls have visible keyboard focus, advanced controls use native disclosures, the BBC canvas has a text alternative, audio starts only after a user gesture, and the workbench collapses to one column below 1050 pixels.
+The static application uses standard ES modules, Canvas 2D, Web Audio, File/Blob and IndexedDB APIs and `requestAnimationFrame`. Current Chromium is exercised in the browser checks. Explicit hardware profiles and compatible software presets support deterministic deep links, cold switching and independent two-drive controls. Controls have visible keyboard focus, advanced controls use native disclosures, the BBC canvas has a text alternative, audio starts only after a user gesture, and the workbench collapses to one column below 1050 pixels.

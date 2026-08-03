@@ -543,6 +543,8 @@ Add browser tests for:
 
 ## 1.6 — Writable CP/M media and browser persistence
 
+**Implemented:** accepted 8271 sector writes increment a media revision and preserve per-drive write protection while every mount remains a private byte clone. A real CP/M `SAVE` creates `CODEX.COM`, survives Control-C warm boot and exported-image remount, and disappears when the original hash-pinned DSD is restored. The browser persists full working images plus base bytes, SHA-256 identity, geometry, revision, timestamps and catalogue association in IndexedDB, with save, restore, duplicate, clear, reset-original and export controls. Dirty-media warnings compare the live media revision with its latest browser/export safe point.
+
 After the read-only boot gate is stable, make CP/M genuinely usable without risking source images.
 
 ### Write behaviour

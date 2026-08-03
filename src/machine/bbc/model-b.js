@@ -41,9 +41,9 @@ export class BbcMicroModelB {
         videoUla: this.bus.devices.videoUla.saveState(), systemVia: this.bus.devices.systemVia.saveState(), sound: this.bus.devices.sound.saveState(), tube: this.bus.devices.tube.saveState(),
         fdc: {
           status: fdc.status, result: fdc.result, command: fdc.command, rawCommand: fdc.rawCommand, logicalDrive: fdc.logicalDrive, selectedDrive: fdc.selectedDrive, selectedSide: fdc.selectedSide, driveControlOutputPort: fdc.driveControlOutputPort, driveControlInputPort: fdc.driveControlInputPort,
-          parameters: [...fdc.parameters], expectedParameters: fdc.expectedParameters, dataRegister: fdc.dataRegister, nmiPending: fdc.nmiPending, nmiSignaled: fdc.nmiSignaled, nextDataTick: fdc.nextDataTick, nextNmiTick: fdc.nextNmiTick,
+          parameters: [...fdc.parameters], expectedParameters: fdc.expectedParameters, dataRegister: fdc.dataRegister, nmiPending: fdc.nmiPending, nmiSignaled: fdc.nmiSignaled, nextDataTick: fdc.nextDataTick, nextNmiTick: fdc.nextNmiTick, readTransfers: fdc.readTransfers, writeTransfers: fdc.writeTransfers,
           transfer: fdc.transfer ? { ...fdc.transfer, bytes: encodeBytes(fdc.transfer.bytes) } : null,
-          drives: fdc.drives.map((drive) => ({ currentTrack: drive.currentTrack, writeProtected: drive.writeProtected, disk: drive.disk ? { format: drive.disk.format, bytes: encodeBytes(drive.disk.export()), dirty: drive.disk.dirty } : null })),
+          drives: fdc.drives.map((drive) => ({ currentTrack: drive.currentTrack, writeProtected: drive.writeProtected, disk: drive.disk ? { format: drive.disk.format, bytes: encodeBytes(drive.disk.export()), dirty: drive.disk.dirty, revision: drive.disk.revision } : null })),
         },
       },
       cassette: this.cassette ? { source: encodeBytes(this.cassette.source), position: this.cassette.position, playing: this.cassette.playing } : null,
@@ -59,17 +59,17 @@ export class BbcMicroModelB {
     bus.romSelect.write(0, state.selectedRom); bus.devices.crtc.registers.set(state.devices.crtc.registers); bus.devices.crtc.selectedRegister = state.devices.crtc.selectedRegister; if (state.devices.acia) bus.devices.acia.loadState(state.devices.acia);
     bus.devices.videoUla.loadState(state.devices.videoUla); bus.devices.systemVia.loadState(state.devices.systemVia); bus.devices.sound.loadState(state.devices.sound); if (state.devices.tube) bus.devices.tube.loadState(state.devices.tube);
     const savedFdc = state.devices.fdc; const fdc = bus.devices.fdc;
-    Object.assign(fdc, { status: savedFdc.status, result: savedFdc.result, command: savedFdc.command, rawCommand: savedFdc.rawCommand ?? savedFdc.command, logicalDrive: savedFdc.logicalDrive ?? 0, selectedDrive: savedFdc.selectedDrive ?? ((savedFdc.logicalDrive ?? 0) & 1), selectedSide: savedFdc.selectedSide ?? ((savedFdc.logicalDrive ?? 0) >> 1), driveControlOutputPort: savedFdc.driveControlOutputPort ?? ((((savedFdc.logicalDrive ?? 0) & 1) === 0 ? 0x40 : 0x80) | (((savedFdc.logicalDrive ?? 0) >> 1) << 5)), driveControlInputPort: savedFdc.driveControlInputPort ?? 0, parameters: [...savedFdc.parameters], expectedParameters: savedFdc.expectedParameters, dataRegister: savedFdc.dataRegister, nmiPending: savedFdc.nmiPending, nmiSignaled: Boolean(savedFdc.nmiSignaled), nextDataTick: savedFdc.nextDataTick ?? 0, nextNmiTick: savedFdc.nextNmiTick ?? 0 });
+    Object.assign(fdc, { status: savedFdc.status, result: savedFdc.result, command: savedFdc.command, rawCommand: savedFdc.rawCommand ?? savedFdc.command, logicalDrive: savedFdc.logicalDrive ?? 0, selectedDrive: savedFdc.selectedDrive ?? ((savedFdc.logicalDrive ?? 0) & 1), selectedSide: savedFdc.selectedSide ?? ((savedFdc.logicalDrive ?? 0) >> 1), driveControlOutputPort: savedFdc.driveControlOutputPort ?? ((((savedFdc.logicalDrive ?? 0) & 1) === 0 ? 0x40 : 0x80) | (((savedFdc.logicalDrive ?? 0) >> 1) << 5)), driveControlInputPort: savedFdc.driveControlInputPort ?? 0, parameters: [...savedFdc.parameters], expectedParameters: savedFdc.expectedParameters, dataRegister: savedFdc.dataRegister, nmiPending: savedFdc.nmiPending, nmiSignaled: Boolean(savedFdc.nmiSignaled), nextDataTick: savedFdc.nextDataTick ?? 0, nextNmiTick: savedFdc.nextNmiTick ?? 0, readTransfers: savedFdc.readTransfers ?? 0, writeTransfers: savedFdc.writeTransfers ?? 0 });
     if (state.version === 1) {
       fdc.currentTrack = savedFdc.currentTrack;
-      if (savedFdc.disk) { fdc.mount(new SsdDisk(decodeBytes(savedFdc.disk.bytes, null, "SSD"))); fdc.disk.dirty = Boolean(savedFdc.disk.dirty); }
+      if (savedFdc.disk) { fdc.mount(new SsdDisk(decodeBytes(savedFdc.disk.bytes, null, "SSD"))); fdc.disk.dirty = Boolean(savedFdc.disk.dirty); fdc.disk.revision = fdc.disk.dirty ? 1 : 0; }
     } else {
       savedFdc.drives.forEach((savedDrive, drive) => {
         fdc.drives[drive].currentTrack = savedDrive.currentTrack & 0xff;
         fdc.drives[drive].writeProtected = Boolean(savedDrive.writeProtected);
         if (savedDrive.disk) {
           const disk = createSectorDisk(decodeBytes(savedDrive.disk.bytes, null, `drive ${drive} media`), { format: savedDrive.disk.format });
-          disk.dirty = Boolean(savedDrive.disk.dirty); fdc.drives[drive].disk = disk;
+          disk.dirty = Boolean(savedDrive.disk.dirty); disk.revision = savedDrive.disk.revision ?? (disk.dirty ? 1 : 0); fdc.drives[drive].disk = disk;
         }
       });
     }

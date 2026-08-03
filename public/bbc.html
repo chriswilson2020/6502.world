@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a aria-current="page" href="bbc.html">BBC Micro</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">1.5 · SYSTEM PROFILES</p><h1>Model B console.</h1></div><p>Choose a BBC Model B or Acorn Z80 hardware profile, boot compatible software, and change two physical drives independently without hiding the emulated machine.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">1.6 · WRITABLE MEDIA</p><h1>Model B console.</h1></div><p>Choose a BBC Model B or Acorn Z80 hardware profile, boot compatible software, and preserve writable working discs locally without altering the bundled source images.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>6845 + VIDEO ULA</span><h2>40 / 80-column display</h2></div><span id="bbcRunState" class="status planned">NO ROM</span></div>
@@ -50,6 +50,13 @@
           <div class="button-row compact-row"><button id="ejectDrive1Button" class="button secondary" type="button">Eject drive 1</button><button id="resetDrive1Button" class="button secondary" type="button" disabled>Reset original</button></div>
           <button id="swapDrivesButton" class="wide-action" type="button">Swap physical drives</button>
           <p id="mediaStatus" class="bbc-help">Choose a UEF cassette or sector image; media is cloned and remains local to this browser.</p>
+        </article>
+        <article class="tool-card"><div class="tool-heading"><div><span>1.6 INDEXEDDB</span><h2>Working media</h2></div><span id="persistenceState" class="status planned">LOCAL</span></div>
+          <label class="rom-field">Persistence target<select id="persistenceDriveSelect"><option value="0">Physical drive 0</option><option value="1">Physical drive 1</option></select></label>
+          <div class="button-row compact-row"><button id="saveMediaButton" class="button primary" type="button">Save locally</button><button id="restoreMediaButton" class="button secondary" type="button">Restore saved</button></div>
+          <button id="duplicateMediaButton" class="wide-action" type="button">Duplicate as working copy</button>
+          <button id="clearStoredMediaButton" class="wide-action" type="button">Clear stored copy</button>
+          <p id="persistenceStatus" class="bbc-help" role="status">IndexedDB keeps 400K working images in this browser only.</p>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>1.4 ACORN CP/M</span><h2>Z80 Tube processor</h2></div><span id="tubeState" class="status planned">DETACHED</span></div>
           <button id="bootCpmButton" class="wide-action" type="button">Boot Acorn CP/M 2.2</button>

@@ -97,7 +97,7 @@ test("sector images export byte-identically and serialize format", () => {
   const source = new Uint8Array(409600); source[409599] = 0x7e;
   const disk = createSectorDisk(source, { filename: "utilities.dsd" }); assert.deepEqual(disk.export(), source);
   const state = serializeSectorDisk(disk); const restored = restoreSectorDisk(state);
-  assert.equal(restored.format, "dsd"); assert.deepEqual(restored.export(), source); assert.equal(restored.dirty, false);
+  assert.equal(restored.format, "dsd"); assert.deepEqual(restored.export(), source); assert.equal(restored.dirty, false); assert.equal(restored.revision, 0);
 });
 
 test("sector image geometry rejects incomplete, oversized and ambiguous data", () => {

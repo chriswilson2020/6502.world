@@ -33,4 +33,12 @@ A: R/W, Space: 224k
 A>
 ```
 
-The boot exposed and locked three hardware details: Z80 Tube access is I/O-only with an `$FE` IM2 acknowledge vector, 8271 FM bytes are paced at 128 BBC ticks so its NMI handler cannot re-enter, and the 6850 status register must not echo its control byte. The controller remains a compatibility implementation rather than a protected/nonstandard-format model. The Utilities image is mounted read-only for this gate; writable CP/M persistence belongs to milestone 1.6.
+The boot exposed and locked three hardware details: Z80 Tube access is I/O-only with an `$FE` IM2 acknowledge vector, 8271 FM bytes are paced at 128 BBC ticks so its NMI handler cannot re-enter, and the 6850 status register must not echo its control byte. The controller remains a compatibility implementation rather than a protected/nonstandard-format model.
+
+Milestone 1.6 adds a separate writable gate:
+
+```sh
+npm run test:bbc-cpm-write
+```
+
+The gate mounts a clone of the Utilities DSD read/write, enters `SAVE 1 CODEX.COM` through the BBC keyboard, observes three hardware 8271 write transfers, warm-boots with Control-C, and verifies `CODEX.COM` in `DIR`. It exports the modified 409,600-byte DSD into a fresh machine and verifies the file again, then mounts the original bytes and proves the file is absent. Before and after SHA-256 checks prove that `MEDIA/CPM_Utilities_Disc.dsd` remains unchanged.

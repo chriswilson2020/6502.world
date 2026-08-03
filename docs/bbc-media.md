@@ -22,7 +22,7 @@ The SN76489 receives bytes from slow data bus port A when IC32 latch output 0 is
 
 The controller implements observed seek, drive-status, initialise, read/write special-register, verify and 128/256-byte single/multi-sector operations. Missing media, write protection and sector bounds return explicit 8271 results. FM byte requests are paced at 128 BBC ticks and command completion uses edge-style NMI delivery; an optional bounded trace records command decoding, selection, transfers, results and first-byte NMI request/acknowledgement. The Acorn Z80 shadow-ROM latch also follows instruction-fetch hardware: reset and NMI entry at `$0066` map the ROM, and the next opcode fetch at `$8000-$FFFF` restores RAM.
 
-The browser can independently mount local SSD or DSD images in physical drives 0 and 1, toggle write protection and export each current image. Protected/nonstandard layouts, UEF waveform timing and direct MOS cassette loading remain explicit compatibility work.
+The browser can independently mount local SSD or DSD images in physical drives 0 and 1, toggle write protection and export each current image. Milestone 1.6 adds monotonic media revisions and an IndexedDB boundary adapter for persistent working copies; see `bbc-media-persistence.md`. Protected/nonstandard layouts, UEF waveform timing and direct MOS cassette loading remain explicit compatibility work.
 
 ## Hardware references
 
