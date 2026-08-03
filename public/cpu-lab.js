@@ -1,4 +1,4 @@
-import { MinimalMachine, parseHexAddress } from "../src/machine/minimal-machine.js";
+import { MinimalMachine, parseHexAddress } from "./src/machine/minimal-machine.js";
 
 const SAMPLE = "A2 00 E8 8E 00 02 E0 0A D0 F8 00";
 const elements = Object.fromEntries([

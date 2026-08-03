@@ -33,3 +33,11 @@ test("BBC console exposes the milestone 0.6 display and ROM controls", async () 
   }
   assert.match(html, /0\.6 · INTERACTIVE BBC/);
 });
+
+test("browser modules stay inside the GitHub Pages project path", async () => {
+  for (const script of ["cpu-lab.js", "bbc.js"]) {
+    const source = await readFile(`public/${script}`, "utf8");
+    assert.doesNotMatch(source, /from ["']\.\.\/src\//);
+    assert.match(source, /from ["']\.\/src\//);
+  }
+});

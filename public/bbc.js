@@ -1,5 +1,5 @@
-import { BbcMicroModelB } from "../src/machine/bbc/model-b.js";
-import { BBC_KEYBOARD_CODES } from "../src/machine/bbc/system-via.js";
+import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
+import { BBC_KEYBOARD_CODES } from "./src/machine/bbc/system-via.js";
 
 const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton"].map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.bbcScreen.getContext("2d");
