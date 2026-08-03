@@ -1,6 +1,6 @@
 # Bundled BBC ROM images
 
-The repository owner supplied and explicitly approved these images for inclusion in the repository. They are firmware inputs to the emulator and are not covered by the source code's MIT licence. Redistribution status must be reviewed independently of the source-code licence.
+These files are firmware inputs to the emulator and are not covered by the source code's MIT licence. Redistribution status must be reviewed independently of the source-code licence.
 
 | File | Size | SHA-256 | Current use |
 |---|---:|---|---|
