@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Step through a MOS 6502 program one bus cycle at a time in the 6502 World CPU Lab.">
+  <title>CPU Lab · 6502 World</title>
+  <link rel="icon" href="6502-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="lab-page">
+  <header class="site-header compact-header">
+    <a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a>
+    <nav><a aria-current="page" href="cpu-lab.html">CPU Lab</a><a href="index.html#machines">Machines</a><a href="https://z80.world">Z80 World ↗</a></nav>
+  </header>
+
+  <main class="lab-shell">
+    <section class="lab-intro">
+      <div><p class="eyebrow">MINIMAL 6502 MACHINE</p><h1>See every bus cycle.</h1></div>
+      <p>This first slice intentionally implements the instruction set used by the sample program. Unsupported opcodes stop with an explicit diagnostic rather than pretending to work.</p>
+    </section>
+
+    <section class="workbench">
+      <div class="workbench-main">
+        <article class="tool-card program-card">
+          <div class="tool-heading"><div><span>PROGRAM</span><h2>Hex input</h2></div><span class="address-pill">LOAD $0600</span></div>
+          <textarea id="programInput" spellcheck="false" aria-label="6502 program as hexadecimal bytes">A2 00 E8 8E 00 02 E0 0A D0 F8 00</textarea>
+          <div class="button-row">
+            <button id="loadButton" class="button primary" type="button">Load + reset</button>
+            <button id="sampleButton" class="button secondary" type="button">Restore sample</button>
+          </div>
+          <p class="program-note"><code>LDX #0 · INX · STX $0200 · CPX #10 · BNE · BRK</code></p>
+        </article>
+
+        <article class="tool-card trace-card">
+          <div class="tool-heading"><div><span>ORDERED BUS TRACE</span><h2>Recent cycles</h2></div><span id="cycleCount" class="address-pill">0 CYCLES</span></div>
+          <div class="trace-table-wrap">
+            <table>
+              <thead><tr><th>Cycle</th><th>Address</th><th>R/W</th><th>Data</th><th>Meaning</th></tr></thead>
+              <tbody id="traceBody"></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+
+      <aside class="workbench-side">
+        <article class="tool-card controls-card">
+          <div class="tool-heading"><div><span>EXECUTION</span><h2>Controls</h2></div><span id="runState" class="status live">READY</span></div>
+          <div class="control-grid">
+            <button id="cycleButton" type="button">Clock cycle</button>
+            <button id="stepButton" type="button">Instruction</button>
+            <button id="runButton" type="button">Run to BRK</button>
+            <button id="resetButton" type="button">Reset</button>
+          </div>
+          <p id="statusMessage" class="status-message" role="status">Sample loaded. Reset sequencing is ready.</p>
+        </article>
+
+        <article class="tool-card registers-card">
+          <div class="tool-heading"><div><span>CPU STATE</span><h2>Registers</h2></div><span id="boundaryPill" class="address-pill">RESET</span></div>
+          <dl class="register-grid">
+            <div><dt>A</dt><dd id="regA">00</dd></div><div><dt>X</dt><dd id="regX">00</dd></div><div><dt>Y</dt><dd id="regY">00</dd></div>
+            <div><dt>SP</dt><dd id="regSP">FD</dd></div><div class="wide-register"><dt>PC</dt><dd id="regPC">0000</dd></div>
+          </dl>
+          <div class="flags" aria-label="Processor flags">
+            <span data-flag="n">N</span><span data-flag="v">V</span><span class="fixed-flag">–</span><span class="fixed-flag">B</span>
+            <span data-flag="d">D</span><span data-flag="i">I</span><span data-flag="z">Z</span><span data-flag="c">C</span>
+          </div>
+        </article>
+
+        <article class="tool-card next-card">
+          <div class="tool-heading"><div><span>NEXT INSTRUCTION</span><h2 id="nextInstruction">RESET</h2></div></div>
+          <div class="memory-readout"><span>$0200</span><strong id="memory0200">00</strong><small>sample output</small></div>
+        </article>
+      </aside>
+    </section>
+  </main>
+
+  <script type="module" src="cpu-lab.js"></script>
+</body>
+</html>
