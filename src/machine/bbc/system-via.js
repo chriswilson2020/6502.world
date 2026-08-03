@@ -87,6 +87,21 @@ export class SystemVia6522 {
 
   signalVerticalSync() { this.ifr |= IFR_CA1; }
 
+  saveState() {
+    return {
+      registers: Array.from(this.registers), outputA: this.outputA, outputB: this.outputB, ddra: this.ddra, ddrb: this.ddrb,
+      timer1: this.timer1, timer1Latch: this.timer1Latch, timer1Running: this.timer1Running,
+      timer2: this.timer2, timer2Running: this.timer2Running, timerRemainder: this.timerRemainder,
+      ifr: this.ifr, ier: this.ier, latch: [...this.latch], keyboard: [...this.keyboard.keys],
+    };
+  }
+  loadState(state) {
+    this.registers.set(state.registers); this.outputA = state.outputA; this.outputB = state.outputB; this.ddra = state.ddra; this.ddrb = state.ddrb;
+    this.timer1 = state.timer1; this.timer1Latch = state.timer1Latch; this.timer1Running = Boolean(state.timer1Running);
+    this.timer2 = state.timer2; this.timer2Running = Boolean(state.timer2Running); this.timerRemainder = state.timerRemainder;
+    this.ifr = state.ifr; this.ier = state.ier; this.latch = [...state.latch]; this.keyboard.keys = new Set(state.keyboard ?? []); this.keyboard.revision += 1; this.keyboardRevision = this.keyboard.revision;
+  }
+
   #updateLatch() {
     const address = this.outputB & 7; const value = (this.outputB & 8) !== 0;
     this.latch[address] = value;

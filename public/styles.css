@@ -131,6 +131,8 @@ footer a { color: var(--accent); }
 .bbc-stats div { border: 1px solid var(--line); border-radius: 6px; padding: 10px; }
 .bbc-stats dt { color: var(--muted); font: 9px monospace; }.bbc-stats dd { margin: 6px 0 0; font: 800 18px monospace; }
 .bbc-help { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.bbc-debugger { min-height: 170px; margin: 0 0 14px; overflow: auto; border: 1px solid var(--line); border-radius: 7px; background: #090c0b; color: var(--muted); padding: 12px; font: 12px/1.65 "SFMono-Regular", Consolas, monospace; }
+.sr-only { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: pre !important; }
 
 .compact-header { min-height: 72px; }
 .lab-shell { padding-bottom: 70px; }
@@ -239,6 +241,9 @@ th { position: sticky; top: 0; background: var(--panel); color: var(--muted); fo
   .section-heading { display: block; }
   .section-heading > p { margin-top: 24px; }
   .workbench-side { grid-template-columns: 1fr; }
+  .bbc-display-card, .tool-card { padding: 15px; }
+  .bbc-stats { grid-template-columns: 1fr 1fr; }
+  .bbc-heading { gap: 24px; padding-top: 44px; }
   .next-card { grid-column: auto; }
   footer { min-height: 150px; flex-direction: column; justify-content: center; align-items: flex-start; }
 }

@@ -19,7 +19,7 @@ The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom
 
 ## Current release
 
-The 0.7 release adds audio and local media to the interactive Model B console:
+The 0.8 public beta adds a portable debugger and production-quality browser surface to the interactive Model B console:
 
 - the 32K RAM, sideways ROM, OS ROM, FRED, JIM and SHEILA map;
 - sixteen sideways banks selected by `ROMSEL` at `$FE30`;
@@ -30,6 +30,8 @@ The 0.7 release adds audio and local media to the interactive Model B console:
 - SN76489 tone/noise register behavior driven through the system VIA sound strobe;
 - UEF standard-stream parsing with play, pause and rewind transport;
 - writable SSD images transferred through an 8271 register/NMI model and exportable from the browser;
+- full-machine portable states, instruction stepping, disassembly and address breakpoints;
+- responsive keyboard-accessible controls, a screen-reader text mirror and an explicit compatibility matrix;
 - a real-ROM regression test plus the headless boot diagnostic.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:

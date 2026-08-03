@@ -26,12 +26,13 @@ test("CPU workbench exposes the milestone 0.4 debugger surfaces", async () => {
   assert.match(html, /0\.4 · MINIMAL MACHINE/);
 });
 
-test("BBC console exposes the milestone 0.7 display and local media controls", async () => {
+test("BBC console exposes the milestone 0.8 debugger, state and local media controls", async () => {
   const html = await readFile("public/bbc.html", "utf8");
-  for (const id of ["bbcScreen", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "exportSsdButton"]) {
+  for (const id of ["bbcScreen", "bbcTextMirror", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "exportSsdButton", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /0\.7 · AUDIO \+ MEDIA/);
+  assert.match(html, /0\.8 · PUBLIC BETA/);
+  assert.match(html, /aria-describedby=["']bbcKeyboardHelp bbcTextMirror["']/);
 });
 
 test("browser modules stay inside the GitHub Pages project path", async () => {

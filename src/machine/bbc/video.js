@@ -7,6 +7,8 @@ export class VideoUla {
     else { this.lastPaletteWrite = value & 0xff; this.palette[value >> 4] = value & 0x0f; }
   }
   get mode() { return (this.control >> 2) & 0x07; }
+  saveState() { return { control: this.control, palette: Array.from(this.palette), lastPaletteWrite: this.lastPaletteWrite }; }
+  loadState(state) { this.control = state.control & 0xff; this.palette.set(state.palette); this.lastPaletteWrite = state.lastPaletteWrite & 0xff; }
 }
 
 export class BbcVideoOutput {

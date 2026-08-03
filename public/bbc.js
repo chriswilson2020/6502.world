@@ -1,12 +1,13 @@
 import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
 import { bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
 
-const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "exportSsdButton", "mediaState", "mediaStatus"].map((id) => [id, document.querySelector(`#${id}`)]));
+const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "exportSsdButton", "mediaState", "mediaStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus"].map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.bbcScreen.getContext("2d");
 let machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
 let osRom = null; let basicRom = null; let running = false; let frame = null; let demo = true;
 const activeBrowserKeys = new Map();
 let mountedSsdName = "disc.ssd"; let audio = null;
+const bbcBreakpoints = new Set();
 const hex = (value, width = 4) => value.toString(16).toUpperCase().padStart(width, "0");
 
 async function readSelected(input, fallback) { const [file] = input.files; return file ? new Uint8Array(await file.arrayBuffer()) : fallback; }
@@ -18,11 +19,13 @@ function draw() {
   context.fillStyle = "#050706"; context.fillRect(0, 0, 640, 500);
   context.fillStyle = "#f4f4ec"; context.font = '18px "SFMono-Regular", Consolas, monospace'; context.textBaseline = "top";
   rows.forEach((row, index) => context.fillText(row, 12, 10 + index * 19));
+  const textScreen = rows.join("\n"); if (elements.bbcTextMirror.textContent !== textScreen) elements.bbcTextMirror.textContent = textScreen;
   elements.bbcPc.textContent = hex(machine.cpu.pc);
   elements.bbcCycles.textContent = machine.cpu.cycles.toLocaleString();
   elements.bbcTicks.textContent = machine.machineTicks.toLocaleString();
   elements.bbcIrq.textContent = machine.cpu.irqLine ? "HIGH" : "LOW";
   elements.bbcRomBank.textContent = `ROM ${machine.bus.selectedRom}`;
+  renderBbcDebugger();
   audio?.sync(machine.bus.devices.sound.channelState());
 }
 
@@ -50,7 +53,7 @@ function schedule() { if (frame == null) frame = requestAnimationFrame(runFrame)
 function runFrame() {
   frame = null;
   if (!running) return;
-  try { for (let count = 0; count < 50000; count += 1) machine.clock(); }
+  try { for (let count = 0; count < 50000; count += 1) { if (machine.cpu.instructionBoundary && bbcBreakpoints.has(machine.cpu.pc)) { running = false; status(`Breakpoint reached at $${hex(machine.cpu.pc)}.`, "BREAK"); break; } machine.clock(); } }
   catch (error) { running = false; status(error.message, "ERROR"); draw(); return; }
   draw(); schedule();
 }
@@ -62,6 +65,19 @@ elements.pauseBbcButton.addEventListener("click", () => { if (demo) return; runn
 elements.bbcScreen.addEventListener("keydown", (event) => { const key = bbcKeyboardCodeForBrowserEvent(event.code, event.key); if (!key) return; event.preventDefault(); const matrixCode = `${key[0]}:${key[1]}`; activeBrowserKeys.set(event.code, matrixCode); machine.bus.keyboard.press(matrixCode); });
 elements.bbcScreen.addEventListener("keyup", (event) => { const matrixCode = activeBrowserKeys.get(event.code); if (!matrixCode) return; event.preventDefault(); machine.bus.keyboard.release(matrixCode); activeBrowserKeys.delete(event.code); });
 elements.bbcScreen.addEventListener("blur", () => { machine.bus.keyboard.clear(); activeBrowserKeys.clear(); });
+
+function renderBbcDebugger() {
+  let address = machine.cpu.instructionBoundary ? machine.cpu.pc : machine.cpu.currentInstructionAddress ?? machine.cpu.pc; const lines = [];
+  for (let index = 0; index < 7; index += 1) { try { const instruction = machine.cpu.disassemble(address); lines.push(`${bbcBreakpoints.has(address) ? "●" : " "} $${hex(address)}  ${instruction.text}`); address = (address + instruction.length) & 0xffff; } catch { break; } }
+  elements.bbcDisassembly.textContent = lines.join("\n"); elements.bbcBreakpointCount.textContent = `${bbcBreakpoints.size} BREAKPOINT${bbcBreakpoints.size === 1 ? "" : "S"}`;
+}
+function parseBbcAddress(value) { const normalized = String(value).trim().replace(/^\$/, "").replace(/^0x/i, ""); if (!/^[0-9a-f]{1,4}$/i.test(normalized)) throw new Error("Enter a four-digit hexadecimal address."); return Number.parseInt(normalized, 16); }
+function boundary() { while (!machine.cpu.instructionBoundary) machine.clock(); }
+
+elements.toggleBbcBreakpointButton.addEventListener("click", () => { try { const address = parseBbcAddress(elements.bbcBreakpointInput.value); if (bbcBreakpoints.has(address)) bbcBreakpoints.delete(address); else bbcBreakpoints.add(address); elements.bbcDebuggerStatus.textContent = `Breakpoint ${bbcBreakpoints.has(address) ? "set" : "cleared"} at $${hex(address)}.`; draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; } });
+elements.stepBbcButton.addEventListener("click", () => { stop(); boundary(); const at = machine.cpu.pc; const result = machine.step(); elements.bbcDebuggerStatus.textContent = `Stepped $${hex(at)} in ${result.cycles} cycles.`; status("Machine paused after one instruction.", "PAUSED"); draw(); });
+elements.exportBbcStateButton.addEventListener("click", () => { stop(); boundary(); const state = machine.exportState(); state.debugger = { breakpoints: [...bbcBreakpoints] }; const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(state)], { type: "application/json" })); link.download = `6502-world-bbc-${hex(machine.cpu.pc)}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0); elements.bbcDebuggerStatus.textContent = `Portable BBC state captured at $${hex(machine.cpu.pc)}.`; status("Machine paused for state export.", "PAUSED"); draw(); });
+elements.bbcStateInput.addEventListener("change", async () => { try { const [file] = elements.bbcStateInput.files; if (!file) return; stop(); const state = JSON.parse(await file.text()); machine.importState(state); bbcBreakpoints.clear(); for (const address of state.debugger?.breakpoints ?? []) bbcBreakpoints.add(address & 0xffff); demo = false; mountedSsdName = "restored-disc.ssd"; elements.exportSsdButton.disabled = !machine.bus.devices.fdc.disk; elements.bbcDebuggerStatus.textContent = `${file.name} restored at $${hex(machine.cpu.pc)}.`; status("Portable BBC state restored.", "PAUSED"); draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; status(error.message, "ERROR"); } finally { elements.bbcStateInput.value = ""; } });
 
 elements.enableAudioButton.addEventListener("click", async () => {
   audio ??= new BrowserSnAudio(); await audio.enable();

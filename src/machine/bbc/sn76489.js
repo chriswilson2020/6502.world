@@ -33,6 +33,9 @@ export class Sn76489 {
     return { tones, noise: { mode: this.noise & 3, white: Boolean(this.noise & 4), gain: attenuation(this.volume[3]) } };
   }
 
+  saveState() { return { tone: Array.from(this.tone), volume: Array.from(this.volume), noise: this.noise, latchedRegister: this.latchedRegister, writeCount: this.writeCount }; }
+  loadState(state) { this.tone.set(state.tone); this.volume.set(state.volume); this.noise = state.noise; this.latchedRegister = state.latchedRegister; this.writeCount = state.writeCount; }
+
   #writeNibble(register, nibble) {
     if (register & 1) this.volume[register >> 1] = nibble & 0x0f;
     else if (register === 6) this.noise = nibble & 0x07;

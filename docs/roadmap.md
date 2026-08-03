@@ -82,13 +82,17 @@
 
 **Evidence:** focused tests cover SN latch/data writes and attenuation, UEF signature/chunk parsing and transport, and complete 256-byte 8271 read/write transfers. The browser enables sound only after a user gesture, mounts UEF/SSD files locally, reports transport state and exports the current writable SSD image. See `bbc-media.md`.
 
-## 0.8 — Public beta
+## 0.8 — Public beta (implemented)
 
 - save states
 - debugger workbench
 - responsive layout
 - compatibility matrix
 - performance and accessibility passes
+
+**Gate:** a complete BBC state round-trips through JSON and resumes execution; browser debugger, breakpoint and state controls work at desktop and narrow widths; current compatibility claims and limitations are published.
+
+**Evidence:** the portable-state test restores CPU, RAM, ROM selection, VIA, video, sound, UEF position, dirty SSD data and then executes the next instruction. Browser checks cover boot, stepping, breakpoint controls, export/import, focus-visible keyboard operation, text-screen mirroring and responsive layout. See `compatibility.md`.
 
 ## 1.0 — Stable BBC Model B
 

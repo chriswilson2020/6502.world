@@ -7,6 +7,7 @@ export class UefCassette {
     const source = Uint8Array.from(bytes);
     if (source.length < 12 || new TextDecoder("latin1").decode(source.subarray(0, 10)) !== UEF_SIGNATURE) throw new Error("invalid UEF signature");
     this.version = `${source[11]}.${source[10]}`;
+    this.source = source.slice();
     this.chunks = [];
     const stream = [];
     for (let offset = 12; offset < source.length;) {
