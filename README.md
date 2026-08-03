@@ -19,7 +19,7 @@ The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom
 
 ## Current CPU slice
 
-The 0.2 core implements all 151 documented NMOS 6502 opcodes and addressing modes, including:
+The 0.3 core implements all 151 documented NMOS 6502 opcodes and addressing modes, including:
 
 - binary and NMOS decimal `ADC`/`SBC`;
 - stack operations, subroutines and returns;
@@ -30,7 +30,7 @@ The 0.2 core implements all 151 documented NMOS 6502 opcodes and addressing mode
 - one externally visible bus transaction per `clock()` call;
 - instruction stepping layered on top of cycle stepping.
 
-The core is **not yet described as cycle-accurate**. That claim remains gated on ordered-bus validation against established processor test corpora in milestone 0.3.
+Documented instruction execution is validated cycle by cycle against 1,510,000 SingleStepTests scenarios, including dummy accesses, page crossings and read-modify-write sequences. Reset, IRQ and NMI entry have explicit ordered-trace tests. Undocumented opcodes remain outside the supported and validated surface.
 
 ## Run locally
 
@@ -58,6 +58,15 @@ node scripts/run-functional-test.js /path/to/6502_functional_test.bin
 ```
 
 The runner loads the 64K image, starts it at `$0400`, and reports success only when the suite reaches its `$3469` completion loop.
+
+After obtaining the SingleStepTests `6502/v1` JSON corpus, run the ordered-bus validator against a single opcode file or a directory containing the 151 documented-opcode files:
+
+```sh
+node scripts/run-bus-vectors.js /path/to/6502/v1/a9.json
+node scripts/run-bus-vectors.js /path/to/legal-opcode-vectors
+```
+
+See [`docs/validation.md`](docs/validation.md) for the pinned corpus revisions and published evidence.
 
 ## Project structure
 

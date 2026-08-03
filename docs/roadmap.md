@@ -24,7 +24,7 @@
 
 **Evidence:** repository unit tests cover the opcode matrix, decimal arithmetic and interrupt entry/return; the core also reaches the `$3469` success loop in Klaus Dormann's 64K functional test after 30,646,177 instructions.
 
-## 0.3 — Ordered-bus validation
+## 0.3 — Ordered-bus validation (implemented)
 
 - Processor vector importer
 - Dummy accesses
@@ -33,6 +33,8 @@
 - Interrupt traces
 
 **Gate:** complete legal-opcode bus corpus passes before any cycle-accuracy claim.
+
+**Evidence:** 1,510,000 SingleStepTests scenarios pass across all 151 documented opcodes with exact ordered address, data and read/write comparisons. Repository tests separately assert reset, BRK, IRQ, NMI, branch, page-cross and RMW traces. See `validation.md` for pinned revisions.
 
 ## 0.4 — Minimal machine release
 

@@ -25,13 +25,13 @@ This allows future machines to observe dummy reads, page-crossing activity, inte
 
 ## Current accuracy boundary
 
-The 0.2 processor implements the complete documented NMOS instruction set while preserving the cycle-stepped execution model. Undocumented opcodes remain deliberately unsupported.
+The 0.3 processor implements the complete documented NMOS instruction set while preserving the cycle-stepped execution model. Undocumented opcodes remain deliberately unsupported.
 
 The public accuracy language must remain:
 
-> Complete legal NMOS 6502 instruction set with a cycle-stepped bus interface.
+> Cycle-accurate documented NMOS 6502 instruction execution with a cycle-stepped bus interface.
 
-A cycle-accuracy claim remains gated on ordered-bus validation in milestone 0.3.
+The claim covers the documented opcode surface validated by the ordered-bus corpus. Undocumented opcodes and machine-level peripheral timing are not included.
 
 ## Planned BBC layer
 

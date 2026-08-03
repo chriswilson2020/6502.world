@@ -256,14 +256,22 @@ export class M6502 {
     const carry = this.#flag(FLAG_C) ? 1 : 0;
     const binary = this.a + value + carry;
     const binaryResult = binary & 0xff;
-    this.#setFlag(FLAG_V, (~(this.a ^ value) & (this.a ^ binaryResult) & 0x80) !== 0);
-    this.#setNZ(binaryResult);
     if (this.#flag(FLAG_D)) {
-      let adjusted = binary;
-      if ((this.a & 0x0f) + (value & 0x0f) + carry > 9) adjusted += 0x06;
-      if (adjusted > 0x99) adjusted += 0x60;
-      this.#setFlag(FLAG_C, adjusted > 0xff); this.a = adjusted & 0xff;
-    } else { this.#setFlag(FLAG_C, binary > 0xff); this.a = binaryResult; }
+      let low = (this.a & 0x0f) + (value & 0x0f) + carry;
+      if (low > 9) low += 6;
+      let high = (this.a >> 4) + (value >> 4) + (low > 0x0f ? 1 : 0);
+      this.#setFlag(FLAG_Z, binaryResult === 0);
+      this.#setFlag(FLAG_N, high & 0x08);
+      this.#setFlag(FLAG_V, (~(this.a ^ value) & (this.a ^ (high << 4)) & 0x80) !== 0);
+      if (high > 9) high += 6;
+      this.#setFlag(FLAG_C, high > 0x0f);
+      this.a = ((high << 4) | (low & 0x0f)) & 0xff;
+    } else {
+      this.#setFlag(FLAG_V, (~(this.a ^ value) & (this.a ^ binaryResult) & 0x80) !== 0);
+      this.#setNZ(binaryResult);
+      this.#setFlag(FLAG_C, binary > 0xff);
+      this.a = binaryResult;
+    }
   }
 
   #sbc(value) {

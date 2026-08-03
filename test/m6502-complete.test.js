@@ -119,15 +119,27 @@ test("IRQ and NMI push state, select vectors, and RTI restores execution", () =>
   memory.load([0x40], 0x0900);
   cpu.step(); // CLI
   cpu.setIrq(true);
+  const irqTraceStart = cpu.trace.length;
   assert.equal(cpu.step(), 7);
   assert.equal(cpu.pc, 0x0800);
   assert.equal(memory.read8(0x01fb) & M6502_FLAGS.B, 0);
+  assert.deepEqual(cpu.trace.slice(irqTraceStart).map(({ address, operation }) => [address, operation]), [
+    [0x0601, "read"], [0x0601, "read"],
+    [0x01fb, "write"], [0x01fa, "write"], [0x01f9, "write"],
+    [0xfffe, "read"], [0xffff, "read"],
+  ]);
   cpu.setIrq(false);
   cpu.step(); // RTI
   assert.equal(cpu.pc, 0x0601);
   cpu.requestNmi();
+  const nmiTraceStart = cpu.trace.length;
   assert.equal(cpu.step(), 7);
   assert.equal(cpu.pc, 0x0900);
+  assert.deepEqual(cpu.trace.slice(nmiTraceStart).map(({ address, operation }) => [address, operation]), [
+    [0x0601, "read"], [0x0601, "read"],
+    [0x01fb, "write"], [0x01fa, "write"], [0x01f9, "write"],
+    [0xfffa, "read"], [0xfffb, "read"],
+  ]);
 });
 
 test("boundary state round-trips and disassembler covers addressing syntax", () => {
