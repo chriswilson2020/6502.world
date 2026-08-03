@@ -133,6 +133,12 @@ footer a { color: var(--accent); }
 .bbc-stats div { border: 1px solid var(--line); border-radius: 6px; padding: 10px; }
 .bbc-stats dt { color: var(--muted); font: 9px monospace; }.bbc-stats dd { margin: 6px 0 0; font: 800 18px monospace; }
 .bbc-help { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+.catalogue-list { display: grid; gap: 9px; margin-bottom: 14px; }
+.catalogue-entry { border: 1px solid var(--line); border-radius: 7px; padding: 11px; }
+.catalogue-entry summary { cursor: pointer; list-style-position: outside; color: var(--text); font-size: 13px; font-weight: 800; }
+.catalogue-entry summary span { display: block; margin: 5px 0 0 16px; color: var(--muted); font: 9px/1.4 "SFMono-Regular", Consolas, monospace; letter-spacing: .04em; text-transform: uppercase; }
+.catalogue-entry p { margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.catalogue-entry code { color: var(--accent); font-size: 10px; }
 .bbc-debugger { min-height: 170px; margin: 0 0 14px; overflow: auto; border: 1px solid var(--line); border-radius: 7px; background: #090c0b; color: var(--muted); padding: 12px; font: 12px/1.65 "SFMono-Regular", Consolas, monospace; }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: pre !important; }
 

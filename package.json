@@ -1,6 +1,6 @@
 {
   "name": "6502-world",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -10,6 +10,7 @@
     "test:bbc-z80": "node scripts/run-z80-tube-rom.js",
     "test:bbc-cpm": "node scripts/run-acorn-cpm.js",
     "test:bbc-cpm-write": "node scripts/run-acorn-cpm-write.js",
+    "test:bbc-catalogue": "node scripts/run-acorn-z80-catalogue.js",
     "inventory:acorn-media": "node scripts/inventory-acorn-z80-media.js",
     "build:pages": "node scripts/build-pages.js",
     "dev": "node scripts/dev-server.js"

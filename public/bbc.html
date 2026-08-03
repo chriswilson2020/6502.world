@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a aria-current="page" href="bbc.html">BBC Micro</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">1.6 · WRITABLE MEDIA</p><h1>Model B console.</h1></div><p>Choose a BBC Model B or Acorn Z80 hardware profile, boot compatible software, and preserve writable working discs locally without altering the bundled source images.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">1.7 · ACORN Z80 CATALOGUE</p><h1>Model B console.</h1></div><p>Boot validated BBC and Acorn Z80 software, inspect honestly classified preservation media, and preserve writable working discs locally without altering the bundled sources.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>6845 + VIDEO ULA</span><h2>40 / 80-column display</h2></div><span id="bbcRunState" class="status planned">NO ROM</span></div>
@@ -57,6 +57,10 @@
           <button id="duplicateMediaButton" class="wide-action" type="button">Duplicate as working copy</button>
           <button id="clearStoredMediaButton" class="wide-action" type="button">Clear stored copy</button>
           <p id="persistenceStatus" class="bbc-help" role="status">IndexedDB keeps 400K working images in this browser only.</p>
+        </article>
+        <article class="tool-card"><div class="tool-heading"><div><span>1.7 CATALOGUE</span><h2>Acorn Z80 software</h2></div><span class="status live">12 DSD</span></div>
+          <div id="catalogueList" class="catalogue-list"></div>
+          <p id="catalogueStatus" class="bbc-help" role="status">Only repeatably validated titles have launch buttons.</p>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>1.4 ACORN CP/M</span><h2>Z80 Tube processor</h2></div><span id="tubeState" class="status planned">DETACHED</span></div>
           <button id="bootCpmButton" class="wide-action" type="button">Boot Acorn CP/M 2.2</button>

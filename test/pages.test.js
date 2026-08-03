@@ -28,10 +28,10 @@ test("CPU workbench exposes the milestone 0.4 debugger surfaces", async () => {
 
 test("BBC console exposes the debugger, persistent dual-drive media and Tube controls", async () => {
   const html = await readFile("public/bbc.html", "utf8");
-  for (const id of ["bbcScreen", "bbcTextMirror", "systemSelect", "softwareSelect", "bootSystemButton", "resetSystemButton", "configurationStatus", "advancedHardware", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "ejectDrive0Button", "ejectDrive1Button", "resetDrive0Button", "resetDrive1Button", "swapDrivesButton", "persistenceDriveSelect", "saveMediaButton", "restoreMediaButton", "duplicateMediaButton", "clearStoredMediaButton", "persistenceStatus", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput", "advancedTube", "tubeRomInput", "attachTubeButton", "bootCpmButton", "tubePc", "tubeTranscript"]) {
+  for (const id of ["bbcScreen", "bbcTextMirror", "systemSelect", "softwareSelect", "bootSystemButton", "resetSystemButton", "configurationStatus", "advancedHardware", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "ejectDrive0Button", "ejectDrive1Button", "resetDrive0Button", "resetDrive1Button", "swapDrivesButton", "persistenceDriveSelect", "saveMediaButton", "restoreMediaButton", "duplicateMediaButton", "clearStoredMediaButton", "persistenceStatus", "catalogueList", "catalogueStatus", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput", "advancedTube", "tubeRomInput", "attachTubeButton", "bootCpmButton", "tubePc", "tubeTranscript"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
-  assert.match(html, /1\.6 · WRITABLE MEDIA/);
+  assert.match(html, /1\.7 · ACORN Z80 CATALOGUE/);
   assert.match(html, /aria-describedby=["']bbcKeyboardHelp bbcTextMirror["']/);
   assert.match(html, /<summary>Advanced hardware<\/summary>/);
 });

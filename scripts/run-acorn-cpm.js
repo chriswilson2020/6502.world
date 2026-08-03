@@ -14,7 +14,7 @@ const KEY_FOR_CHARACTER = Object.freeze({
   " ": "Space", ".": "Period", ":": "Semicolon", "/": "Slash", "-": "Minus", "\r": "Enter", "\n": "Enter",
 });
 
-export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], writeProtected = true, mediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false } = {}) {
+export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], commandExpectations = [], writeProtected = true, mediaBytes, drive1MediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false } = {}) {
   const names = ["os12.rom", "basic2.rom", "dnfs.rom", "z80.rom"];
   const [os, basic, dnfs, z80, utilities] = await Promise.all([
     ...names.map(async (name) => new Uint8Array(await readFile(join(ROOT, "ROM", name)))),
@@ -26,6 +26,7 @@ export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandIns
   const machine = new BbcMicroModelB({ traceLimit: 64, accessLogLimit: 0 });
   machine.loadSidewaysRom(15, basic); machine.loadSidewaysRom(14, dnfs);
   machine.mountDsd(utilities, { drive: 0, writeProtected });
+  if (drive1MediaBytes) machine.mountDsd(drive1MediaBytes, { drive: 1, writeProtected });
   const parasite = machine.attachZ80SecondProcessor({ bootRom: z80 });
   const tubeTranscript = []; const tube = machine.bus.devices.tube; const parasiteWrite = tube.parasiteWrite.bind(tube);
   tube.parasiteWrite = (offset, value) => {
@@ -47,10 +48,11 @@ export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandIns
   if (!booted) return report({ passed: false, reason: "boot-limit", machine, parasite, hashes, hostInstructions, tubeTranscript, commands: [] });
 
   const commands = [];
-  for (const command of requestedCommands) {
+  for (let index = 0; index < requestedCommands.length; index += 1) {
+    const command = requestedCommands[index]; const expectation = commandExpectations[index];
     const promptsBefore = promptCount(screenText(machine));
     typeThroughKeyboard(machine, command === "\x03" ? command : command + "\r", () => { hostInstructions += 1; });
-    const completed = runUntil((screen) => promptCount(screen) > promptsBefore, commandInstructionLimit);
+    const completed = runUntil((screen) => expectation ? matchesExpectation(screen, expectation) : promptCount(screen) > promptsBefore, commandInstructionLimit);
     commands.push({ command, completed, screen: machine.video.textSnapshot() });
     if (!completed) return report({ passed: false, reason: `${command.toLowerCase()}-limit`, machine, parasite, hashes, hostInstructions, tubeTranscript, commands });
   }
@@ -58,7 +60,8 @@ export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandIns
   const defaultGate = requestedCommands.length === 2 && requestedCommands[0] === "DIR" && requestedCommands[1] === "STAT";
   const directoryPlausible = !defaultGate || /(?:\.COM|\.ASM|\.SUB|\bSTAT\b|\bDIR\b)/.test(commands[0].screen.join("\n"));
   const statPlausible = !defaultGate || /(?:STAT|Bytes|K\s|Read Only|R\/O)/i.test(commands[1].screen.join("\n"));
-  const result = report({ passed: booted && commands.every(({ completed }) => completed) && directoryPlausible && statPlausible && promptCount(screen) >= requestedCommands.length + 1, reason: "complete", machine, parasite, hashes, hostInstructions, tubeTranscript, commands });
+  const promptGate = commandExpectations.some(Boolean) || promptCount(screen) >= requestedCommands.length + 1;
+  const result = report({ passed: booted && commands.every(({ completed }) => completed) && directoryPlausible && statPlausible && promptGate, reason: "complete", machine, parasite, hashes, hostInstructions, tubeTranscript, commands });
   if (returnMedia) result.exportedMedia = machine.bus.devices.fdc.drives[0].disk.export();
   return result;
 }
@@ -78,6 +81,7 @@ function pressChord(machine, matrices, onInstruction) { const keys = matrices.ma
 function runInstructions(machine, count, onInstruction) { for (let index = 0; index < count; index += 1) { machine.step(); onInstruction(); } }
 function screenText(machine) { return machine.video.textSnapshot().map((line) => line.replace(/\s+$/, "")).join("\n"); }
 function promptCount(text) { return text.match(/A>/g)?.length ?? 0; }
+function matchesExpectation(text, expectation) { if (typeof expectation === "string") return text.includes(expectation); if (expectation instanceof RegExp) { expectation.lastIndex = 0; return expectation.test(text); } if (typeof expectation === "function") return Boolean(expectation(text)); throw new TypeError("CP/M command expectation must be a string, RegExp or function"); }
 function sha256(bytes) { return createHash("sha256").update(bytes).digest("hex"); }
 function cleanTranscript(bytes) { return new TextDecoder().decode(Uint8Array.from(bytes)).replace(/[^\x20-\x7e\r\n]/g, ""); }
 function report({ passed, reason, machine, parasite, hashes, hostInstructions, tubeTranscript, commands }) {

@@ -600,6 +600,8 @@ At minimum:
 
 ## 1.7 — Acorn Z80 software catalogue
 
+**Implemented:** every approved DSD is represented exactly once with a verified SHA-256, placement, write-mode guidance, rights mode and evidence-based status. Utilities and BBC BASIC are the only validated launch entries. The BBC BASIC gate boots the known Utilities system in A:, selects the prepared Basic disc in B: through real keyboard input and reaches the 2.20 title prompt; the browser performs the same bounded launch sequence. Accountant and Nucleus are explicit multi-disc sets, candidate titles remain “media identified, not yet validated”, and the absent original seven-disc installer remains unsupported metadata rather than a fabricated preset.
+
 Only begin after CP/M Utilities is a stable, writable system.
 
 ### Inventory and classification

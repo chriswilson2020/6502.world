@@ -1,9 +1,10 @@
 import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
-import { bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
+import { BBC_KEYBOARD_CODES, bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
 import { configurationFromSearch, configurationUrl, defaultSoftwareForProfile, resolveBbcConfiguration, shouldWarnForDirtyMedia, softwareForProfile } from "./bbc-config.js";
 import { IndexedDbBbcMediaStore } from "./bbc-media-store.js";
+import { ACORN_Z80_CATALOGUE } from "./bbc-catalogue.js";
 
-const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "systemSelect", "softwareSelect", "bootSystemButton", "resetSystemButton", "configurationStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "ejectDrive0Button", "ejectDrive1Button", "resetDrive0Button", "resetDrive1Button", "swapDrivesButton", "mediaState", "mediaStatus", "persistenceState", "persistenceDriveSelect", "saveMediaButton", "restoreMediaButton", "duplicateMediaButton", "clearStoredMediaButton", "persistenceStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus", "tubeRomInput", "attachTubeButton", "bootCpmButton", "tubeState", "tubeStatus", "tubePc", "tubeTstates", "tubeTranscript"].map((id) => [id, document.querySelector(`#${id}`)]));
+const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "systemSelect", "softwareSelect", "bootSystemButton", "resetSystemButton", "configurationStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "drive1Input", "drive0WriteProtect", "drive1WriteProtect", "exportSsdButton", "exportDrive1Button", "ejectDrive0Button", "ejectDrive1Button", "resetDrive0Button", "resetDrive1Button", "swapDrivesButton", "mediaState", "mediaStatus", "persistenceState", "persistenceDriveSelect", "saveMediaButton", "restoreMediaButton", "duplicateMediaButton", "clearStoredMediaButton", "persistenceStatus", "catalogueList", "catalogueStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus", "tubeRomInput", "attachTubeButton", "bootCpmButton", "tubeState", "tubeStatus", "tubePc", "tubeTstates", "tubeTranscript"].map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.bbcScreen.getContext("2d");
 let machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
 let osRom = null; let basicRom = null; let dnfsRom = null; let running = false; let frame = null; let demo = true; let cpmBoot = false;
@@ -11,6 +12,7 @@ let currentSystemId = "bbc-model-b"; let currentSoftwareId = "bbc-basic"; let ma
 const activeBrowserKeys = new Map();
 const mountedMediaNames = ["drive-0.ssd", "drive-1.ssd"]; const mountedOriginals = [null, null]; let audio = null; let tubeBootRom = null; let tubeEnabled = false; let tubeOutput = [];
 const mediaStore = new IndexedDbBbcMediaStore(); const persistedRevisions = [null, null];
+let pendingLaunchSteps = []; let automaticLaunchQueue = []; let automaticLaunchPressed = null; let activeLaunchMarker = null; let activeLaunchTitle = null;
 const bbcBreakpoints = new Set();
 const hex = (value, width = 4) => value.toString(16).toUpperCase().padStart(width, "0");
 
@@ -25,7 +27,8 @@ function draw() {
   context.fillStyle = "#f4f4ec"; context.font = `${wide ? 9 : 18}px "SFMono-Regular", Consolas, monospace`; context.textBaseline = "top";
   rows.forEach((row, index) => context.fillText(row, wide ? 4 : 12, 10 + index * lineHeight));
   const textScreen = rows.join("\n"); if (elements.bbcTextMirror.textContent !== textScreen) elements.bbcTextMirror.textContent = textScreen;
-  if (running && cpmBoot && textScreen.includes("Acorn CP/M 2.2 - Bios 1.20") && textScreen.includes("A>")) status("Acorn CP/M 2.2 is ready. Click the display to type.", "RUNNING");
+  if (running && activeLaunchMarker && textScreen.includes(activeLaunchMarker)) status(`${activeLaunchTitle} is ready. Click the display to type.`, "RUNNING");
+  else if (running && cpmBoot && !activeLaunchMarker && textScreen.includes("Acorn CP/M 2.2 - Bios 1.20") && textScreen.includes("A>")) status("Acorn CP/M 2.2 is ready. Click the display to type.", "RUNNING");
   for (let drive = 0; drive < 2; drive += 1) {
     const slot = machine.bus.devices.fdc.drives[drive];
     const protect = drive ? elements.drive1WriteProtect : elements.drive0WriteProtect;
@@ -44,7 +47,7 @@ function draw() {
 }
 
 function demoScreen() {
-  stop(); demo = true; cpmBoot = false; machine = new BbcMicroModelB();
+  stop(); cancelAutomaticLaunch(); demo = true; cpmBoot = false; machine = new BbcMicroModelB();
   const text = ["BBC Computer 32K", "", "Acorn DFS", "", "BASIC", "", ">_"];
   text.forEach((line, row) => machine.bus.ram.set(new TextEncoder().encode(line), 0x7c00 + row * 40));
   status("Firmware-free renderer demo. Load OS and BASIC ROMs for a machine boot.", "DEMO"); draw(); elements.bbcScreen.focus();
@@ -83,8 +86,8 @@ function updateConfigurationUrl() { history.replaceState(null, "", configuration
 async function configureSystem(resolved, { askBeforeDiscard = true, updateUrl = true } = {}) {
   const replacingMedia = resolved.software.mediaPolicy === "replace";
   if (askBeforeDiscard && shouldWarnForDirtyMedia({ dirty: mediaIsDirty(), currentSoftwareId, nextSoftware: resolved.software }) && !confirmMediaReplacement()) { restoreConfigurationControls(); elements.configurationStatus.textContent = "System change cancelled; dirty media remains mounted."; return false; }
-  stop(); currentSystemId = resolved.profile.id; currentSoftwareId = resolved.software.id;
-  tubeEnabled = resolved.profile.parasite === "acorn-z80"; cpmBoot = resolved.software.id === "acorn-cpm-utilities";
+  stop(); cancelAutomaticLaunch(); currentSystemId = resolved.profile.id; currentSoftwareId = resolved.software.id;
+  tubeEnabled = resolved.profile.parasite === "acorn-z80"; cpmBoot = Boolean(resolved.software.bootsCpm); prepareAutomaticLaunch(resolved.software);
   if (replacingMedia) {
     for (let drive = 0; drive < 2; drive += 1) { machine.ejectMedia(drive); mountedOriginals[drive] = null; persistedRevisions[drive] = null; }
     for (let drive = 0; drive < resolved.software.drives.length; drive += 1) {
@@ -99,7 +102,7 @@ async function configureSystem(resolved, { askBeforeDiscard = true, updateUrl = 
   elements.mediaState.textContent = machine.bus.devices.fdc.drives.some(({ disk }) => disk) ? "MEDIA" : "EMPTY";
   elements.mediaState.className = `status ${machine.bus.devices.fdc.drives.some(({ disk }) => disk) ? "live" : "planned"}`;
   elements.configurationStatus.textContent = resolved.message || `${resolved.profile.title} · ${resolved.software.title}.`;
-  if (cpmBoot) elements.mediaStatus.textContent = "Bundled CP/M Utilities DSD mounted read-only in physical drive 0 / CP/M A:.";
+  if (cpmBoot) elements.mediaStatus.textContent = resolved.software.drives.map((media, drive) => media && media !== "preserve" ? `${media.filename} in physical drive ${drive} / CP/M ${String.fromCharCode(65 + drive)}:` : null).filter(Boolean).join(" · ") + " · bundled sources are read-only.";
   else if (!machine.bus.devices.fdc.drives.some(({ disk }) => disk)) elements.mediaStatus.textContent = "No startup disc mounted; choose a local SSD or DSD at any time.";
   if (updateUrl) updateConfigurationUrl(); draw(); return true;
 }
@@ -109,11 +112,20 @@ function schedule() { if (frame == null) frame = requestAnimationFrame(runFrame)
 function runFrame() {
   frame = null;
   if (!running) return;
-  try { for (let count = 0; count < 50000; count += 1) { if (machine.cpu.instructionBoundary && bbcBreakpoints.has(machine.cpu.pc)) { running = false; status(`Breakpoint reached at $${hex(machine.cpu.pc)}.`, "BREAK"); break; } machine.clock(); } }
+  try { for (let count = 0; count < 50000; count += 1) { if (machine.cpu.instructionBoundary && bbcBreakpoints.has(machine.cpu.pc)) { running = false; status(`Breakpoint reached at $${hex(machine.cpu.pc)}.`, "BREAK"); break; } machine.clock(); } serviceAutomaticLaunch(); }
   catch (error) { running = false; status(error.message, "ERROR"); draw(); return; }
   draw(); schedule();
 }
 function stop() { running = false; if (frame != null) cancelAnimationFrame(frame); frame = null; }
+const automaticCodeForCharacter = (character) => character === "\r" ? "Enter" : character === ":" ? "Semicolon" : `Key${character.toUpperCase()}`;
+function cancelAutomaticLaunch() { if (automaticLaunchPressed) machine.bus.keyboard.release(automaticLaunchPressed); automaticLaunchPressed = null; automaticLaunchQueue = []; pendingLaunchSteps = []; activeLaunchMarker = null; activeLaunchTitle = null; }
+function prepareAutomaticLaunch(software) { pendingLaunchSteps = [...(software.launchSteps ?? [])]; activeLaunchMarker = software.launchMarker ?? null; activeLaunchTitle = software.title; }
+function serviceAutomaticLaunch() {
+  if (automaticLaunchPressed) { machine.bus.keyboard.release(automaticLaunchPressed); automaticLaunchPressed = null; return; }
+  if (automaticLaunchQueue.length) { const character = automaticLaunchQueue.shift(); const matrix = BBC_KEYBOARD_CODES[automaticCodeForCharacter(character)]; if (!matrix) throw new Error(`No BBC keyboard mapping for automatic launch character ${character}`); automaticLaunchPressed = `${matrix[0]}:${matrix[1]}`; machine.bus.keyboard.press(automaticLaunchPressed); return; }
+  const screen = machine.video.textSnapshot().join("\n"); const next = pendingLaunchSteps[0]; if (!next || !screen.includes(next.prompt)) return;
+  pendingLaunchSteps.shift(); automaticLaunchQueue = [...next.command, "\r"]; status(`Entering ${next.command} through the BBC keyboard matrix.`, "RUNNING");
+}
 function captureTubeOutput() {
   tubeOutput = []; const tube = machine.bus.devices.tube; const parasiteWrite = tube.parasiteWrite.bind(tube);
   tube.parasiteWrite = (offset, value) => { if ((offset & 7) === 1) tubeOutput.push(value & 0xff); parasiteWrite(offset, value); };
@@ -122,7 +134,7 @@ function captureTubeOutput() {
 
 elements.bootBbcButton.addEventListener("click", boot);
 elements.bootSystemButton.addEventListener("click", configureFromControls);
-elements.resetSystemButton.addEventListener("click", () => boot());
+elements.resetSystemButton.addEventListener("click", () => { const resolved = resolveBbcConfiguration({ system: currentSystemId, software: currentSoftwareId }); cancelAutomaticLaunch(); prepareAutomaticLaunch(resolved.software); boot(); });
 elements.systemSelect.addEventListener("change", () => { updateSoftwareOptions(elements.systemSelect.value); configureFromControls(); });
 elements.softwareSelect.addEventListener("change", configureFromControls);
 elements.demoBbcButton.addEventListener("click", demoScreen);
@@ -142,7 +154,7 @@ function boundary() { while (!machine.cpu.instructionBoundary) machine.clock(); 
 elements.toggleBbcBreakpointButton.addEventListener("click", () => { try { const address = parseBbcAddress(elements.bbcBreakpointInput.value); if (bbcBreakpoints.has(address)) bbcBreakpoints.delete(address); else bbcBreakpoints.add(address); elements.bbcDebuggerStatus.textContent = `Breakpoint ${bbcBreakpoints.has(address) ? "set" : "cleared"} at $${hex(address)}.`; draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; } });
 elements.stepBbcButton.addEventListener("click", () => { stop(); boundary(); const at = machine.cpu.pc; const result = machine.step(); elements.bbcDebuggerStatus.textContent = `Stepped $${hex(at)} in ${result.cycles} cycles.`; status("Machine paused after one instruction.", "PAUSED"); draw(); });
 elements.exportBbcStateButton.addEventListener("click", () => { stop(); boundary(); const state = machine.exportState(); state.debugger = { breakpoints: [...bbcBreakpoints] }; const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(state)], { type: "application/json" })); link.download = `6502-world-bbc-${hex(machine.cpu.pc)}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0); elements.bbcDebuggerStatus.textContent = `Portable BBC state captured at $${hex(machine.cpu.pc)}.`; status("Machine paused for state export.", "PAUSED"); draw(); });
-elements.bbcStateInput.addEventListener("change", async () => { try { const [file] = elements.bbcStateInput.files; if (!file) return; stop(); const state = JSON.parse(await file.text()); machine.importState(state); tubeEnabled = Boolean(machine.parasite); currentSystemId = tubeEnabled ? "bbc-model-b-acorn-z80" : "bbc-model-b"; currentSoftwareId = tubeEnabled ? "custom-acorn-cpm" : "local-bbc-media"; elements.systemSelect.value = currentSystemId; updateSoftwareOptions(currentSystemId, currentSoftwareId); updateConfigurationUrl(); if (tubeEnabled) { captureTubeOutput(); elements.tubeState.textContent = "Z80 6MHz"; elements.tubeState.className = "status live"; } bbcBreakpoints.clear(); for (const address of state.debugger?.breakpoints ?? []) bbcBreakpoints.add(address & 0xffff); demo = false; for (let drive = 0; drive < 2; drive += 1) { const disk = machine.bus.devices.fdc.drives[drive].disk; mountedMediaNames[drive] = `restored-drive-${drive}.${disk?.format ?? "ssd"}`; mountedOriginals[drive] = disk ? { bytes: disk.export(), filename: mountedMediaNames[drive], writeProtected: machine.bus.devices.fdc.drives[drive].writeProtected } : null; persistedRevisions[drive] = disk?.revision ?? null; updateDriveButtons(drive); } elements.bbcDebuggerStatus.textContent = `${file.name} restored at $${hex(machine.cpu.pc)}.`; status("Portable BBC state restored.", "PAUSED"); draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; status(error.message, "ERROR"); } finally { elements.bbcStateInput.value = ""; } });
+elements.bbcStateInput.addEventListener("change", async () => { try { const [file] = elements.bbcStateInput.files; if (!file) return; stop(); cancelAutomaticLaunch(); const state = JSON.parse(await file.text()); machine.importState(state); tubeEnabled = Boolean(machine.parasite); currentSystemId = tubeEnabled ? "bbc-model-b-acorn-z80" : "bbc-model-b"; currentSoftwareId = tubeEnabled ? "custom-acorn-cpm" : "local-bbc-media"; elements.systemSelect.value = currentSystemId; updateSoftwareOptions(currentSystemId, currentSoftwareId); updateConfigurationUrl(); if (tubeEnabled) { captureTubeOutput(); elements.tubeState.textContent = "Z80 6MHz"; elements.tubeState.className = "status live"; } bbcBreakpoints.clear(); for (const address of state.debugger?.breakpoints ?? []) bbcBreakpoints.add(address & 0xffff); demo = false; for (let drive = 0; drive < 2; drive += 1) { const disk = machine.bus.devices.fdc.drives[drive].disk; mountedMediaNames[drive] = `restored-drive-${drive}.${disk?.format ?? "ssd"}`; mountedOriginals[drive] = disk ? { bytes: disk.export(), filename: mountedMediaNames[drive], writeProtected: machine.bus.devices.fdc.drives[drive].writeProtected } : null; persistedRevisions[drive] = disk?.revision ?? null; updateDriveButtons(drive); } elements.bbcDebuggerStatus.textContent = `${file.name} restored at $${hex(machine.cpu.pc)}.`; status("Portable BBC state restored.", "PAUSED"); draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; status(error.message, "ERROR"); } finally { elements.bbcStateInput.value = ""; } });
 
 elements.enableAudioButton.addEventListener("click", async () => {
   audio ??= new BrowserSnAudio(); await audio.enable();
@@ -164,7 +176,7 @@ function updateDriveButtons(drive) {
   (drive ? elements.resetDrive1Button : elements.resetDrive0Button).disabled = !mountedOriginals[drive];
 }
 function confirmDriveDiscard(drive) { return !hasUnsavedDriveChanges(drive) || window.confirm(`Physical drive ${drive} has unsaved changes. Discard them?`); }
-function markCustomMediaSelection() { currentSoftwareId = tubeEnabled ? "custom-acorn-cpm" : "local-bbc-media"; updateSoftwareOptions(currentSystemId, currentSoftwareId); updateConfigurationUrl(); elements.configurationStatus.textContent = `${tubeEnabled ? "Acorn Z80" : "BBC Model B"} hardware preserved; media changed without a cold restart.`; }
+function markCustomMediaSelection() { cancelAutomaticLaunch(); currentSoftwareId = tubeEnabled ? "custom-acorn-cpm" : "local-bbc-media"; updateSoftwareOptions(currentSystemId, currentSoftwareId); updateConfigurationUrl(); elements.configurationStatus.textContent = `${tubeEnabled ? "Acorn Z80" : "BBC Model B"} hardware preserved; media changed without a cold restart.`; }
 function bindDriveControls({ drive, input, writeProtect, exportButton, ejectButton, resetButton }) {
   input.addEventListener("change", async () => {
     try { const [file] = input.files; if (!file) return; if (!confirmDriveDiscard(drive)) return; const disk = mountDriveSource(drive, new Uint8Array(await file.arrayBuffer()), { filename: file.name, writeProtected: writeProtect.checked }); markCustomMediaSelection(); elements.mediaStatus.textContent = `${file.name}: ${disk.tracks} tracks × ${disk.sides} side${disk.sides === 1 ? "" : "s"} mounted in physical drive ${drive}${writeProtect.checked ? " read-only" : " read/write"}.`; elements.mediaState.textContent = disk.format.toUpperCase(); elements.mediaState.className = "status live"; }
@@ -186,6 +198,17 @@ elements.swapDrivesButton.addEventListener("click", () => {
   [mountedMediaNames[0], mountedMediaNames[1]] = [mountedMediaNames[1], mountedMediaNames[0]]; [mountedOriginals[0], mountedOriginals[1]] = [mountedOriginals[1], mountedOriginals[0]]; [persistedRevisions[0], persistedRevisions[1]] = [persistedRevisions[1], persistedRevisions[0]];
   updateDriveButtons(0); updateDriveButtons(1); elements.mediaStatus.textContent = "Physical drives 0 and 1 swapped; the machine remains paused."; status("Drives swapped with the current hardware profile preserved.", "PAUSED"); draw();
 });
+
+function renderCatalogue() {
+  elements.catalogueList.replaceChildren(...ACORN_Z80_CATALOGUE.map((entry) => {
+    const details = document.createElement("details"); details.className = "catalogue-entry";
+    const summary = document.createElement("summary"); summary.append(entry.title); const badge = document.createElement("span"); badge.textContent = entry.status; summary.append(badge); details.append(summary);
+    const description = document.createElement("p"); description.textContent = `${entry.evidence}. ${entry.writeMode}. Rights: ${entry.rightsMode}.`; details.append(description);
+    if (entry.media.length) { const media = document.createElement("p"); media.append("Media: "); entry.media.forEach((image, index) => { if (index) media.append(" · "); const code = document.createElement("code"); code.textContent = `${image.filename} ${image.sha256.slice(0, 12)}…`; media.append(code); }); details.append(media); }
+    if (entry.preset) { const launch = document.createElement("button"); launch.type = "button"; launch.className = "wide-action"; launch.textContent = entry.id === "bbc-basic-z80" ? "Launch BBC BASIC for Z80" : "Boot validated utilities"; launch.addEventListener("click", async () => { elements.systemSelect.value = entry.profile; updateSoftwareOptions(entry.profile, entry.preset); const started = await configureFromControls(); elements.catalogueStatus.textContent = started ? `${entry.title}: ${entry.command}.` : `Unable to start ${entry.title}.`; }); details.append(launch); }
+    return details;
+  }));
+}
 
 const storedMediaId = (drive) => `bbc-drive-${drive}-working-copy`;
 async function sha256(bytes) { const digest = await crypto.subtle.digest("SHA-256", bytes); return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join(""); }
@@ -217,7 +240,7 @@ elements.clearStoredMediaButton.addEventListener("click", () => runPersistenceAc
 
 elements.attachTubeButton.addEventListener("click", async () => {
   try {
-    cpmBoot = false;
+    cancelAutomaticLaunch(); cpmBoot = false;
     currentSystemId = "bbc-model-b-acorn-z80"; currentSoftwareId = "custom-acorn-cpm"; elements.systemSelect.value = currentSystemId; updateSoftwareOptions(currentSystemId, currentSoftwareId);
     tubeBootRom = await readSelected(elements.tubeRomInput, tubeBootRom);
     tubeEnabled = true; if (!await boot()) throw new Error(elements.bbcStatus.textContent);
@@ -246,7 +269,7 @@ async function startBundledMachine() {
   }
 }
 
-startBundledMachine();
+renderCatalogue(); startBundledMachine();
 
 class BrowserSnAudio {
   async enable() {

@@ -1,0 +1,13 @@
+6502 World milestone 1.7 launch evidence
+Profile: BBC Micro Model B + Acorn Z80 Second Processor
+Drive A: CPM_Utilities_Disc.dsd
+Drive B: Basic_Program_Disc.dsd
+Input path: BBC keyboard matrix
+
+Acorn CP/M 2.2 - Bios 1.20
+
+A>B:
+B>BBCBASIC
+Acorn BBC BASIC Version 2.20
+(C) Copyright R.T.Russell 1983
+>

@@ -24,3 +24,21 @@ Every current image is a 409,600-byte, 80-track, two-sided DSD with ten 256-byte
 | `Nucleus_Reporter_Program_Disc.dsd` | `01c134d0cf4648e38b19d8ef8b4418db5d252db6af03d88627ede14b67873bd4` | Nucleus Reporting | Prepared application component |
 
 The current corpus does not contain an identifiable original seven-disc installation set or obvious byte-for-byte duplicates. Filenames are treated as hints until a title passes its launch gate. Rights mode is `bundled with repository-owner permission`; inclusion does not change any underlying third-party copyright.
+
+## Public catalogue status
+
+The browser catalogue groups all 12 images into coherent entries and uses the rights mode `bundled with documented permission`. The original installer is a separate `metadata only` entry because its seven source discs are absent.
+
+| Entry | Public status | Repeatable evidence |
+|---|---|---|
+| CP/M Utilities | validated | OS/DNFS/Z80 boot plus `DIR`, `STAT` and writable `SAVE` gates |
+| BBC BASIC for Z80 | validated | Utilities in A:, Basic Program in B:, real `B:` and `BBCBASIC` keyboard input reaches the 2.20 title prompt |
+| CIS COBOL | media identified, not yet validated | exact hash and CP/M directory containing COBOL/FORMS2 components |
+| MemoPlan | media identified, not yet validated | exact hash and CP/M directory containing `MEMO.COM` and overlays |
+| GraphPlan | media identified, not yet validated | exact hash and CP/M directory containing `GRAPH.COM` and overlays |
+| FilePlan | media identified, not yet validated | exact hash and CP/M directory containing `FILE.COM` and overlays |
+| Accountant / Start of Day | media identified, not yet validated | three exact hashes and directory-derived startup/program/data roles |
+| Nucleus definitions + reporting | media identified, not yet validated | three exact hashes and directory-derived definitions/parameter/reporter roles |
+| Original seven-disc installation set | unsupported | corpus inventory proves no identifiable source set is present |
+
+Only the two validated entries expose browser launch actions. The BBC BASIC evidence transcript is stored at `docs/evidence/bbc-basic-z80.txt`; regenerate its gate with `npm run test:bbc-catalogue`. Candidate commands shown for identified entries are not availability claims.
