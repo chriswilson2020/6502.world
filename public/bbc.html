@@ -42,7 +42,8 @@
           <label class="rom-field">Z80 boot ROM · up to 4K<input id="tubeRomInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
           <button id="attachTubeButton" class="wide-action" type="button">Attach Z80 processor</button>
           <dl class="bbc-stats"><div><dt>Z80 PC</dt><dd id="tubePc">0000</dd></div><div><dt>T-states</dt><dd id="tubeTstates">0</dd></div></dl>
-          <p id="tubeStatus" class="bbc-help">Uses the pinned, validated Z80 World core at 6MHz. A boot ROM is optional and remains local.</p>
+          <pre id="tubeTranscript" class="bbc-debugger" aria-label="Z80 Tube startup transcript">Z80 Tube not started.</pre>
+          <p id="tubeStatus" class="bbc-help">Uses the pinned Z80 World core at 6MHz and the bundled Acorn Z80 1.20 ROM; a local ROM may replace it.</p>
         </article>
       </aside>
     </section>

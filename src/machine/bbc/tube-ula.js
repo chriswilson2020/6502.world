@@ -38,7 +38,7 @@ export class TubeUla {
     const channel = register >> 1;
     const incoming = side === "host" ? this.parasiteToHost[channel] : this.hostToParasite[channel];
     const outgoing = side === "host" ? this.hostToParasite[channel] : this.parasiteToHost[channel];
-    if ((register & 1) === 0) return (incoming.length ? 0x80 : 0) | (outgoing.length < this.#capacity(side, channel) ? 0x40 : 0);
+    if ((register & 1) === 0) return (incoming.length ? 0x80 : 0) | (outgoing.length < this.#capacity(side, channel) ? 0x40 : 0) | (channel === 0 ? this.control : 0);
     return incoming.shift() ?? 0;
   }
 

@@ -1,12 +1,12 @@
 import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
 import { bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
 
-const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "exportSsdButton", "mediaState", "mediaStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus", "tubeRomInput", "attachTubeButton", "tubeState", "tubeStatus", "tubePc", "tubeTstates"].map((id) => [id, document.querySelector(`#${id}`)]));
+const elements = Object.fromEntries(["bbcScreen", "bbcRunState", "bbcStatus", "osRomInput", "basicRomInput", "bootBbcButton", "demoBbcButton", "bbcRomBank", "bbcPc", "bbcCycles", "bbcTicks", "bbcIrq", "pauseBbcButton", "enableAudioButton", "uefInput", "playTapeButton", "rewindTapeButton", "ssdInput", "exportSsdButton", "mediaState", "mediaStatus", "bbcTextMirror", "bbcBreakpointCount", "bbcBreakpointInput", "toggleBbcBreakpointButton", "stepBbcButton", "bbcDisassembly", "exportBbcStateButton", "bbcStateInput", "bbcDebuggerStatus", "tubeRomInput", "attachTubeButton", "tubeState", "tubeStatus", "tubePc", "tubeTstates", "tubeTranscript"].map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.bbcScreen.getContext("2d");
 let machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
-let osRom = null; let basicRom = null; let running = false; let frame = null; let demo = true;
+let osRom = null; let basicRom = null; let dnfsRom = null; let running = false; let frame = null; let demo = true;
 const activeBrowserKeys = new Map();
-let mountedSsdName = "disc.ssd"; let audio = null; let tubeBootRom = null;
+let mountedSsdName = "disc.ssd"; let audio = null; let tubeBootRom = null; let tubeEnabled = false; let tubeOutput = [];
 const bbcBreakpoints = new Set();
 const hex = (value, width = 4) => value.toString(16).toUpperCase().padStart(width, "0");
 
@@ -27,6 +27,7 @@ function draw() {
   elements.bbcRomBank.textContent = `ROM ${machine.bus.selectedRom}`;
   elements.tubePc.textContent = machine.parasite ? hex(machine.parasite.cpu.PC) : "0000";
   elements.tubeTstates.textContent = machine.parasite ? machine.parasite.cpu.tStates.toLocaleString() : "0";
+  if (tubeOutput.length) elements.tubeTranscript.textContent = new TextDecoder().decode(Uint8Array.from(tubeOutput)).replace(/[^\x20-\x7e\r\n]/g, "").trim() || "Z80 Tube starting…";
   renderBbcDebugger();
   audio?.sync(machine.bus.devices.sound.channelState());
 }
@@ -40,16 +41,20 @@ function demoScreen() {
 
 async function boot() {
   try {
+    stop();
     osRom = await readSelected(elements.osRomInput, osRom); basicRom = await readSelected(elements.basicRomInput, basicRom);
     if (!osRom || osRom.length !== 0x4000) throw new Error("Choose a 16K BBC Model B OS ROM.");
     if (basicRom && basicRom.length !== 0x2000 && basicRom.length !== 0x4000) throw new Error("BASIC ROM must be 8K or 16K.");
     machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
-    if (tubeBootRom) machine.attachZ80SecondProcessor({ bootRom: tubeBootRom });
     if (basicRom) machine.loadSidewaysRom(15, basicRom);
+    if (tubeEnabled) {
+      if (!tubeBootRom || !dnfsRom) throw new Error("Z80 Tube mode requires the Z80 and DNFS ROMs.");
+      machine.loadSidewaysRom(14, dnfsRom); machine.attachZ80SecondProcessor({ bootRom: tubeBootRom }); captureTubeOutput();
+    }
     machine.loadOsRom(osRom); demo = false; running = true;
-    status(`Booting local OS${basicRom ? " + BASIC" : ""}. Click the display to type.`, "RUNNING");
-    elements.bbcScreen.focus(); schedule();
-  } catch (error) { status(error.message, "ERROR"); }
+    status(tubeEnabled ? "Booting OS + DNFS with the Acorn Z80 Tube processor." : `Booting local OS${basicRom ? " + BASIC" : ""}. Click the display to type.`, "RUNNING");
+    elements.bbcScreen.focus(); schedule(); return true;
+  } catch (error) { status(error.message, "ERROR"); return false; }
 }
 
 function schedule() { if (frame == null) frame = requestAnimationFrame(runFrame); }
@@ -61,6 +66,11 @@ function runFrame() {
   draw(); schedule();
 }
 function stop() { running = false; if (frame != null) cancelAnimationFrame(frame); frame = null; }
+function captureTubeOutput() {
+  tubeOutput = []; const tube = machine.bus.devices.tube; const parasiteWrite = tube.parasiteWrite.bind(tube);
+  tube.parasiteWrite = (offset, value) => { if ((offset & 7) === 1) tubeOutput.push(value & 0xff); parasiteWrite(offset, value); };
+  elements.tubeTranscript.textContent = "Z80 Tube starting…";
+}
 
 elements.bootBbcButton.addEventListener("click", boot);
 elements.demoBbcButton.addEventListener("click", demoScreen);
@@ -80,7 +90,7 @@ function boundary() { while (!machine.cpu.instructionBoundary) machine.clock(); 
 elements.toggleBbcBreakpointButton.addEventListener("click", () => { try { const address = parseBbcAddress(elements.bbcBreakpointInput.value); if (bbcBreakpoints.has(address)) bbcBreakpoints.delete(address); else bbcBreakpoints.add(address); elements.bbcDebuggerStatus.textContent = `Breakpoint ${bbcBreakpoints.has(address) ? "set" : "cleared"} at $${hex(address)}.`; draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; } });
 elements.stepBbcButton.addEventListener("click", () => { stop(); boundary(); const at = machine.cpu.pc; const result = machine.step(); elements.bbcDebuggerStatus.textContent = `Stepped $${hex(at)} in ${result.cycles} cycles.`; status("Machine paused after one instruction.", "PAUSED"); draw(); });
 elements.exportBbcStateButton.addEventListener("click", () => { stop(); boundary(); const state = machine.exportState(); state.debugger = { breakpoints: [...bbcBreakpoints] }; const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(state)], { type: "application/json" })); link.download = `6502-world-bbc-${hex(machine.cpu.pc)}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0); elements.bbcDebuggerStatus.textContent = `Portable BBC state captured at $${hex(machine.cpu.pc)}.`; status("Machine paused for state export.", "PAUSED"); draw(); });
-elements.bbcStateInput.addEventListener("change", async () => { try { const [file] = elements.bbcStateInput.files; if (!file) return; stop(); const state = JSON.parse(await file.text()); machine.importState(state); bbcBreakpoints.clear(); for (const address of state.debugger?.breakpoints ?? []) bbcBreakpoints.add(address & 0xffff); demo = false; mountedSsdName = "restored-disc.ssd"; elements.exportSsdButton.disabled = !machine.bus.devices.fdc.disk; elements.bbcDebuggerStatus.textContent = `${file.name} restored at $${hex(machine.cpu.pc)}.`; status("Portable BBC state restored.", "PAUSED"); draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; status(error.message, "ERROR"); } finally { elements.bbcStateInput.value = ""; } });
+elements.bbcStateInput.addEventListener("change", async () => { try { const [file] = elements.bbcStateInput.files; if (!file) return; stop(); const state = JSON.parse(await file.text()); machine.importState(state); tubeEnabled = Boolean(machine.parasite); if (tubeEnabled) { captureTubeOutput(); elements.tubeState.textContent = "Z80 6MHz"; elements.tubeState.className = "status live"; } bbcBreakpoints.clear(); for (const address of state.debugger?.breakpoints ?? []) bbcBreakpoints.add(address & 0xffff); demo = false; mountedSsdName = "restored-disc.ssd"; elements.exportSsdButton.disabled = !machine.bus.devices.fdc.disk; elements.bbcDebuggerStatus.textContent = `${file.name} restored at $${hex(machine.cpu.pc)}.`; status("Portable BBC state restored.", "PAUSED"); draw(); } catch (error) { elements.bbcDebuggerStatus.textContent = error.message; status(error.message, "ERROR"); } finally { elements.bbcStateInput.value = ""; } });
 
 elements.enableAudioButton.addEventListener("click", async () => {
   audio ??= new BrowserSnAudio(); await audio.enable();
@@ -102,17 +112,17 @@ elements.exportSsdButton.addEventListener("click", () => {
 
 elements.attachTubeButton.addEventListener("click", async () => {
   try {
-    tubeBootRom = await readSelected(elements.tubeRomInput, tubeBootRom ?? new Uint8Array());
-    const parasite = machine.attachZ80SecondProcessor({ bootRom: tubeBootRom });
+    tubeBootRom = await readSelected(elements.tubeRomInput, tubeBootRom);
+    tubeEnabled = true; if (!await boot()) throw new Error(elements.bbcStatus.textContent);
     elements.tubeState.textContent = "Z80 6MHz"; elements.tubeState.className = "status live";
-    elements.tubeStatus.textContent = `${tubeBootRom.length ? `${tubeBootRom.length.toLocaleString()}-byte boot ROM loaded; ` : "No boot ROM; "}shared Z80 World core attached at PC $${hex(parasite.cpu.PC)}.`;
+    elements.tubeStatus.textContent = `${tubeBootRom.length.toLocaleString()}-byte ${elements.tubeRomInput.files.length ? "local" : "bundled"} Z80 ROM booting through DNFS.`;
     draw();
   } catch (error) { elements.tubeState.textContent = "ERROR"; elements.tubeState.className = "status error"; elements.tubeStatus.textContent = error.message; }
 });
 
 async function startBundledMachine() {
   try {
-    [osRom, basicRom] = await Promise.all([fetchRom("ROM/os12.rom"), fetchRom("ROM/basic2.rom")]);
+    [osRom, basicRom, dnfsRom, tubeBootRom] = await Promise.all([fetchRom("ROM/os12.rom"), fetchRom("ROM/basic2.rom"), fetchRom("ROM/dnfs.rom"), fetchRom("ROM/z80.rom")]);
     await boot();
   } catch (error) {
     demoScreen(); status(`${error.message} You can still choose local ROM files.`, "ERROR");

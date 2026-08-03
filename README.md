@@ -36,7 +36,8 @@ The 1.1 release extends the stable Model B with a BBC Tube bridge and the pinned
 - a stable version 1 full-machine state contract;
 - four duplex Tube channels with status/control and host/parasite interrupt lines;
 - a stateful 6MHz Z80 second processor scheduled beside the 2MHz BBC host;
-- optional local Z80 boot-ROM loading and parasite telemetry in the browser.
+- bundled Acorn TUBE Z80 64K 1.20 firmware, local replacement loading and parasite telemetry;
+- a real OS 1.20 + DNFS + Z80 ROM integration gate that observes the startup transcript and command loop.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 
@@ -96,7 +97,7 @@ node scripts/run-bus-vectors.js /path/to/legal-opcode-vectors
 
 See [`docs/validation.md`](docs/validation.md) for the pinned corpus revisions and published evidence.
 
-Run the bundled BBC software corpus separately with `npm run test:bbc-software`. See [`docs/bbc-validation.md`](docs/bbc-validation.md) for ROM hashes, results and the precise 1.0 support boundary, and [`docs/state-format.md`](docs/state-format.md) for the stable state contract.
+Run the bundled BBC software corpora separately with `npm run test:bbc-software` and `npm run test:bbc-z80`. See [`docs/bbc-validation.md`](docs/bbc-validation.md) for BASIC results, [`docs/tube.md`](docs/tube.md) for Z80 evidence, and [`docs/state-format.md`](docs/state-format.md) for the stable state contract.
 
 ## Project structure
 

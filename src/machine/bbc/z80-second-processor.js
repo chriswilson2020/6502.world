@@ -13,6 +13,8 @@ export class Z80TubeSecondProcessor {
     this.memory = {
       read8: (address) => this.read8(address),
       write8: (address, value) => this.write8(address, value),
+      read16: (address) => this.read16(address),
+      write16: (address, value) => this.write16(address, value),
     };
     this.cpu = new Z80(this.memory, {
       read: (port) => this.tube.parasiteRead(port & 0x07),
@@ -22,9 +24,16 @@ export class Z80TubeSecondProcessor {
 
   read8(address) {
     const mapped = address & 0xffff;
+    if (mapped >= 0xfef8 && mapped <= 0xfeff) return this.tube.parasiteRead(mapped & 0x07);
     return this.romEnabled && mapped < this.bootRom.length ? this.bootRom[mapped] : this.ram[mapped];
   }
-  write8(address, value) { this.ram[address & 0xffff] = value & 0xff; }
+  write8(address, value) {
+    const mapped = address & 0xffff;
+    if (mapped >= 0xfef8 && mapped <= 0xfeff) { this.tube.parasiteWrite(mapped & 0x07, value); return; }
+    this.ram[mapped] = value & 0xff;
+  }
+  read16(address) { const low = this.read8(address); return low | (this.read8(address + 1) << 8); }
+  write16(address, value) { this.write8(address, value); this.write8(address + 1, value >> 8); }
   disableBootRom() { this.romEnabled = false; }
   load(address, bytes) { this.ram.set(Uint8Array.from(bytes), address & 0xffff); }
 

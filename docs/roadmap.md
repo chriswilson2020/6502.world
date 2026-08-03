@@ -114,7 +114,7 @@
 
 **Gate:** host and parasite exchange bytes through four Tube channels and hardware-style status flags; control writes assert host IRQ and parasite IRQ/NMI lines; the pinned Z80 World core executes through Tube ports at a scheduled 6MHz against the 2MHz host clock; the complete bridge round-trips in a BBC portable state.
 
-**Evidence:** focused tests cover duplex FIFOs, set/clear control semantics, `$FEE0-$FEEF` host mapping, Z80 `IN`/`OUT`, clock scheduling and state resume. The browser accepts an optional local Z80 boot ROM and exposes parasite PC and T-states. See `tube.md`.
+**Evidence:** focused tests cover duplex FIFOs, Acorn R1/control semantics, `$FEE0-$FEEF` host and `$FEF8-$FEFF` parasite mapping, Z80 `IN`/`OUT`, clock scheduling and state resume. The bundled Acorn Z80 1.20 ROM boots through OS 1.20 and DNFS, emits its startup transcript through R1, and reaches its R2 command loop. The browser boots the same images and exposes the transcript, parasite PC and T-states. See `tube.md`.
 
 ## Scope rule
 

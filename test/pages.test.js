@@ -28,7 +28,7 @@ test("CPU workbench exposes the milestone 0.4 debugger surfaces", async () => {
 
 test("BBC console exposes the 1.1 debugger, state, media and Tube controls", async () => {
   const html = await readFile("public/bbc.html", "utf8");
-  for (const id of ["bbcScreen", "bbcTextMirror", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "exportSsdButton", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput", "tubeRomInput", "attachTubeButton", "tubePc"]) {
+  for (const id of ["bbcScreen", "bbcTextMirror", "osRomInput", "basicRomInput", "bootBbcButton", "bbcPc", "bbcIrq", "enableAudioButton", "uefInput", "ssdInput", "exportSsdButton", "bbcBreakpointInput", "stepBbcButton", "exportBbcStateButton", "bbcStateInput", "tubeRomInput", "attachTubeButton", "tubePc", "tubeTranscript"]) {
     assert.match(html, new RegExp(`id=["']${id}["']`));
   }
   assert.match(html, /1\.1 · TUBE BRIDGE/);
