@@ -63,6 +63,33 @@ test("DSD maps track-major interleaved sides and isolates writes", () => {
   assert.deepEqual(source, original); assert.equal(disk.dirty, true);
 });
 
+test("8271 maps logical drives 0-3 onto two drives and two DSD sides", () => {
+  const first = new Uint8Array(40 * 2 * 10 * 256); const second = new Uint8Array(40 * 2 * 10 * 256);
+  first[10 * 256] = 0xa2; second[0] = 0xb1;
+  const fdc = new Intel8271({ traceLimit: 16 });
+  fdc.mount(new DsdDisk(first), { drive: 0 }); fdc.mount(new DsdDisk(second), { drive: 1, writeProtected: true });
+  fdc.write(0, 0x93); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21); // logical drive 2: physical 0, side 1
+  assert.equal(fdc.tick(100), true); assert.equal(fdc.read(4), 0xa2);
+  for (let index = 1; index < 256; index += 1) { fdc.tick(100 + index); fdc.read(4); }
+  assert.equal(fdc.read(1), 0);
+  fdc.write(0, 0x4b); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21); // logical drive 1: physical 1, side 0
+  assert.equal(fdc.read(1), 0x12);
+  fdc.write(0, 0x29); fdc.write(1, 7); fdc.read(1);
+  fdc.write(0, 0x69); fdc.write(1, 12); fdc.read(1);
+  assert.equal(fdc.drives[0].currentTrack, 7); assert.equal(fdc.drives[1].currentTrack, 12);
+  assert.ok(fdc.trace.some((entry) => entry.event === "command" && entry.drive === 0 && entry.side === 1));
+  assert.ok(fdc.trace.length <= 16); assert.ok(fdc.trace.every((entry) => Number.isFinite(entry.ticks)));
+});
+
+test("8271 reports missing media and keeps multi-sector DSD writes on the selected side", () => {
+  const fdc = new Intel8271();
+  fdc.write(0, 0x53); fdc.write(1, 0); fdc.write(1, 0); fdc.write(1, 0x21); assert.equal(fdc.read(1), 0x10);
+  const disk = new DsdDisk(new Uint8Array(40 * 2 * 10 * 256)); fdc.mount(disk);
+  fdc.write(0, 0x8b); fdc.write(1, 2); fdc.write(1, 8); fdc.write(1, 0x22);
+  for (let index = 0; index < 512; index += 1) { assert.equal(fdc.tick(index), true); fdc.write(4, index < 256 ? 0x41 : 0x42); }
+  assert.equal(fdc.read(1), 0); assert.equal(disk.readSector(2, 1, 8)[0], 0x41); assert.equal(disk.readSector(2, 1, 9)[0], 0x42); assert.equal(disk.readSector(2, 0, 8)[0], 0);
+});
+
 test("sector images export byte-identically and serialize format", () => {
   const source = new Uint8Array(409600); source[409599] = 0x7e;
   const disk = createSectorDisk(source, { filename: "utilities.dsd" }); assert.deepEqual(disk.export(), source);

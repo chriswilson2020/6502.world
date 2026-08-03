@@ -16,11 +16,13 @@ The SN76489 receives bytes from slow data bus port A when IC32 latch output 0 is
 
 `UefCassette` validates the `UEF File!` signature, walks length-delimited chunks and exposes bytes from standard Acorn data-stream chunks (`$0100`) through play, pause, rewind and byte-read operations. Other UEF waveform/security chunks remain preserved in the parsed chunk list but are not yet synthesized into ACIA waveforms.
 
-## SSD and Intel 8271
+## SSD/DSD and Intel 8271
 
-`SsdDisk` models ten 256-byte sectors per track and clones its input so writes never alter the browser-selected source file. `Intel8271` exposes command/status at `$FE80`, parameter/result at `$FE81`, reset at `$FE82` and data transfers at `$FE84`. Seek, normal read-data (`$13`) and write-data (`$0B`) commands are implemented, with each transfer byte requesting CPU NMI service through the BBC machine scheduler.
+`SectorDisk` models ten 256-byte sectors per track and clones its input so writes never alter the browser-selected source file. `Intel8271` exposes command/status at `$FE80`, parameter/result at `$FE81`, reset at `$FE82` and data transfers at `$FE84`. It owns two physical drive slots. Command bits 7–6 select BBC logical drives 0–3: logical 0/1 select physical drive 0/1 on side 0, while logical 2/3 select the same drives on side 1. Each physical drive retains its own current track and write-protect state.
 
-The browser can mount a local SSD read/write and export its current bytes. Full DFS compatibility, protected/nonstandard disc layouts, UEF waveform timing and direct MOS cassette loading remain explicit compatibility work for the 0.8/1.0 validation corpus.
+The controller implements observed seek, drive-status, initialise, read/write special-register, verify and 128/256-byte single/multi-sector operations. Missing media, write protection and sector bounds return explicit 8271 results. Byte requests and command completion use edge-style NMI delivery, and an optional bounded trace records command decoding, selection, transfers, results and first-byte NMI request/acknowledgement. The Acorn Z80 shadow-ROM latch also follows instruction-fetch hardware: reset and NMI entry at `$0066` map the ROM, and the next opcode fetch at `$8000-$FFFF` restores RAM.
+
+The browser can independently mount local SSD or DSD images in physical drives 0 and 1, toggle write protection and export each current image. Protected/nonstandard layouts, UEF waveform timing and direct MOS cassette loading remain explicit compatibility work.
 
 ## Hardware references
 

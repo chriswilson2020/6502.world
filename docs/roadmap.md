@@ -224,6 +224,8 @@ Add focused tests for:
 
 ## 1.3 — Two physical drives and 8271 drive/side fidelity
 
+**Implemented:** the controller now exposes two physical media slots, maps command bits 7–6 to BBC logical drives and DSD sides, preserves independent track/write-protect state, uses bounded command/NMI traces, and reports explicit ready/protect/sector failures. Portable state version 2 round-trips both drives and active transfers while importing version 1 SSD states. The browser mounts and exports SSD/DSD media independently in either drive. The Z80 board's reset/NMI/high-fetch shadow-ROM latch is modeled and tested as a prerequisite for CP/M loading.
+
 The current `Intel8271` has one `disk` property and a deliberately narrow command implementation. CP/M requires the controller to address the complete double-sided system disc and later a second physical drive.
 
 ### Drive model

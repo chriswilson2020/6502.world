@@ -38,6 +38,12 @@ export class Z80TubeSecondProcessor {
   load(address, bytes) { this.ram.set(Uint8Array.from(bytes), address & 0xffff); }
 
   step() {
+    // Acorn's Z80 board uses M1 (instruction-fetch) address decoding as its
+    // shadow-ROM latch: an opcode fetch at 0066 enables the boot ROM and the
+    // first opcode fetch at 8000-FFFF disables it again. Writes always reach
+    // the underlying RAM.
+    if ((this.cpu.PC & 0xffff) === 0x0066 && this.bootRom.length) this.romEnabled = true;
+    else if (this.romEnabled && (this.cpu.PC & 0xffff) >= 0x8000) this.romEnabled = false;
     if (this.tube.parasiteNmi) this.cpu.requestNmi();
     if (this.tube.parasiteIrq) this.cpu.requestInterrupt(); else this.cpu.clearInterrupt();
     return this.cpu.step();
@@ -45,7 +51,7 @@ export class Z80TubeSecondProcessor {
 
   runForHostTicks(hostTicks) {
     if (this.tube.parasiteReset) {
-      if (!this.resetHeld) { this.cpu.reset(); this.hostTicksScheduled = 0; }
+      if (!this.resetHeld) { this.cpu.reset(); this.romEnabled = this.bootRom.length > 0; this.hostTicksScheduled = 0; }
       this.resetHeld = true;
       return this.cpu.tStates;
     }
