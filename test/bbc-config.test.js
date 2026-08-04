@@ -6,6 +6,10 @@ test("BBC hardware profiles filter compatible software presets", () => {
   assert.deepEqual(softwareForProfile("bbc-model-b").map(({ id }) => id), ["bbc-basic", "local-bbc-media"]);
   assert.deepEqual(softwareForProfile("bbc-model-b-acorn-z80").map(({ id }) => id), ["acorn-cpm-utilities", "acorn-cpm-bbc-basic", "custom-acorn-cpm"]);
   assert.equal(defaultSoftwareForProfile("bbc-model-b-acorn-z80"), "acorn-cpm-utilities");
+  for (const preset of ["acorn-cpm-utilities", "acorn-cpm-bbc-basic"]) {
+    const software = resolveBbcConfiguration({ system: "bbc-model-b-acorn-z80", software: preset }).software;
+    assert.ok(software.drives.filter((drive) => drive && drive !== "preserve").every(({ writeProtected }) => writeProtected === false));
+  }
 });
 
 test("dirty-media warning is limited to configuration changes that replace media", () => {

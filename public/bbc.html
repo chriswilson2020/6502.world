@@ -41,11 +41,11 @@
           <label class="rom-field">UEF cassette<input id="uefInput" type="file" accept=".uef,application/octet-stream"></label>
           <div class="button-row compact-row"><button id="playTapeButton" class="button secondary" type="button">Play</button><button id="rewindTapeButton" class="button secondary" type="button">Rewind</button></div>
           <label class="rom-field">Physical drive 0 · SSD/DSD<input id="ssdInput" type="file" accept=".ssd,.dsd,application/octet-stream"></label>
-          <label class="bbc-help"><input id="drive0WriteProtect" type="checkbox"> Write-protect drive 0</label>
+          <label class="bbc-help"><input id="drive0WriteProtect" type="checkbox"> Write-protect drive 0 session copy</label>
           <button id="exportSsdButton" class="wide-action" type="button" disabled>Export drive 0 image</button>
           <div class="button-row compact-row"><button id="ejectDrive0Button" class="button secondary" type="button">Eject drive 0</button><button id="resetDrive0Button" class="button secondary" type="button" disabled>Reset original</button></div>
           <label class="rom-field">Physical drive 1 · SSD/DSD<input id="drive1Input" type="file" accept=".ssd,.dsd,application/octet-stream"></label>
-          <label class="bbc-help"><input id="drive1WriteProtect" type="checkbox"> Write-protect drive 1</label>
+          <label class="bbc-help"><input id="drive1WriteProtect" type="checkbox"> Write-protect drive 1 session copy</label>
           <button id="exportDrive1Button" class="wide-action" type="button" disabled>Export drive 1 image</button>
           <div class="button-row compact-row"><button id="ejectDrive1Button" class="button secondary" type="button">Eject drive 1</button><button id="resetDrive1Button" class="button secondary" type="button" disabled>Reset original</button></div>
           <button id="swapDrivesButton" class="wide-action" type="button">Swap physical drives</button>
@@ -61,7 +61,7 @@
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>1.7 CATALOGUE</span><h2>Acorn Z80 software</h2></div><span class="status live">12 DSD</span></div>
           <div id="catalogueList" class="catalogue-list"></div>
-          <p id="catalogueStatus" class="bbc-help" role="status">Boot validated Utilities first, then mount another application in drive 1. Every bundled image mounts read-only by default.</p>
+          <p id="catalogueStatus" class="bbc-help" role="status">Boot validated Utilities first, then mount another application in drive 1. Every image mounts as a writable temporary session copy; published sources remain unchanged.</p>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>1.4 ACORN CP/M</span><h2>Z80 Tube processor</h2></div><span id="tubeState" class="status planned">DETACHED</span></div>
           <button id="bootCpmButton" class="wide-action" type="button">Boot Acorn CP/M 2.2</button>

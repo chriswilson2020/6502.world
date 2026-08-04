@@ -10,6 +10,7 @@ test("Acorn Z80 catalogue accounts for every bundled DSD with exact hashes and h
   const bundled = (await readdir("MEDIA")).filter((name) => name.endsWith(".dsd")).sort(); assert.deepEqual([...names].sort(), bundled); assert.equal(new Set(names).size, names.length);
   for (const media of declared) assert.equal(createHash("sha256").update(await readFile(`MEDIA/${media.filename}`)).digest("hex"), media.sha256, media.filename);
   assert.ok(ACORN_Z80_CATALOGUE.filter(({ media }) => media.length).every(({ rightsMode }) => rightsMode === "bundled with documented permission"));
+  assert.ok(ACORN_Z80_CATALOGUE.filter(({ media }) => media.length).every(({ writeMode }) => /writable session cop(?:y|ies); published source/.test(writeMode)));
   assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "original-installer").status, "unsupported");
 });
 
