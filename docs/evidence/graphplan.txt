@@ -1,0 +1,33 @@
+GraphPlan validation
+====================
+
+System drive: CPM_Utilities_Disc.dsd in A:
+Application drive: GraphPlan_Program_Disc.dsd in B:
+Application SHA-256: 959216eacb1edebf767033560f7c0cd19077f6552bf8e05ea75678d84905b057
+
+Keyboard-driven workflow:
+
+  B:
+  GRAPH
+  112          (SAVE TBL)
+  CODEX        (table name)
+  9            (STOP)
+  Y            (confirm stop)
+  DIR CODEX.TBL
+
+Observed worksheet markers:
+
+  MODE=NORMAL
+  ENTER COMMAND:
+
+Observed directory result:
+
+  B: CODEX    TBL
+
+The test requires real 8271 write transfers, a dirty private drive-1 clone,
+an unchanged bundled-source SHA-256, and the same CODEX.TBL directory result
+after exporting and remounting the modified DSD read-only.
+
+Regenerate with:
+
+  npm run test:bbc-catalogue

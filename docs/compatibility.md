@@ -15,7 +15,7 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | SSD / Intel 8271 | Partial | Seek and normal sector read/write with NMI requests; protected/nonstandard layouts and full DFS corpus remain |
 | DSD / Intel 8271 | CP/M read/write validated | Two physical drives, both DSD sides, observed commands/special registers, FM-paced NMI transfers, CP/M-created files, warm-boot survival and exact export |
 | Browser media persistence | Implemented | IndexedDB full-image working copies with SHA-256 base identity, revision-aware warnings, restore, duplicate, clear and original reset |
-| Acorn Z80 software catalogue | Three entries validated | All 12 bundled DSDs hash-accounted; Utilities, BBC BASIC and MemoPlan have repeatable launch gates; MemoPlan also has document-write and exported-image remount evidence |
+| Acorn Z80 software catalogue | Four entries validated | All 12 bundled DSDs hash-accounted; Utilities, BBC BASIC, MemoPlan and GraphPlan have repeatable launch gates; MemoPlan and GraphPlan also have native save and exported-image remount evidence |
 | Pages / optional media | Validated | CI builds with the approved corpus and with `MEDIA_SOURCE` absent; local imports and blank DSD targets remain available |
 | Portable BBC state | Stable v2 | CPU, memory, ROMs, core devices, two drives and active FDC transfers round-trip; version 1 SSD states migrate |
 | Tube | Acorn CP/M validated | Four duplex channels, Acorn control/FIFO behavior, interrupts, state resume and 6MHz scheduling; real CP/M 2.2 boots and runs `DIR`/`STAT` |
