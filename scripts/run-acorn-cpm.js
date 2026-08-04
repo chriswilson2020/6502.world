@@ -12,7 +12,7 @@ const KEY_FOR_CHARACTER = Object.freeze({
   A: "KeyA", B: "KeyB", C: "KeyC", D: "KeyD", E: "KeyE", F: "KeyF", G: "KeyG", H: "KeyH", I: "KeyI", J: "KeyJ", K: "KeyK", L: "KeyL", M: "KeyM",
   N: "KeyN", O: "KeyO", P: "KeyP", Q: "KeyQ", R: "KeyR", S: "KeyS", T: "KeyT", U: "KeyU", V: "KeyV", W: "KeyW", X: "KeyX", Y: "KeyY", Z: "KeyZ",
   "0": "Digit0", "1": "Digit1", "2": "Digit2", "3": "Digit3", "4": "Digit4", "5": "Digit5", "6": "Digit6", "7": "Digit7", "8": "Digit8", "9": "Digit9",
-  " ": "Space", ".": "Period", ":": "Semicolon", "/": "Slash", "-": "Minus", "\r": "Enter", "\n": "Enter",
+  " ": "Space", ".": "Period", ":": "Colon", "/": "Slash", "-": "Minus", "\r": "Enter", "\n": "Enter",
 });
 
 export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], commandExpectations = [], writeProtected = true, mediaBytes, drive1MediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false, returnMachine = false } = {}) {

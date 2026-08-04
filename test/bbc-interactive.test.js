@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BbcModelBBus } from "../src/machine/bbc/model-b-bus.js";
-import { BBC_KEYBOARD_CODES, bbcKeyboardCodeForBrowserEvent } from "../src/machine/bbc/system-via.js";
+import { BBC_KEYBOARD_CODES, BBC_PRINTABLE_KEYBOARD, bbcKeyboardCodeForBrowserEvent, bbcKeyboardMappingForBrowserEvent } from "../src/machine/bbc/system-via.js";
 import { BbcVideoOutput } from "../src/machine/bbc/video.js";
 
 test("system VIA timers raise and clear maskable interrupts", () => {
@@ -42,6 +42,18 @@ test("system VIA scans the browser-backed keyboard matrix", () => {
 
 test("browser double quote maps to the BBC Shift+2 matrix key", () => {
   assert.deepEqual(bbcKeyboardCodeForBrowserEvent("Quote", '"'), BBC_KEYBOARD_CODES.Digit2);
+  assert.equal(bbcKeyboardMappingForBrowserEvent("Quote", '"').shift, true);
+});
+
+test("modern punctuation translates by character to BBC key pairs", () => {
+  const pairs = [[";", "+", "Semicolon"], [":", "*", "Colon"], ["-", "=", "Minus"], ["[", "{", "BracketLeft"], ["]", "}", "BracketRight"], [",", "<", "Comma"], [".", ">", "Period"], ["/", "?", "Slash"], ["^", "~", "Caret"], ["\\", "|", "Backslash"]];
+  for (const [lower, upper, code] of pairs) {
+    assert.deepEqual(BBC_PRINTABLE_KEYBOARD[lower], { matrix: BBC_KEYBOARD_CODES[code], shift: false });
+    assert.deepEqual(BBC_PRINTABLE_KEYBOARD[upper], { matrix: BBC_KEYBOARD_CODES[code], shift: true });
+  }
+  assert.deepEqual(bbcKeyboardMappingForBrowserEvent("Semicolon", ":"), { matrix: BBC_KEYBOARD_CODES.Colon, shift: false });
+  assert.deepEqual(bbcKeyboardMappingForBrowserEvent("Digit8", "*"), { matrix: BBC_KEYBOARD_CODES.Colon, shift: true });
+  assert.equal(bbcKeyboardMappingForBrowserEvent("Backquote", "`"), null);
 });
 
 test("keyboard matrix revisions interrupt for a second key in a chord", () => {

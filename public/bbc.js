@@ -1,5 +1,5 @@
 import { BbcMicroModelB } from "./src/machine/bbc/model-b.js";
-import { BBC_KEYBOARD_CODES, bbcKeyboardCodeForBrowserEvent } from "./src/machine/bbc/system-via.js";
+import { BBC_KEYBOARD_CODES, bbcKeyboardMappingForBrowserEvent } from "./src/machine/bbc/system-via.js";
 import { configurationFromSearch, configurationUrl, defaultSoftwareForProfile, resolveBbcConfiguration, shouldWarnForDirtyMedia, softwareForProfile } from "./bbc-config.js";
 import { IndexedDbBbcMediaStore } from "./bbc-media-store.js";
 import { ACORN_Z80_CATALOGUE } from "./bbc-catalogue.js";
@@ -10,6 +10,8 @@ let machine = new BbcMicroModelB({ traceLimit: 128, accessLogLimit: 0 });
 let osRom = null; let basicRom = null; let dnfsRom = null; let running = false; let frame = null; let demo = true; let cpmBoot = false;
 let currentSystemId = "bbc-model-b"; let currentSoftwareId = "bbc-basic"; let machineGeneration = 0;
 const activeBrowserKeys = new Map();
+const pressedBrowserMatrixCodes = new Set();
+const browserCharacterQueue = []; const queuedBrowserKeyCodes = new Set(); let browserCharacterPressed = null;
 const mountedMediaNames = ["drive-0.ssd", "drive-1.ssd"]; const mountedOriginals = [null, null]; const mountedCatalogueMedia = [null, null]; let audio = null; let tubeBootRom = null; let tubeEnabled = false; let tubeOutput = [];
 const mediaStore = new IndexedDbBbcMediaStore(); const persistedRevisions = [null, null];
 let pendingLaunchSteps = []; let automaticLaunchQueue = []; let automaticLaunchPressed = null; let activeLaunchMarker = null; let activeLaunchTitle = null;
@@ -115,7 +117,7 @@ function schedule() { if (frame == null) frame = requestAnimationFrame(runFrame)
 function runFrame() {
   frame = null;
   if (!running) return;
-  try { for (let count = 0; count < 50000; count += 1) { if (machine.cpu.instructionBoundary && bbcBreakpoints.has(machine.cpu.pc)) { running = false; status(`Breakpoint reached at $${hex(machine.cpu.pc)}.`, "BREAK"); break; } machine.clock(); } serviceAutomaticLaunch(); }
+  try { for (let count = 0; count < 50000; count += 1) { if (machine.cpu.instructionBoundary && bbcBreakpoints.has(machine.cpu.pc)) { running = false; status(`Breakpoint reached at $${hex(machine.cpu.pc)}.`, "BREAK"); break; } machine.clock(); } serviceAutomaticLaunch(); serviceBrowserCharacterInput(); }
   catch (error) { running = false; status(error.message, "ERROR"); draw(); return; }
   draw(); schedule();
 }
@@ -124,7 +126,7 @@ function restoreRunStateAfterMediaMount(wasRunning) {
   if (!wasRunning) return false;
   running = true; elements.bbcScreen.focus(); schedule(); return true;
 }
-const automaticCodeForCharacter = (character) => character === "\r" ? "Enter" : character === ":" ? "Semicolon" : `Key${character.toUpperCase()}`;
+const automaticCodeForCharacter = (character) => character === "\r" ? "Enter" : character === ":" ? "Colon" : `Key${character.toUpperCase()}`;
 function cancelAutomaticLaunch() { if (automaticLaunchPressed) machine.bus.keyboard.release(automaticLaunchPressed); automaticLaunchPressed = null; automaticLaunchQueue = []; pendingLaunchSteps = []; activeLaunchMarker = null; activeLaunchTitle = null; }
 function prepareAutomaticLaunch(software) { pendingLaunchSteps = [...(software.launchSteps ?? [])]; activeLaunchMarker = software.launchMarker ?? null; activeLaunchTitle = software.title; }
 function serviceAutomaticLaunch() {
@@ -147,9 +149,29 @@ elements.softwareSelect.addEventListener("change", configureFromControls);
 for (const select of [elements.systemSelect, elements.softwareSelect, elements.persistenceDriveSelect]) bindKeyboardSelect(select);
 elements.demoBbcButton.addEventListener("click", demoScreen);
 elements.pauseBbcButton.addEventListener("click", () => { if (demo) return; running = !running; status(running ? "Machine running." : "Machine paused.", running ? "RUNNING" : "PAUSED"); if (running) schedule(); });
-elements.bbcScreen.addEventListener("keydown", (event) => { const key = bbcKeyboardCodeForBrowserEvent(event.code, event.key); if (!key) return; event.preventDefault(); const matrixCode = `${key[0]}:${key[1]}`; activeBrowserKeys.set(event.code, matrixCode); machine.bus.keyboard.press(matrixCode); });
-elements.bbcScreen.addEventListener("keyup", (event) => { const matrixCode = activeBrowserKeys.get(event.code); if (!matrixCode) return; event.preventDefault(); machine.bus.keyboard.release(matrixCode); activeBrowserKeys.delete(event.code); });
-elements.bbcScreen.addEventListener("blur", () => { machine.bus.keyboard.clear(); activeBrowserKeys.clear(); });
+function syncBrowserKeyboard() {
+  const wanted = new Set(activeBrowserKeys.values()); const shiftCode = `${BBC_KEYBOARD_CODES.ShiftLeft[0]}:${BBC_KEYBOARD_CODES.ShiftLeft[1]}`; const shiftOverride = browserCharacterPressed?.shift;
+  if (browserCharacterPressed) wanted.add(browserCharacterPressed.matrixCode);
+  if (shiftOverride === true) wanted.add(shiftCode); else if (shiftOverride === false) wanted.delete(shiftCode);
+  for (const matrixCode of pressedBrowserMatrixCodes) if (!wanted.has(matrixCode)) { machine.bus.keyboard.release(matrixCode); pressedBrowserMatrixCodes.delete(matrixCode); }
+  for (const matrixCode of wanted) if (!pressedBrowserMatrixCodes.has(matrixCode)) { machine.bus.keyboard.press(matrixCode); pressedBrowserMatrixCodes.add(matrixCode); }
+}
+function serviceBrowserCharacterInput() {
+  if (browserCharacterPressed) { browserCharacterPressed = null; syncBrowserKeyboard(); return; }
+  if (browserCharacterQueue.length) { browserCharacterPressed = browserCharacterQueue.shift(); syncBrowserKeyboard(); }
+}
+elements.bbcScreen.addEventListener("keydown", (event) => {
+  const mapping = bbcKeyboardMappingForBrowserEvent(event.code, event.key); if (!mapping) return; event.preventDefault(); const matrixCode = `${mapping.matrix[0]}:${mapping.matrix[1]}`;
+  const followsQueuedCharacter = (browserCharacterPressed || browserCharacterQueue.length) && !event.ctrlKey && !event.metaKey && !event.altKey && (event.key.length === 1 || ["Enter", "Backspace", "Tab"].includes(event.code));
+  if (typeof mapping.shift === "boolean" || followsQueuedCharacter) { browserCharacterQueue.push({ matrixCode, shift: mapping.shift }); queuedBrowserKeyCodes.add(event.code); return; }
+  activeBrowserKeys.set(event.code, matrixCode); syncBrowserKeyboard();
+});
+elements.bbcScreen.addEventListener("keyup", (event) => {
+  if (queuedBrowserKeyCodes.delete(event.code)) { event.preventDefault(); return; }
+  if (!activeBrowserKeys.has(event.code)) return; event.preventDefault();
+  activeBrowserKeys.delete(event.code); syncBrowserKeyboard();
+});
+elements.bbcScreen.addEventListener("blur", () => { activeBrowserKeys.clear(); queuedBrowserKeyCodes.clear(); browserCharacterQueue.length = 0; browserCharacterPressed = null; syncBrowserKeyboard(); });
 
 function renderBbcDebugger() {
   let address = machine.cpu.instructionBoundary ? machine.cpu.pc : machine.cpu.currentInstructionAddress ?? machine.cpu.pc; const lines = [];

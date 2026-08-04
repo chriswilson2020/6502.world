@@ -123,17 +123,43 @@ export const BBC_KEYBOARD_CODES = Object.freeze({
   KeyQ: [0, 1], Digit3: [1, 1], Digit4: [2, 1], Digit5: [3, 1], F4: [4, 1], Digit8: [5, 1], F7: [6, 1], Minus: [7, 1], ArrowLeft: [9, 1],
   F10: [0, 2], KeyW: [1, 2], KeyE: [2, 2], KeyT: [3, 2], Digit7: [4, 2], KeyI: [5, 2], Digit9: [6, 2], Digit0: [7, 2], ArrowDown: [9, 2],
   Digit1: [0, 3], Digit2: [1, 3], KeyD: [2, 3], KeyR: [3, 3], Digit6: [4, 3], KeyU: [5, 3], KeyO: [6, 3], KeyP: [7, 3], BracketLeft: [8, 3], ArrowUp: [9, 3],
-  KeyA: [1, 4], KeyX: [2, 4], KeyF: [3, 4], KeyY: [4, 4], KeyJ: [5, 4], KeyK: [6, 4], Quote: [7, 4], Semicolon: [8, 4], Enter: [9, 4],
-  KeyS: [1, 5], KeyC: [2, 5], KeyG: [3, 5], KeyH: [4, 5], KeyN: [5, 5], KeyL: [6, 5], BracketRight: [8, 5], Backspace: [9, 5],
+  KeyA: [1, 4], KeyX: [2, 4], KeyF: [3, 4], KeyY: [4, 4], KeyJ: [5, 4], KeyK: [6, 4], At: [7, 4], Colon: [8, 4], Enter: [9, 4],
+  KeyS: [1, 5], KeyC: [2, 5], KeyG: [3, 5], KeyH: [4, 5], KeyN: [5, 5], KeyL: [6, 5], Semicolon: [7, 5], BracketRight: [8, 5], Backspace: [9, 5],
   Tab: [0, 6], KeyZ: [1, 6], Space: [2, 6], KeyV: [3, 6], KeyB: [4, 6], KeyM: [5, 6], Comma: [6, 6], Period: [7, 6], Slash: [8, 6],
   Escape: [0, 7], F1: [1, 7], F2: [2, 7], F3: [3, 7], F5: [4, 7], F6: [5, 7], F8: [6, 7], F9: [7, 7], Backslash: [8, 7], ArrowRight: [9, 7],
-  ShiftLeft: [0, 0], ShiftRight: [0, 0], ControlLeft: [1, 0], ControlRight: [1, 0],
+  ShiftLeft: [0, 0], ShiftRight: [0, 0], ControlLeft: [1, 0], ControlRight: [1, 0], Underscore: [8, 2], Caret: [8, 1],
 });
 
-export function bbcKeyboardCodeForBrowserEvent(code, key) {
-  // A modern US keyboard produces double quote from Shift+Quote, while the
-  // BBC keyboard produces it from Shift+2. Preserve the character the user
-  // intended and let the separately held Shift matrix key provide the case.
-  if (key === '"') return BBC_KEYBOARD_CODES.Digit2;
-  return BBC_KEYBOARD_CODES[code] ?? null;
+const printable = (code, shift) => Object.freeze({ matrix: BBC_KEYBOARD_CODES[code], shift });
+export const BBC_PRINTABLE_KEYBOARD = Object.freeze({
+  "1": printable("Digit1", false), "!": printable("Digit1", true),
+  "2": printable("Digit2", false), '"': printable("Digit2", true),
+  "3": printable("Digit3", false), "#": printable("Digit3", true),
+  "4": printable("Digit4", false), "$": printable("Digit4", true),
+  "5": printable("Digit5", false), "%": printable("Digit5", true),
+  "6": printable("Digit6", false), "&": printable("Digit6", true),
+  "7": printable("Digit7", false), "'": printable("Digit7", true),
+  "8": printable("Digit8", false), "(": printable("Digit8", true),
+  "9": printable("Digit9", false), ")": printable("Digit9", true), "0": printable("Digit0", false),
+  "-": printable("Minus", false), "=": printable("Minus", true),
+  "^": printable("Caret", false), "~": printable("Caret", true),
+  "\\": printable("Backslash", false), "|": printable("Backslash", true),
+  "@": printable("At", false),
+  "[": printable("BracketLeft", false), "{": printable("BracketLeft", true),
+  ";": printable("Semicolon", false), "+": printable("Semicolon", true),
+  ":": printable("Colon", false), "*": printable("Colon", true),
+  "]": printable("BracketRight", false), "}": printable("BracketRight", true),
+  "_": printable("Underscore", false), "£": printable("Underscore", true),
+  ",": printable("Comma", false), "<": printable("Comma", true),
+  ".": printable("Period", false), ">": printable("Period", true),
+  "/": printable("Slash", false), "?": printable("Slash", true), " ": printable("Space", false),
+});
+
+export function bbcKeyboardMappingForBrowserEvent(code, key) {
+  if (BBC_PRINTABLE_KEYBOARD[key]) return BBC_PRINTABLE_KEYBOARD[key];
+  if (typeof key === "string" && /^[a-z]$/i.test(key)) return Object.freeze({ matrix: BBC_KEYBOARD_CODES[`Key${key.toUpperCase()}`], shift: null });
+  const matrix = BBC_KEYBOARD_CODES[code] ?? null;
+  return matrix ? Object.freeze({ matrix, shift: null }) : null;
 }
+
+export function bbcKeyboardCodeForBrowserEvent(code, key) { return bbcKeyboardMappingForBrowserEvent(code, key)?.matrix ?? null; }
