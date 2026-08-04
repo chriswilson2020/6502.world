@@ -52,11 +52,11 @@ The 1.8 preservation release hardens the complete BBC Model B and Acorn Z80 path
 - IndexedDB working copies with base hashes, geometry, full image bytes and catalogue association;
 - local save, restore, duplicate, clear, reset-original and `.ssd`/`.dsd` export controls.
 - exact SHA-256 catalogue coverage for all 12 owner-approved Acorn Z80 DSDs;
-- explicit validated, identified and unsupported statuses instead of filename-based availability claims;
+- explicit validated and identified statuses instead of filename-based availability claims;
 - a two-drive BBC BASIC for Z80 preset that boots CP/M on A:, selects B: through the BBC keyboard and launches `BBCBASIC`;
 - a repeatable BBC BASIC 2.20 title gate and committed bounded text transcript;
+- a repeatable MemoPlan 1.30 editor, document-write and exported-image remount gate;
 - coherent Accountant and Nucleus multi-disc metadata with writable-disc guidance;
-- an explicit metadata-only record for the absent original seven-disc installation set.
 - version 1-to-2 state migration details plus CP/M-prompt and active-FDC resume gates;
 - bounded CPU, bus, 8271 and browser Tube diagnostics;
 - measured dual-CPU/FDC CP/M performance with a repeatable benchmark command;
@@ -64,7 +64,6 @@ The 1.8 preservation release hardens the complete BBC Model B and Acorn Z80 path
 - normal and optional-media Pages builds, with local import controls retained when DSDs are absent;
 - blank writable 80-track DSD targets for preservation work;
 - per-corpus provenance, permission and third-party copyright notices;
-- an honest unavailable original-installer record until its authentic seven-disc source set is supplied.
 - writable temporary drive 0/drive 1 session-copy mounts and visible mounted-state labels for every bundled catalogue image; published source bytes remain immutable.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:

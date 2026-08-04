@@ -1,0 +1,31 @@
+MemoPlan 1.30 validation
+========================
+
+System drive: CPM_Utilities_Disc.dsd in A:
+Application drive: MemoPlan_Program_Disc.dsd in B:
+Application SHA-256: 8dbfa12dc6608f08495360efc3eaa178b689c46363c1b033c9bf3bab83f0e428
+
+Keyboard-driven workflow:
+
+  B:
+  MEMO CODEX.ME
+  type: CODEX MEMOPLAN SAVE TEST
+  Ctrl-X, X, W, Enter (write the current file)
+  Ctrl-X, E (exit the editor)
+  DIR CODEX.ME
+
+Observed title marker:
+
+  MemoPlan V1.30
+
+Observed directory result:
+
+  B: CODEX    ME
+
+The test requires real 8271 write transfers, a dirty private drive-1 clone,
+an unchanged bundled-source SHA-256, and the same CODEX.ME directory result
+after exporting and remounting the modified DSD read-only.
+
+Regenerate with:
+
+  npm run test:bbc-catalogue

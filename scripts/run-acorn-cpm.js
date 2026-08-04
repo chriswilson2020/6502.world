@@ -15,7 +15,7 @@ const KEY_FOR_CHARACTER = Object.freeze({
   " ": "Space", ".": "Period", ":": "Colon", "/": "Slash", "-": "Minus", "\r": "Enter", "\n": "Enter",
 });
 
-export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], commandExpectations = [], writeProtected = true, mediaBytes, drive1MediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false, returnMachine = false } = {}) {
+export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], commandInputs = [], commandExpectations = [], writeProtected = true, mediaBytes, drive1MediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false, returnDrive1Media = false, returnMachine = false } = {}) {
   const names = ["os12.rom", "basic2.rom", "dnfs.rom", "z80.rom"];
   const [os, basic, dnfs, z80, utilities] = await Promise.all([
     ...names.map(async (name) => new Uint8Array(await readFile(join(ROOT, "ROM", name)))),
@@ -52,7 +52,8 @@ export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandIns
   for (let index = 0; index < requestedCommands.length; index += 1) {
     const command = requestedCommands[index]; const expectation = commandExpectations[index];
     const promptsBefore = promptCount(screenText(machine));
-    typeThroughKeyboard(machine, command === "\x03" ? command : command + "\r", () => { hostInstructions += 1; });
+    const input = commandInputs[index] ?? (command === "\x03" ? command : command + "\r");
+    typeThroughKeyboard(machine, input, () => { hostInstructions += 1; });
     const completed = runUntil((screen) => expectation ? matchesExpectation(screen, expectation) : promptCount(screen) > promptsBefore, commandInstructionLimit);
     commands.push({ command, completed, screen: machine.video.textSnapshot() });
     if (!completed) return report({ passed: false, reason: `${command.toLowerCase()}-limit`, machine, parasite, hashes, hostInstructions, tubeTranscript, commands });
@@ -64,13 +65,15 @@ export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandIns
   const promptGate = commandExpectations.some(Boolean) || promptCount(screen) >= requestedCommands.length + 1;
   const result = report({ passed: booted && commands.every(({ completed }) => completed) && directoryPlausible && statPlausible && promptGate, reason: "complete", machine, parasite, hashes, hostInstructions, tubeTranscript, commands });
   if (returnMedia) result.exportedMedia = machine.bus.devices.fdc.drives[0].disk.export();
+  if (returnDrive1Media) result.exportedDrive1Media = machine.bus.devices.fdc.drives[1].disk?.export() ?? null;
   if (returnMachine) result.machine = machine;
   return result;
 }
 
 function typeThroughKeyboard(machine, text, onInstruction) {
   for (const character of text) {
-    if (character === "\x03") { pressChord(machine, [BBC_KEYBOARD_CODES.ControlLeft, BBC_KEYBOARD_CODES.KeyC], onInstruction); continue; }
+    const controlCode = character.charCodeAt(0);
+    if (controlCode >= 1 && controlCode <= 26) { const letter = String.fromCharCode(64 + controlCode); pressChord(machine, [BBC_KEYBOARD_CODES.ControlLeft, BBC_KEYBOARD_CODES[`Key${letter}`]], onInstruction); continue; }
     const code = KEY_FOR_CHARACTER[character.toUpperCase() === character ? character : character.toUpperCase()];
     const matrix = BBC_KEYBOARD_CODES[code];
     if (!matrix) throw new Error(`No BBC keyboard mapping for ${JSON.stringify(character)}`);

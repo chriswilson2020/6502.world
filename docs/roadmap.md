@@ -144,7 +144,7 @@ Before changing media code, inventory `MEDIA/` and record for every candidate im
 - any embedded title or boot text that can be identified without modifying the image;
 - likely role, with uncertainty stated where the image cannot be identified confidently.
 
-The first required image is the CP/M Utilities system disc, expected to be a standard 409,600-byte `.dsd` image and to contain the sign-on text `Acorn CP/M 2.2 - Bios 1.20`. Identify it by content and hash rather than relying only on its filename. Other installation and prepared application discs remain out of scope until the first CP/M boot gate passes.
+The first required image is the CP/M Utilities system disc, expected to be a standard 409,600-byte `.dsd` image and to contain the sign-on text `Acorn CP/M 2.2 - Bios 1.20`. Identify it by content and hash rather than relying only on its filename. Other prepared application discs remain out of scope until the first CP/M boot gate passes.
 
 Do not rename, overwrite, normalize or regenerate the source images. The emulator must clone input bytes before any write. Do not add previously untracked commercial media to Git history merely to make tests convenient; use the existing project files locally unless the repository owner has already tracked or explicitly approved those binaries. Tests that require an optional local corpus must fail with a clear “corpus unavailable” message or skip under an explicit convention, while unit tests remain self-contained.
 
@@ -152,7 +152,6 @@ Create `docs/acorn-z80-media.md` from the inventory. It should distinguish:
 
 - the one bootable CP/M Utilities image used for the first gate;
 - prepared working/application discs;
-- the original seven-disc installation set, if present;
 - unknown or duplicate variants;
 - source, copyright and redistribution uncertainty.
 
@@ -600,7 +599,7 @@ At minimum:
 
 ## 1.7 — Acorn Z80 software catalogue
 
-**Implemented:** every approved DSD is represented exactly once with a verified SHA-256, placement, write-mode guidance, rights mode and evidence-based status. Utilities and BBC BASIC are the only validated launch entries. The BBC BASIC gate boots the known Utilities system in A:, selects the prepared Basic disc in B: through real keyboard input and reaches the 2.20 title prompt; the browser performs the same bounded launch sequence. Accountant and Nucleus are explicit multi-disc sets, candidate titles remain “media identified, not yet validated”, and the absent original seven-disc installer remains unsupported metadata rather than a fabricated preset.
+**Implemented:** every approved DSD is represented exactly once with a verified SHA-256, placement, write-mode guidance, rights mode and evidence-based status. Utilities, BBC BASIC and MemoPlan are validated launch entries. The BBC BASIC gate boots the known Utilities system in A:, selects the prepared Basic disc in B: through real keyboard input and reaches the 2.20 title prompt. The MemoPlan gate launches the 1.30 editor, writes a document through native commands and verifies it after exported-image remount. The browser performs the same bounded launch sequences. Accountant and Nucleus are explicit multi-disc sets, while remaining candidate titles stay “media identified, not yet validated”.
 
 Only begin after CP/M Utilities is a stable, writable system.
 
@@ -616,10 +615,7 @@ Use `docs/acorn-z80-media.md` and the `MEDIA/` hashes to classify:
 - FilePlan;
 - Accountant and related data discs;
 - Nucleus components;
-- the original seven installation discs;
 - duplicate or unknown variants.
-
-Do not infer that the seven original distribution images correspond one-to-one with seven finished applications. The original set may require `PREPARE` to construct a larger working-disc set. Prefer prepared working discs for normal launch presets and reserve the original installation flow for an advanced preservation experience.
 
 ### Per-title validation
 
@@ -646,7 +642,7 @@ unsupported
 
 ### Multi-disc applications
 
-Model disc sets explicitly. Accountant/Nucleus and the original installer may require:
+Model Accountant and Nucleus disc sets explicitly. They may require:
 
 - multiple named images;
 - ordered swaps;
@@ -670,25 +666,9 @@ Hash recognition and launch metadata may be committed even when the binary canno
 
 **Gate:** at least BBC BASIC for Z80 launches from a prepared application disc after booting CP/M, and every displayed catalogue status corresponds to a repeatable test.
 
-## 1.8 — Original installation experience and release hardening
+## 1.8 — Release hardening
 
-**Implemented within the available corpus:** the original seven-disc installer is explicitly unavailable because its source set is absent; the project does not fake it from prepared media. The UI nevertheless supplies blank writable DSD targets and manual two-drive preservation primitives. Release hardening adds detailed state migration, real CP/M-prompt and active-transfer resume gates, bounded diagnostics, repeatable performance evidence, narrow keyboard-only browser validation, normal/no-media Pages builds, complete ROM/DSD provenance notices and explicit protected-layout exclusions.
-
-This is an advanced preservation milestone, not part of the first CP/M release.
-
-### Original installation
-
-Where the seven-disc source set is present:
-
-- identify the exact distribution images;
-- boot the original installer;
-- run the authentic preparation process;
-- provide blank writable DSD targets;
-- support prompted source/target swaps;
-- verify the generated working discs by booting or launching their software;
-- retain an explicit distinction between original source images and generated user copies.
-
-Do not automate by reconstructing files outside the emulated machine and then claim the installer works.
+**Implemented:** release hardening adds detailed state migration, real CP/M-prompt and active-transfer resume gates, bounded diagnostics, repeatable performance evidence, narrow keyboard-only browser validation, normal/no-media Pages builds, complete ROM/DSD provenance notices and explicit protected-layout exclusions.
 
 ### Release hardening
 
@@ -716,7 +696,7 @@ Codex should execute this work as a sequence of reviewable changes rather than o
 6. add machine profiles and the BBC BASIC/CP/M switching UI;
 7. add CP/M writes, IndexedDB persistence and export/import;
 8. validate application discs one title at a time;
-9. add the original seven-disc installation experience last.
+9. validate the remaining single- and multi-disc applications one at a time.
 
 Every change should state which gate it advances, include focused tests, update the relevant documentation and leave existing validated machine paths working.
 
