@@ -31,7 +31,7 @@ Every current image is a 409,600-byte, 80-track, two-sided DSD with ten 256-byte
 | CIS COBOL | media identified, not yet validated | exact hash and CP/M directory containing COBOL/FORMS2 components |
 | MemoPlan | validated | Utilities in A:, MemoPlan in B:, real keyboard input reaches `MemoPlan V1.30`, writes `CODEX.ME`, exits and confirms the file after exported-image remount |
 | GraphPlan | validated | Utilities in A:, GraphPlan in B:, real keyboard input reaches the worksheet, saves `CODEX.TBL`, exits and confirms the file after exported-image remount |
-| FilePlan | media identified, not yet validated | exact hash and CP/M directory containing `FILE.COM` and overlays |
+| FilePlan | validated | Utilities in A:, FilePlan in B:, real keyboard input reaches the worksheet, names `CODEX01`, creates `DPDB` on A: and confirms it after exported-image remount |
 | Accountant / Start of Day | media identified, not yet validated | three exact hashes and directory-derived startup/program/data roles |
 | Nucleus definitions + reporting | media identified, not yet validated | three exact hashes and directory-derived definitions/parameter/reporter roles |
 

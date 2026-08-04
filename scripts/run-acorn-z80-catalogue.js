@@ -99,6 +99,56 @@ export async function runGraphPlanGate() {
   };
 }
 
+export async function runFilePlanGate() {
+  const [utilities, filePlan] = await Promise.all([
+    readFile(join(ROOT, "MEDIA", "CPM_Utilities_Disc.dsd")).then((bytes) => new Uint8Array(bytes)),
+    readFile(join(ROOT, "MEDIA", "FilePlan_Program_Disc.dsd")).then((bytes) => new Uint8Array(bytes)),
+  ]);
+  const utilitiesHash = sha256(utilities); const applicationHash = sha256(filePlan);
+  const commands = ["B:", "FILE", "open menu", "NAME WORKSHEET", "wait for dictionary", "create dictionary", "wait for worksheet name", "name worksheet", "wait for saved name", "open exit menu", "EXIT", "A:", "DIR DPDB.*"];
+  const result = await runAcornCpm({
+    drive1MediaBytes: filePlan,
+    writeProtected: false,
+    commands,
+    commandInputs: [undefined, undefined, "\x1b", "8\r", "", "Y\r", "", "CODEX\r", "", "\x1b", "9\r", undefined, undefined],
+    commandExpectations: ["B>", (screen) => screen.includes("CREATE WORKSHEET") && screen.includes("ENTER DATA:"), "CHOOSE A COMMAND", ">8 <", "CREATE DICT.", ">Y<", "NEW WORKSHEET NAME?", ">CODEX01 <", "WORKSHEET:CODEX01", "CHOOSE A COMMAND", "B>", "A>", /A:\s+DPDB/],
+    commandInstructionLimit: 10_000_000,
+    returnMedia: true,
+    returnMachine: true,
+  });
+  const screen = result.commands.at(-1)?.screen.map((line) => line.trimEnd()).filter(Boolean) ?? [];
+  const drive0 = result.machine?.bus.devices.fdc.drives[0]; const modified = result.exportedMedia;
+  const remounted = modified ? await runAcornCpm({ mediaBytes: modified, writeProtected: true, commands: ["DIR DPDB.*"], commandExpectations: [/A:\s+DPDB/], commandInstructionLimit: 5_000_000 }) : { passed: false, commands: [] };
+  const remountedScreen = remounted.commands.at(-1)?.screen.map((line) => line.trimEnd()).filter(Boolean) ?? [];
+  const [utilitiesHashAfter, applicationHashAfter] = await Promise.all([
+    readFile(join(ROOT, "MEDIA", "CPM_Utilities_Disc.dsd")).then((bytes) => sha256(bytes)),
+    readFile(join(ROOT, "MEDIA", "FilePlan_Program_Disc.dsd")).then((bytes) => sha256(bytes)),
+  ]);
+  return {
+    passed: result.passed && result.fdc.writeTransfers > 0 && Boolean(drive0?.disk?.dirty) && screen.some((line) => /A:\s+DPDB/.test(line)) && remounted.passed && remountedScreen.some((line) => /A:\s+DPDB/.test(line)) && utilitiesHashAfter === utilitiesHash && applicationHashAfter === applicationHash && Boolean(modified) && sha256(modified) !== utilitiesHash,
+    title: "FilePlan",
+    systemDrive: "CPM_Utilities_Disc.dsd",
+    applicationDrive: "FilePlan_Program_Disc.dsd",
+    commands,
+    marker: "CREATE WORKSHEET + ENTER DATA:",
+    writeTransfers: result.fdc.writeTransfers,
+    drive0Dirty: Boolean(drive0?.disk?.dirty),
+    modifiedDrive0Bytes: modified?.length ?? 0,
+    utilitiesHash,
+    utilitiesHashAfter,
+    applicationHash,
+    applicationHashAfter,
+    modifiedHash: modified ? sha256(modified) : null,
+    exportRemountPreserved: remounted.passed && remountedScreen.some((line) => /A:\s+DPDB/.test(line)),
+    hostInstructions: result.hostInstructions,
+    machineTicks: result.machineTicks,
+    z80TStates: result.z80TStates,
+    screen,
+    remountedScreen,
+    reason: result.reason,
+  };
+}
+
 function sha256(bytes) { return createHash("sha256").update(bytes).digest("hex"); }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) { const results = [await runBbcBasicZ80Gate(), await runMemoPlanGate(), await runGraphPlanGate()]; console.log(JSON.stringify(results, null, 2)); if (results.some(({ passed }) => !passed)) process.exitCode = 1; }
+if (process.argv[1] === fileURLToPath(import.meta.url)) { const results = [await runBbcBasicZ80Gate(), await runMemoPlanGate(), await runGraphPlanGate(), await runFilePlanGate()]; console.log(JSON.stringify(results, null, 2)); if (results.some(({ passed }) => !passed)) process.exitCode = 1; }

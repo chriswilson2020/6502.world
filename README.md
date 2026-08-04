@@ -57,6 +57,7 @@ The 1.8 preservation release hardens the complete BBC Model B and Acorn Z80 path
 - a repeatable BBC BASIC 2.20 title gate and committed bounded text transcript;
 - a repeatable MemoPlan 1.30 editor, document-write and exported-image remount gate;
 - a repeatable GraphPlan worksheet, table-save and exported-image remount gate;
+- a repeatable FilePlan worksheet, dictionary creation and exported-image remount gate;
 - coherent Accountant and Nucleus multi-disc metadata with writable-disc guidance;
 - version 1-to-2 state migration details plus CP/M-prompt and active-FDC resume gates;
 - bounded CPU, bus, 8271 and browser Tube diagnostics;

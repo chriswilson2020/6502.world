@@ -3,7 +3,7 @@ import test from "node:test";
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { ACORN_Z80_CATALOGUE } from "../public/bbc-catalogue.js";
-import { runBbcBasicZ80Gate, runGraphPlanGate, runMemoPlanGate } from "../scripts/run-acorn-z80-catalogue.js";
+import { runBbcBasicZ80Gate, runFilePlanGate, runGraphPlanGate, runMemoPlanGate } from "../scripts/run-acorn-z80-catalogue.js";
 
 test("Acorn Z80 catalogue accounts for every bundled DSD with exact hashes and honest status", async () => {
   const declared = ACORN_Z80_CATALOGUE.flatMap(({ media }) => media); const names = declared.map(({ filename }) => filename);
@@ -14,6 +14,7 @@ test("Acorn Z80 catalogue accounts for every bundled DSD with exact hashes and h
   assert.doesNotMatch(JSON.stringify(ACORN_Z80_CATALOGUE), /seven[- ]disc|installer/i);
   assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "memoplan").status, "validated");
   assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "graphplan").status, "validated");
+  assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "fileplan").status, "validated");
 });
 
 test("validated BBC BASIC for Z80 launches from B: through real keyboard input", { timeout: 45_000 }, async () => {
@@ -26,4 +27,8 @@ test("validated MemoPlan launches, writes a document and survives export remount
 
 test("validated GraphPlan launches, saves a table and survives export remount", { timeout: 90_000 }, async () => {
   const result = await runGraphPlanGate(); assert.equal(result.passed, true, JSON.stringify(result, null, 2)); assert.equal(result.marker, "MODE=NORMAL + ENTER COMMAND:"); assert.equal(result.drive1Dirty, true); assert.equal(result.exportRemountPreserved, true); assert.equal(result.originalHash, result.sourceHashAfter);
+});
+
+test("validated FilePlan creates its worksheet dictionary and survives export remount", { timeout: 90_000 }, async () => {
+  const result = await runFilePlanGate(); assert.equal(result.passed, true, JSON.stringify(result, null, 2)); assert.equal(result.marker, "CREATE WORKSHEET + ENTER DATA:"); assert.equal(result.drive0Dirty, true); assert.equal(result.exportRemountPreserved, true); assert.equal(result.utilitiesHash, result.utilitiesHashAfter); assert.equal(result.applicationHash, result.applicationHashAfter);
 });

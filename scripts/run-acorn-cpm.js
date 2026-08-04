@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { BbcMicroModelB } from "../src/machine/bbc/model-b.js";
-import { BBC_KEYBOARD_CODES } from "../src/machine/bbc/system-via.js";
+import { BBC_KEYBOARD_CODES, BBC_PRINTABLE_KEYBOARD } from "../src/machine/bbc/system-via.js";
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const UTILITIES_HASH = "9147393d301af384c0c2cea1dc3299b8c98877180515ec0f4d87a71787332b3a";
@@ -12,7 +12,7 @@ const KEY_FOR_CHARACTER = Object.freeze({
   A: "KeyA", B: "KeyB", C: "KeyC", D: "KeyD", E: "KeyE", F: "KeyF", G: "KeyG", H: "KeyH", I: "KeyI", J: "KeyJ", K: "KeyK", L: "KeyL", M: "KeyM",
   N: "KeyN", O: "KeyO", P: "KeyP", Q: "KeyQ", R: "KeyR", S: "KeyS", T: "KeyT", U: "KeyU", V: "KeyV", W: "KeyW", X: "KeyX", Y: "KeyY", Z: "KeyZ",
   "0": "Digit0", "1": "Digit1", "2": "Digit2", "3": "Digit3", "4": "Digit4", "5": "Digit5", "6": "Digit6", "7": "Digit7", "8": "Digit8", "9": "Digit9",
-  " ": "Space", ".": "Period", ":": "Colon", "/": "Slash", "-": "Minus", "\r": "Enter", "\n": "Enter",
+  " ": "Space", ".": "Period", ":": "Colon", "/": "Slash", "-": "Minus", "\r": "Enter", "\n": "Enter", "\x1b": "Escape",
 });
 
 export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], commandInputs = [], commandExpectations = [], writeProtected = true, mediaBytes, drive1MediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false, returnDrive1Media = false, returnMachine = false } = {}) {
@@ -74,6 +74,8 @@ function typeThroughKeyboard(machine, text, onInstruction) {
   for (const character of text) {
     const controlCode = character.charCodeAt(0);
     if (controlCode >= 1 && controlCode <= 26) { const letter = String.fromCharCode(64 + controlCode); pressChord(machine, [BBC_KEYBOARD_CODES.ControlLeft, BBC_KEYBOARD_CODES[`Key${letter}`]], onInstruction); continue; }
+    const printable = BBC_PRINTABLE_KEYBOARD[character];
+    if (printable?.shift === true) { pressChord(machine, [BBC_KEYBOARD_CODES.ShiftLeft, printable.matrix], onInstruction); continue; }
     const code = KEY_FOR_CHARACTER[character.toUpperCase() === character ? character : character.toUpperCase()];
     const matrix = BBC_KEYBOARD_CODES[code];
     if (!matrix) throw new Error(`No BBC keyboard mapping for ${JSON.stringify(character)}`);

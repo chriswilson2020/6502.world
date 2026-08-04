@@ -1,0 +1,34 @@
+FilePlan validation
+===================
+
+System drive: CPM_Utilities_Disc.dsd in A:
+Application drive: FilePlan_Program_Disc.dsd in B:
+Application SHA-256: 59edae34c3db0f00d64ca26c8f1791629e45326b972b59aa64329fe9a6b63e4c
+
+Keyboard-driven workflow:
+
+  B:
+  FILE
+  Escape       (open the command menu)
+  8            (NAME WORKSHEET)
+  Y            (create the missing dictionary)
+  CODEX        (stored as worksheet CODEX01)
+  Escape
+  9            (EXIT)
+  A:
+  DIR DPDB.*
+
+Observed worksheet markers:
+
+  CREATE WORKSHEET
+  WORKSHEET:(NEW)
+  ENTER DATA:
+
+The prepared setup stores the new worksheet dictionary as DPDB on A:. The
+test requires real 8271 writes, a dirty private drive-0 clone, unchanged
+bundled Utilities and FilePlan source hashes, and the same DPDB directory
+entry after exporting and remounting the modified Utilities DSD read-only.
+
+Regenerate with:
+
+  npm run test:bbc-catalogue
