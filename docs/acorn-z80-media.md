@@ -1,6 +1,6 @@
 # Recovered Acorn Z80 media inventory
 
-This inventory describes the `MEDIA/` corpus supplied by the repository owner. The owner explicitly approved publishing the complete folder and its disc images in this repository. Generate the mechanical inventory with:
+This inventory describes the `MEDIA/` corpus supplied by the repository owner. Generate the mechanical inventory with:
 
 ```sh
 node scripts/inventory-acorn-z80-media.js /path/to/MEDIA
@@ -23,11 +23,6 @@ Every current image is a 409,600-byte, 80-track, two-sided DSD with ten 256-byte
 | `Nucleus_Parameter_File_Program_Disc.dsd` | `ed7dad42305974b0bcf48b8b911b0480240e054c3dda5004d9d96e1451300101` | Compact Nucleus parameter strings | Prepared application component |
 | `Nucleus_Reporter_Program_Disc.dsd` | `01c134d0cf4648e38b19d8ef8b4418db5d252db6af03d88627ede14b67873bd4` | Nucleus Reporting | Prepared application component |
 
-The current corpus does not contain an identifiable original seven-disc installation set or obvious byte-for-byte duplicates. Filenames are treated as hints until a title passes its launch gate. Rights mode is `bundled with repository-owner permission`; inclusion does not change any underlying third-party copyright.
-
-## Public catalogue status
-
-The browser catalogue groups all 12 images into coherent entries and uses the rights mode `bundled with documented permission`. The original installer is a separate `metadata only` entry because its seven source discs are absent.
 
 | Entry | Public status | Repeatable evidence |
 |---|---|---|
