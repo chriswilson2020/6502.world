@@ -139,6 +139,11 @@ footer a { color: var(--accent); }
 .catalogue-entry summary span { display: block; margin: 5px 0 0 16px; color: var(--muted); font: 9px/1.4 "SFMono-Regular", Consolas, monospace; letter-spacing: .04em; text-transform: uppercase; }
 .catalogue-entry p { margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
 .catalogue-entry code { color: var(--accent); font-size: 10px; }
+.catalogue-media { display: grid; gap: 7px; margin-top: 11px; border-top: 1px solid var(--line); padding-top: 10px; }
+.catalogue-media-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; color: var(--muted); font-size: 10px; }
+.catalogue-media-head span { color: var(--violet); font: 9px "SFMono-Regular", Consolas, monospace; text-transform: uppercase; }
+.catalogue-mount-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.catalogue-mount-row button { min-height: 34px; border: 1px solid var(--line-strong); border-radius: 5px; background: transparent; color: var(--text); font-size: 10px; font-weight: 750; }
 .bbc-debugger { min-height: 170px; margin: 0 0 14px; overflow: auto; border: 1px solid var(--line); border-radius: 7px; background: #090c0b; color: var(--muted); padding: 12px; font: 12px/1.65 "SFMono-Regular", Consolas, monospace; }
 .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: pre !important; }
 

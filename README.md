@@ -65,6 +65,7 @@ The 1.8 preservation release hardens the complete BBC Model B and Acorn Z80 path
 - blank writable 80-track DSD targets for preservation work;
 - per-corpus provenance, permission and third-party copyright notices;
 - an honest unavailable original-installer record until its authentic seven-disc source set is supplied.
+- explicit read-only drive 0/drive 1 mount controls and visible mounted-state labels for every bundled catalogue image.
 
 The minimal machine wraps the validated processor in a portable 64K workbench with:
 

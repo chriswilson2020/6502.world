@@ -37,7 +37,7 @@ test("BBC console exposes the debugger, persistent dual-drive media and Tube con
 });
 
 test("BBC browser diagnostics and responsive controls have bounded accessible contracts", async () => {
-  const [source, styles] = await Promise.all([readFile("public/bbc.js", "utf8"), readFile("public/styles.css", "utf8")]); assert.match(source, /TUBE_OUTPUT_LIMIT = 8192/); assert.match(source, /tubeOutput\.length > TUBE_OUTPUT_LIMIT/); assert.match(source, /bindKeyboardSelect/); assert.match(styles, /@media \(max-width: 720px\)/); assert.match(styles, /\.bbc-console-grid/);
+  const [source, styles] = await Promise.all([readFile("public/bbc.js", "utf8"), readFile("public/styles.css", "utf8")]); assert.match(source, /TUBE_OUTPUT_LIMIT = 8192/); assert.match(source, /tubeOutput\.length > TUBE_OUTPUT_LIMIT/); assert.match(source, /bindKeyboardSelect/); assert.match(source, /mountCatalogueMedia/); assert.match(styles, /@media \(max-width: 720px\)/); assert.match(styles, /\.bbc-console-grid/); assert.match(styles, /\.catalogue-mount-row/);
 });
 
 test("browser modules stay inside the GitHub Pages project path", async () => {
