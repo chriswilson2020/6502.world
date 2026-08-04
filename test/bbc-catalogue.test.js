@@ -3,7 +3,7 @@ import test from "node:test";
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { ACORN_Z80_CATALOGUE } from "../public/bbc-catalogue.js";
-import { runBbcBasicZ80Gate, runCisCobolGate, runFilePlanGate, runGraphPlanGate, runMemoPlanGate } from "../scripts/run-acorn-z80-catalogue.js";
+import { runAccountantGate, runBbcBasicZ80Gate, runCisCobolGate, runFilePlanGate, runGraphPlanGate, runMemoPlanGate } from "../scripts/run-acorn-z80-catalogue.js";
 
 test("Acorn Z80 catalogue accounts for every bundled DSD with exact hashes and honest status", async () => {
   const declared = ACORN_Z80_CATALOGUE.flatMap(({ media }) => media); const names = declared.map(({ filename }) => filename);
@@ -16,6 +16,7 @@ test("Acorn Z80 catalogue accounts for every bundled DSD with exact hashes and h
   assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "graphplan").status, "validated");
   assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "fileplan").status, "validated");
   assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "cis-cobol").status, "validated");
+  assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "accountant").status, "validated");
 });
 
 test("validated BBC BASIC for Z80 launches from B: through real keyboard input", { timeout: 45_000 }, async () => {
@@ -36,4 +37,8 @@ test("validated FilePlan creates its worksheet dictionary and survives export re
 
 test("validated CIS COBOL compiles PI.CBL without errors and preserves PI.INT after export remount", { timeout: 120_000 }, async () => {
   const result = await runCisCobolGate(); assert.equal(result.passed, true, JSON.stringify(result, null, 2)); assert.equal(result.marker, "** CIS COBOL V4.5 + ** ERRORS=00000"); assert.equal(result.drive1Dirty, true); assert.equal(result.exportRemountPreserved, true); assert.equal(result.originalHash, result.sourceHashAfter);
+});
+
+test("validated Accountant follows its prompted disc swap into the nominal-ledger menu", { timeout: 120_000 }, async () => {
+  const result = await runAccountantGate(); assert.equal(result.passed, true, JSON.stringify(result, null, 2)); assert.equal(result.marker, "COMPACT MENU + Nominal ledger PROGRAM MENU"); assert.equal(result.programDriveDirty, true); assert.equal(result.exportRemountPreserved, true); assert.deepEqual(result.sourceHashesAfter, result.sourceHashes);
 });

@@ -1,0 +1,42 @@
+Compact Accountant validation
+=============================
+
+Initial drive: Start_Of_Day_Disc.dsd in A:
+Prompted swap: Accountant_Program_Disc.dsd in A:
+               Accountant_Data_Disc.dsd in B:
+
+Keyboard-driven workflow:
+
+  START
+  040826       (bounded validation date)
+  Y            (confirm date)
+  [swap discs exactly as prompted]
+  Enter
+  1            (Your company name)
+  1            (Nominal ledger)
+
+Observed markers:
+
+  COMPACT Release 1.0
+  COMPACT START OF DAY
+  Please load program disk on drive A and file disk on drive B
+  COMPANY MENU
+  SYSTEM MENU
+  Nominal ledger                 PROGRAM MENU
+  12. Monthend routine
+
+The Start of Day disc is itself the CP/M system disc for this workflow. After
+the date is confirmed, it is replaced by the Program disc in A: while the Data
+disc remains in B:. The gate performs this real mid-session swap, navigates to
+the nominal-ledger program menu and requires hardware-mediated working-disc
+writes. The exported Program working image remains readable after remount and
+all three bundled source hashes remain unchanged. This bounded navigation
+rewrites existing working records; it does not claim to create a new account.
+
+The browser preset starts with Start of Day in A: and Data in B:. At the
+on-screen swap prompt, expand this catalogue entry and use “Mount in drive 0”
+for Accountant_Program_Disc.dsd, then press Enter in the emulated display.
+
+Regenerate with:
+
+  npm run test:bbc-catalogue

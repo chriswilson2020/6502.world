@@ -15,7 +15,7 @@ const KEY_FOR_CHARACTER = Object.freeze({
   " ": "Space", ".": "Period", ":": "Colon", "/": "Slash", "-": "Minus", "\r": "Enter", "\n": "Enter", "\x1b": "Escape",
 });
 
-export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], commandInputs = [], commandExpectations = [], writeProtected = true, mediaBytes, drive1MediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false, returnDrive1Media = false, returnMachine = false } = {}) {
+export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandInstructionLimit = 3_000_000, commands: requestedCommands = ["DIR", "STAT"], commandInputs = [], commandExpectations = [], commandMediaSwaps = [], writeProtected = true, mediaBytes, drive1MediaBytes, expectedMediaHash = mediaBytes ? null : UTILITIES_HASH, returnMedia = false, returnDrive1Media = false, returnMachine = false } = {}) {
   const names = ["os12.rom", "basic2.rom", "dnfs.rom", "z80.rom"];
   const [os, basic, dnfs, z80, utilities] = await Promise.all([
     ...names.map(async (name) => new Uint8Array(await readFile(join(ROOT, "ROM", name)))),
@@ -51,6 +51,9 @@ export async function runAcornCpm({ bootInstructionLimit = 6_000_000, commandIns
   const commands = [];
   for (let index = 0; index < requestedCommands.length; index += 1) {
     const command = requestedCommands[index]; const expectation = commandExpectations[index];
+    const mediaSwap = commandMediaSwaps[index];
+    if (mediaSwap?.drive0MediaBytes) machine.mountDsd(mediaSwap.drive0MediaBytes, { drive: 0, writeProtected: mediaSwap.drive0WriteProtected ?? writeProtected });
+    if (mediaSwap?.drive1MediaBytes) machine.mountDsd(mediaSwap.drive1MediaBytes, { drive: 1, writeProtected: mediaSwap.drive1WriteProtected ?? writeProtected });
     const promptsBefore = promptCount(screenText(machine));
     const input = commandInputs[index] ?? (command === "\x03" ? command : command + "\r");
     typeThroughKeyboard(machine, input, () => { hostInstructions += 1; });

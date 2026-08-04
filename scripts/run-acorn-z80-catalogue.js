@@ -191,6 +191,60 @@ export async function runCisCobolGate() {
   };
 }
 
+export async function runAccountantGate() {
+  const [start, program, data] = await Promise.all([
+    readFile(join(ROOT, "MEDIA", "Start_Of_Day_Disc.dsd")).then((bytes) => new Uint8Array(bytes)),
+    readFile(join(ROOT, "MEDIA", "Accountant_Program_Disc.dsd")).then((bytes) => new Uint8Array(bytes)),
+    readFile(join(ROOT, "MEDIA", "Accountant_Data_Disc.dsd")).then((bytes) => new Uint8Array(bytes)),
+  ]);
+  const sourceHashes = { start: sha256(start), program: sha256(program), data: sha256(data) };
+  const commands = ["START", "enter date", "confirm date", "mount program A: and data B:", "select company", "open nominal ledger"];
+  const result = await runAcornCpm({
+    mediaBytes: start,
+    expectedMediaHash: null,
+    writeProtected: false,
+    commands,
+    commandInputs: [undefined, "040826\r", "Y\r", "\r", "1\r", "1\r"],
+    commandExpectations: ["Please enter today's date", "Date OK ?", "Press 'ENTER' when ready", (screen) => screen.includes("COMPANY MENU") && screen.includes("Select number:"), (screen) => screen.includes("SYSTEM MENU") && screen.includes("Nominal ledger") && screen.includes("Select number:"), (screen) => screen.includes("PROGRAM MENU") && screen.includes("12. Monthend routine") && screen.includes("Select number:")],
+    commandMediaSwaps: [undefined, undefined, undefined, { drive0MediaBytes: program, drive1MediaBytes: data }],
+    commandInstructionLimit: 12_000_000,
+    returnMedia: true,
+    returnDrive1Media: true,
+    returnMachine: true,
+  });
+  const screen = result.commands.at(-1)?.screen.map((line) => line.trimEnd()).filter(Boolean) ?? [];
+  const modifiedProgram = result.exportedMedia;
+  const remounted = modifiedProgram ? await runAcornCpm({ mediaBytes: modifiedProgram, expectedMediaHash: null, writeProtected: true, commands: ["DIR COMPMENU.DAT"], commandExpectations: [/A:\s+COMPMENU\s+DAT/], commandInstructionLimit: 5_000_000 }) : { passed: false, commands: [] };
+  const remountedScreen = remounted.commands.at(-1)?.screen.map((line) => line.trimEnd()).filter(Boolean) ?? [];
+  const sourceHashesAfter = {
+    start: sha256(new Uint8Array(await readFile(join(ROOT, "MEDIA", "Start_Of_Day_Disc.dsd")))),
+    program: sha256(new Uint8Array(await readFile(join(ROOT, "MEDIA", "Accountant_Program_Disc.dsd")))),
+    data: sha256(new Uint8Array(await readFile(join(ROOT, "MEDIA", "Accountant_Data_Disc.dsd")))),
+  };
+  const drive0 = result.machine?.bus.devices.fdc.drives[0];
+  return {
+    passed: result.passed && result.fdc.writeTransfers > 0 && Boolean(drive0?.disk?.dirty) && screen.some((line) => line.includes("PROGRAM MENU")) && screen.some((line) => line.includes("12. Monthend routine")) && remounted.passed && sourceHashesAfter.start === sourceHashes.start && sourceHashesAfter.program === sourceHashes.program && sourceHashesAfter.data === sourceHashes.data && Boolean(modifiedProgram),
+    title: "Compact Accountant 1.0",
+    initialDrive: "Start_Of_Day_Disc.dsd in A:",
+    swap: ["Accountant_Program_Disc.dsd in A:", "Accountant_Data_Disc.dsd in B:"],
+    commands,
+    marker: "COMPACT MENU + Nominal ledger PROGRAM MENU",
+    writeTransfers: result.fdc.writeTransfers,
+    programDriveDirty: Boolean(drive0?.disk?.dirty),
+    modifiedProgramBytes: modifiedProgram?.length ?? 0,
+    sourceHashes,
+    sourceHashesAfter,
+    modifiedProgramHash: modifiedProgram ? sha256(modifiedProgram) : null,
+    exportRemountPreserved: remounted.passed && remountedScreen.some((line) => /COMPMENU\s+DAT/.test(line)),
+    hostInstructions: result.hostInstructions,
+    machineTicks: result.machineTicks,
+    z80TStates: result.z80TStates,
+    screen,
+    remountedScreen,
+    reason: result.reason,
+  };
+}
+
 function sha256(bytes) { return createHash("sha256").update(bytes).digest("hex"); }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) { const results = [await runBbcBasicZ80Gate(), await runMemoPlanGate(), await runGraphPlanGate(), await runFilePlanGate(), await runCisCobolGate()]; console.log(JSON.stringify(results, null, 2)); if (results.some(({ passed }) => !passed)) process.exitCode = 1; }
+if (process.argv[1] === fileURLToPath(import.meta.url)) { const results = [await runBbcBasicZ80Gate(), await runMemoPlanGate(), await runGraphPlanGate(), await runFilePlanGate(), await runCisCobolGate(), await runAccountantGate()]; console.log(JSON.stringify(results, null, 2)); if (results.some(({ passed }) => !passed)) process.exitCode = 1; }
