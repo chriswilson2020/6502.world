@@ -149,6 +149,48 @@ export async function runFilePlanGate() {
   };
 }
 
+export async function runCisCobolGate() {
+  const cobol = new Uint8Array(await readFile(join(ROOT, "MEDIA", "CIS_Cobol_Program_Disc.dsd")));
+  const originalHash = sha256(cobol);
+  const commands = ["B:", "COBOL PI.CBL", "DIR PI.*"];
+  const result = await runAcornCpm({
+    drive1MediaBytes: cobol,
+    writeProtected: false,
+    commands,
+    commandExpectations: ["B>", (screen) => screen.includes("**COMPILING PI.CBL") && screen.includes("** ERRORS=00000") && /B>\s*$/.test(screen), /B:\s+PI\s+CBL\s+:\s+PI\s+INT/],
+    commandInstructionLimit: 25_000_000,
+    returnDrive1Media: true,
+    returnMachine: true,
+  });
+  const screen = result.commands.at(-1)?.screen.map((line) => line.trimEnd()).filter(Boolean) ?? [];
+  const drive1 = result.machine?.bus.devices.fdc.drives[1];
+  const modified = result.exportedDrive1Media;
+  const remounted = modified ? await runAcornCpm({ drive1MediaBytes: modified, writeProtected: true, commands: ["B:", "DIR PI.*"], commandExpectations: ["B>", /B:\s+PI\s+CBL\s+:\s+PI\s+INT/], commandInstructionLimit: 5_000_000 }) : { passed: false, commands: [] };
+  const remountedScreen = remounted.commands.at(-1)?.screen.map((line) => line.trimEnd()).filter(Boolean) ?? [];
+  const sourceHashAfter = sha256(new Uint8Array(await readFile(join(ROOT, "MEDIA", "CIS_Cobol_Program_Disc.dsd"))));
+  return {
+    passed: result.passed && result.fdc.writeTransfers > 0 && Boolean(drive1?.disk?.dirty) && screen.some((line) => /PI\s+INT/.test(line)) && remounted.passed && remountedScreen.some((line) => /PI\s+INT/.test(line)) && sourceHashAfter === originalHash && Boolean(modified) && sha256(modified) !== originalHash,
+    title: "CIS COBOL V4.5",
+    systemDrive: "CPM_Utilities_Disc.dsd",
+    applicationDrive: "CIS_Cobol_Program_Disc.dsd",
+    commands,
+    marker: "** CIS COBOL V4.5 + ** ERRORS=00000",
+    writeTransfers: result.fdc.writeTransfers,
+    drive1Dirty: Boolean(drive1?.disk?.dirty),
+    modifiedDrive1Bytes: modified?.length ?? 0,
+    originalHash,
+    sourceHashAfter,
+    modifiedHash: modified ? sha256(modified) : null,
+    exportRemountPreserved: remounted.passed && remountedScreen.some((line) => /PI\s+INT/.test(line)),
+    hostInstructions: result.hostInstructions,
+    machineTicks: result.machineTicks,
+    z80TStates: result.z80TStates,
+    screen,
+    remountedScreen,
+    reason: result.reason,
+  };
+}
+
 function sha256(bytes) { return createHash("sha256").update(bytes).digest("hex"); }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) { const results = [await runBbcBasicZ80Gate(), await runMemoPlanGate(), await runGraphPlanGate(), await runFilePlanGate()]; console.log(JSON.stringify(results, null, 2)); if (results.some(({ passed }) => !passed)) process.exitCode = 1; }
+if (process.argv[1] === fileURLToPath(import.meta.url)) { const results = [await runBbcBasicZ80Gate(), await runMemoPlanGate(), await runGraphPlanGate(), await runFilePlanGate(), await runCisCobolGate()]; console.log(JSON.stringify(results, null, 2)); if (results.some(({ passed }) => !passed)) process.exitCode = 1; }

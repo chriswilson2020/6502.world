@@ -599,7 +599,7 @@ At minimum:
 
 ## 1.7 — Acorn Z80 software catalogue
 
-**Implemented:** every approved DSD is represented exactly once with a verified SHA-256, placement, write-mode guidance, rights mode and evidence-based status. Utilities, BBC BASIC, MemoPlan, GraphPlan and FilePlan are validated launch entries. The BBC BASIC gate boots the known Utilities system in A:, selects the prepared Basic disc in B: through real keyboard input and reaches the 2.20 title prompt. MemoPlan writes a document, GraphPlan writes a table, and FilePlan creates and names its worksheet dictionary. All saved application data survives exported-image remount. The browser performs the same bounded launch sequences. Accountant and Nucleus are explicit multi-disc sets, while remaining candidate titles stay “media identified, not yet validated”.
+**Implemented:** every approved DSD is represented exactly once with a verified SHA-256, placement, write-mode guidance, rights mode and evidence-based status. Utilities, BBC BASIC, MemoPlan, GraphPlan, FilePlan and CIS COBOL are validated launch entries. The BBC BASIC gate boots the known Utilities system in A:, selects the prepared Basic disc in B: through real keyboard input and reaches the 2.20 title prompt. MemoPlan writes a document, GraphPlan writes a table, FilePlan creates and names its worksheet dictionary, and CIS COBOL compiles the supplied PI program without errors. All saved application data survives exported-image remount. The browser performs the same bounded launch sequences. Accountant and Nucleus remain explicit multi-disc sets pending their workflow gates.
 
 Only begin after CP/M Utilities is a stable, writable system.
 

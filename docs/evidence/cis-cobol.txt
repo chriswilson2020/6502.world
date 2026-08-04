@@ -1,0 +1,31 @@
+CIS COBOL validation
+====================
+
+System drive: CPM_Utilities_Disc.dsd in A:
+Application drive: CIS_Cobol_Program_Disc.dsd in B:
+Application SHA-256: c109becb293f294b0cbd73febbe9b412215c44311b05b8b0eb1908f1146c7952
+
+Keyboard-driven workflow:
+
+  B:
+  COBOL PI.CBL
+  DIR PI.*
+
+Observed compiler markers:
+
+  ** CIS COBOL V4.5  COPYRIGHT (C) 1978,1982 MICRO FOCUS LTD
+  **COMPILING PI.CBL
+  ** ERRORS=00000
+  B: PI       CBL : PI       INT
+
+The supplied PI.CBL example compiles without errors and creates PI.INT. The
+test requires real 8271 writes, a dirty private drive-1 clone, an unchanged
+bundled CIS COBOL source hash, and the same PI.INT directory entry after
+exporting and remounting the modified application DSD read-only.
+
+The browser launch action starts the interactive compiler as COBOL; compiling
+files requires the writable session copy mounted by the preset.
+
+Regenerate with:
+
+  npm run test:bbc-catalogue
