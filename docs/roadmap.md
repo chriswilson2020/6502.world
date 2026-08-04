@@ -599,7 +599,7 @@ At minimum:
 
 ## 1.7 — Acorn Z80 software catalogue
 
-**Implemented:** every approved DSD is represented exactly once with a verified SHA-256, placement, write-mode guidance, rights mode and evidence-based status. All catalogue entries are now validated. The gates cover Utilities, BBC BASIC, MemoPlan, GraphPlan, FilePlan, CIS COBOL, Compact Accountant and both Compact Nucleus components. Accountant and Nucleus perform their prompted Start/Program/Data or Parameter disc sequences into title-specific program menus. Saved application/working data survives exported-image remount, the browser exposes the same launch and swap workflows, and published source hashes remain immutable.
+**Implemented and final-audited:** every approved DSD is represented exactly once with a verified SHA-256, placement, write-mode guidance, rights mode and evidence-based status. All catalogue entries are validated and have browser launch presets. The gates cover Utilities, BBC BASIC, MemoPlan, GraphPlan, FilePlan, CIS COBOL, Compact Accountant and both Compact Nucleus components. Accountant and Nucleus perform their prompted Start/Program/Data or Parameter disc sequences into title-specific program menus. Saved application/working data survives exported-image remount, the browser exposes the same launch and swap workflows, and published source hashes remain immutable. A permanent catalogue invariant rejects any future unvalidated entry, missing preset, candidate command, duplicate/unaccounted DSD or hash drift.
 
 Only begin after CP/M Utilities is a stable, writable system.
 

@@ -17,7 +17,7 @@ Every current image is a 409,600-byte, 80-track, two-sided DSD with ten 256-byte
 | `GraphPlan_Program_Disc.dsd` | `959216eacb1edebf767033560f7c0cd19077f6552bf8e05ea75678d84905b057` | GraphPlan | Prepared application |
 | `FilePlan_Program_Disc.dsd` | `59edae34c3db0f00d64ca26c8f1791629e45326b972b59aa64329fe9a6b63e4c` | FilePlan / Chang Laboratories | Prepared application |
 | `Accountant_Program_Disc.dsd` | `54164eea90df0819d4e4832db8fffe30ff0350fd1fb7e796337928a4e902d743` | Mallard Compact components | Prepared application, role inferred |
-| `Accountant_Data_Disc.dsd` | `c948eaf9db6d82ec9b93173a8f62aa80dde66213f2cfebaa628281c584356bae` | CP/M system strings; product role from filename | Writable data candidate, uncertain |
+| `Accountant_Data_Disc.dsd` | `c948eaf9db6d82ec9b93173a8f62aa80dde66213f2cfebaa628281c584356bae` | Compact Accountant file/data records confirmed by the Start-of-Day workflow | Validated writable data disc |
 | `Start_Of_Day_Disc.dsd` | `ca597a3bf8ec029164d4e106ada3e494ff8bd9a0e2129a475f1f193f45ea7b01` | Mallard-80 / Compact Software strings | Prepared workflow disc |
 | `Nucleus_Definitions_Program_Disc.dsd` | `1857e4ae3ba416ed24b9f990acfa31ca2ccc15f7d09cdf1a6d1eaf1e96f520a6` | Nucleus Definition and Reporting | Prepared application component |
 | `Nucleus_Parameter_File_Program_Disc.dsd` | `ed7dad42305974b0bcf48b8b911b0480240e054c3dda5004d9d96e1451300101` | Compact Nucleus parameter strings | Prepared application component |
@@ -35,4 +35,4 @@ Every current image is a 409,600-byte, 80-track, two-sided DSD with ten 256-byte
 | Compact Accountant 1.0 | validated | Start of Day boots in A:, accepts a date, prompts for Program in A: and Data in B:, then reaches the company, system and nominal-ledger program menus with session-only working-disc writes |
 | Compact Nucleus Definition + Reporting | validated | shared Start of Day boots in A:; prompted swaps of Definitions or Reporter into A: with Parameter File in B: reach both component program menus and preserve all published source images |
 
-Only validated entries expose browser launch actions. Evidence transcripts are stored under `docs/evidence/`; regenerate the launch and write gates with `npm run test:bbc-catalogue`. Candidate commands shown for identified entries are not availability claims.
+All entries expose a validated browser launch action. Evidence transcripts are stored under `docs/evidence/`; regenerate every launch, write and multi-disc gate with `npm run test:bbc-catalogue`.

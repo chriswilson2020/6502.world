@@ -3,6 +3,7 @@ import test from "node:test";
 import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { ACORN_Z80_CATALOGUE } from "../public/bbc-catalogue.js";
+import { BBC_SOFTWARE_PRESETS } from "../public/bbc-config.js";
 import { runAccountantGate, runBbcBasicZ80Gate, runCisCobolGate, runFilePlanGate, runGraphPlanGate, runMemoPlanGate, runNucleusGate } from "../scripts/run-acorn-z80-catalogue.js";
 
 test("Acorn Z80 catalogue accounts for every bundled DSD with exact hashes and honest status", async () => {
@@ -12,6 +13,7 @@ test("Acorn Z80 catalogue accounts for every bundled DSD with exact hashes and h
   assert.ok(ACORN_Z80_CATALOGUE.filter(({ media }) => media.length).every(({ rightsMode }) => rightsMode === "bundled with documented permission"));
   assert.ok(ACORN_Z80_CATALOGUE.filter(({ media }) => media.length).every(({ writeMode }) => /writable session cop(?:y|ies); published source/.test(writeMode)));
   assert.doesNotMatch(JSON.stringify(ACORN_Z80_CATALOGUE), /seven[- ]disc|installer/i);
+  assert.ok(ACORN_Z80_CATALOGUE.every(({ status, preset, command }) => status === "validated" && BBC_SOFTWARE_PRESETS[preset]?.status === "validated" && !/candidate|not yet|unsupported/i.test(command)));
   assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "memoplan").status, "validated");
   assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "graphplan").status, "validated");
   assert.equal(ACORN_Z80_CATALOGUE.find(({ id }) => id === "fileplan").status, "validated");

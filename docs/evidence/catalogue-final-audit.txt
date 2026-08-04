@@ -1,0 +1,40 @@
+Acorn Z80 catalogue final audit
+===============================
+
+Release: 1.8.11
+Catalogue entries: 8
+Bundled DSD images: 12
+Unvalidated entries: 0
+Missing launch presets: 0
+Duplicate or unaccounted DSD images: 0
+
+Validated workflows:
+
+  Acorn CP/M Utilities       boot, DIR, STAT, SAVE and export/remount
+  BBC BASIC for Z80          B: / BBCBASIC / Version 2.20 prompt
+  CIS COBOL V4.5             zero-error PI.CBL compile and PI.INT remount
+  MemoPlan 1.30              document save and export/remount
+  GraphPlan                  table save and export/remount
+  FilePlan                   worksheet dictionary creation and remount
+  Compact Accountant 1.0     Start/Program/Data swap to nominal-ledger menu
+  Compact Nucleus Definition Start/Definitions/Parameter swap to program menu
+  Compact Nucleus Reporting  Start/Reporter/Parameter swap to program menu
+
+Every workflow uses the BBC keyboard matrix and the emulated 8271 disc path.
+Writable media are private browser-session copies; source DSD hashes are
+checked before and after each mutating gate. The browser launch and prompted
+swap paths were repeated in Chromium with no console errors.
+
+Permanent audit invariants require:
+
+  * every MEDIA/*.dsd file to occur exactly once in catalogue ownership;
+  * every declared SHA-256 to match the bundled bytes;
+  * every catalogue status and referenced preset to be validated;
+  * no candidate, unsupported or not-yet-validated launch command;
+  * no seven-disc installer reference in the public catalogue;
+  * every media mode to state writable session-copy and immutable-source use.
+
+Regenerate with:
+
+  npm test
+  npm run build:pages
