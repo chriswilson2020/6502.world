@@ -1,6 +1,6 @@
 # Recovered Acorn Z80 media inventory
 
-This inventory describes the `MEDIA/` corpus supplied by the repository owner. The owner explicitly approved publishing the complete folder and its disc images in this repository. Generate the mechanical inventory with:
+This inventory describes the `MEDIA/` corpus supplied by the repository owner. Generate the mechanical inventory with:
 
 ```sh
 node scripts/inventory-acorn-z80-media.js /path/to/MEDIA
