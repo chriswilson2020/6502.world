@@ -1,0 +1,44 @@
+Compact Nucleus validation
+==========================
+
+Initial drive: shared Start_Of_Day_Disc.dsd in A:
+Definitions workflow: Nucleus_Definitions_Program_Disc.dsd in A:
+                      Nucleus_Parameter_File_Program_Disc.dsd in B:
+Reporter workflow:    Nucleus_Reporter_Program_Disc.dsd in A:
+                      Nucleus_Parameter_File_Program_Disc.dsd in B:
+
+Each independently repeated keyboard-driven workflow uses:
+
+  START
+  040826       (bounded validation date)
+  Y            (confirm date)
+  [swap program and parameter discs as prompted]
+  Enter
+  1            (Your company name)
+  1            (Nucleus component)
+
+Observed Definition markers:
+
+  Nucleus - Definition           PROGRAM MENU
+  1. Create Nucleus parameter file
+  6. Create update program
+
+Observed Reporting markers:
+
+  Nucleus - Reporting            PROGRAM MENU
+  1. Create M/F print program
+  5. Create document program
+
+Both gates perform the real Start-of-Day handoff, exercise hardware-mediated
+working-disc writes and require the exported program working image to remain
+readable after remount. The shared Start disc and all three Nucleus source
+hashes remain unchanged.
+
+The browser preset starts with the shared Start of Day disc in A: and the
+Nucleus Parameter File in B:. At the on-screen swap prompt, expand the Nucleus
+catalogue entry and mount either Definitions or Reporter in drive 0, then press
+Enter in the emulated display. Relaunch Start of Day to switch components.
+
+Regenerate with:
+
+  npm run test:bbc-catalogue

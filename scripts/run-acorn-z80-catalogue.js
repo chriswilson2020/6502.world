@@ -245,6 +245,61 @@ export async function runAccountantGate() {
   };
 }
 
+async function runNucleusProgramGate({ filename, systemTitle, finalItem, menuFile }) {
+  const [start, program, parameter] = await Promise.all([
+    readFile(join(ROOT, "MEDIA", "Start_Of_Day_Disc.dsd")).then((bytes) => new Uint8Array(bytes)),
+    readFile(join(ROOT, "MEDIA", filename)).then((bytes) => new Uint8Array(bytes)),
+    readFile(join(ROOT, "MEDIA", "Nucleus_Parameter_File_Program_Disc.dsd")).then((bytes) => new Uint8Array(bytes)),
+  ]);
+  const sourceHashes = { start: sha256(start), program: sha256(program), parameter: sha256(parameter) };
+  const commands = ["START", "enter date", "confirm date", `mount ${filename} in A: and parameter file in B:`, "select company", `open ${systemTitle}`];
+  const result = await runAcornCpm({
+    mediaBytes: start,
+    expectedMediaHash: null,
+    writeProtected: false,
+    commands,
+    commandInputs: [undefined, "040826\r", "Y\r", "\r", "1\r", "1\r"],
+    commandExpectations: ["Please enter today's date", "Date OK ?", "Press 'ENTER' when ready", (screen) => screen.includes("COMPANY MENU") && screen.includes("Select number:"), (screen) => screen.includes("SYSTEM MENU") && screen.includes(systemTitle) && screen.includes("Select number:"), (screen) => screen.includes(systemTitle) && screen.includes("PROGRAM MENU") && screen.includes(finalItem) && screen.includes("Select number:")],
+    commandMediaSwaps: [undefined, undefined, undefined, { drive0MediaBytes: program, drive1MediaBytes: parameter }],
+    commandInstructionLimit: 12_000_000,
+    returnMedia: true,
+    returnDrive1Media: true,
+    returnMachine: true,
+  });
+  const screen = result.commands.at(-1)?.screen.map((line) => line.trimEnd()).filter(Boolean) ?? [];
+  const exportedProgram = result.exportedMedia;
+  const remounted = exportedProgram ? await runAcornCpm({ mediaBytes: exportedProgram, expectedMediaHash: null, writeProtected: true, commands: [`DIR ${menuFile}`], commandExpectations: [new RegExp(`A:\\s+${menuFile.replace(".", "\\s+")}`)], commandInstructionLimit: 5_000_000 }) : { passed: false, commands: [] };
+  const sourceHashesAfter = {
+    start: sha256(new Uint8Array(await readFile(join(ROOT, "MEDIA", "Start_Of_Day_Disc.dsd")))),
+    program: sha256(new Uint8Array(await readFile(join(ROOT, "MEDIA", filename)))),
+    parameter: sha256(new Uint8Array(await readFile(join(ROOT, "MEDIA", "Nucleus_Parameter_File_Program_Disc.dsd")))),
+  };
+  const drive0 = result.machine?.bus.devices.fdc.drives[0];
+  return {
+    passed: result.passed && result.fdc.writeTransfers > 0 && Boolean(drive0?.disk?.dirty) && screen.some((line) => line.includes("PROGRAM MENU")) && screen.some((line) => line.includes(finalItem)) && remounted.passed && sourceHashesAfter.start === sourceHashes.start && sourceHashesAfter.program === sourceHashes.program && sourceHashesAfter.parameter === sourceHashes.parameter && Boolean(exportedProgram),
+    program: filename,
+    systemTitle,
+    finalItem,
+    menuFile,
+    commands,
+    writeTransfers: result.fdc.writeTransfers,
+    programDriveDirty: Boolean(drive0?.disk?.dirty),
+    exportedProgramBytes: exportedProgram?.length ?? 0,
+    exportedProgramHash: exportedProgram ? sha256(exportedProgram) : null,
+    sourceHashes,
+    sourceHashesAfter,
+    exportRemountPreserved: remounted.passed,
+    screen,
+    reason: result.reason,
+  };
+}
+
+export async function runNucleusGate() {
+  const definitions = await runNucleusProgramGate({ filename: "Nucleus_Definitions_Program_Disc.dsd", systemTitle: "Nucleus - Definition", finalItem: "6. Create update program", menuFile: "NDMENU.DAT" });
+  const reporter = await runNucleusProgramGate({ filename: "Nucleus_Reporter_Program_Disc.dsd", systemTitle: "Nucleus - Reporting", finalItem: "5. Create document program", menuFile: "NRMENU.DAT" });
+  return { passed: definitions.passed && reporter.passed, title: "Compact Nucleus Definition and Reporting", marker: "Nucleus Definition + Reporting PROGRAM MENU", definitions, reporter };
+}
+
 function sha256(bytes) { return createHash("sha256").update(bytes).digest("hex"); }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) { const results = [await runBbcBasicZ80Gate(), await runMemoPlanGate(), await runGraphPlanGate(), await runFilePlanGate(), await runCisCobolGate(), await runAccountantGate()]; console.log(JSON.stringify(results, null, 2)); if (results.some(({ passed }) => !passed)) process.exitCode = 1; }
+if (process.argv[1] === fileURLToPath(import.meta.url)) { const results = [await runBbcBasicZ80Gate(), await runMemoPlanGate(), await runGraphPlanGate(), await runFilePlanGate(), await runCisCobolGate(), await runAccountantGate(), await runNucleusGate()]; console.log(JSON.stringify(results, null, 2)); if (results.some(({ passed }) => !passed)) process.exitCode = 1; }

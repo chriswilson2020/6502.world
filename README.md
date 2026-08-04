@@ -60,6 +60,7 @@ The 1.8 preservation release hardens the complete BBC Model B and Acorn Z80 path
 - a repeatable FilePlan worksheet, dictionary creation and exported-image remount gate;
 - a repeatable CIS COBOL V4.5 zero-error compile and exported `PI.INT` remount gate;
 - a repeatable Compact Accountant start-of-day, prompted disc-swap and nominal-ledger gate;
+- repeatable Compact Nucleus Definition and Reporting start-of-day, parameter-disc and component-menu gates;
 - coherent Accountant and Nucleus multi-disc metadata with writable-disc guidance;
 - version 1-to-2 state migration details plus CP/M-prompt and active-FDC resume gates;
 - bounded CPU, bus, 8271 and browser Tube diagnostics;

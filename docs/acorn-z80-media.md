@@ -33,6 +33,6 @@ Every current image is a 409,600-byte, 80-track, two-sided DSD with ten 256-byte
 | GraphPlan | validated | Utilities in A:, GraphPlan in B:, real keyboard input reaches the worksheet, saves `CODEX.TBL`, exits and confirms the file after exported-image remount |
 | FilePlan | validated | Utilities in A:, FilePlan in B:, real keyboard input reaches the worksheet, names `CODEX01`, creates `DPDB` on A: and confirms it after exported-image remount |
 | Compact Accountant 1.0 | validated | Start of Day boots in A:, accepts a date, prompts for Program in A: and Data in B:, then reaches the company, system and nominal-ledger program menus with session-only working-disc writes |
-| Nucleus definitions + reporting | media identified, not yet validated | three exact hashes and directory-derived definitions/parameter/reporter roles |
+| Compact Nucleus Definition + Reporting | validated | shared Start of Day boots in A:; prompted swaps of Definitions or Reporter into A: with Parameter File in B: reach both component program menus and preserve all published source images |
 
 Only validated entries expose browser launch actions. Evidence transcripts are stored under `docs/evidence/`; regenerate the launch and write gates with `npm run test:bbc-catalogue`. Candidate commands shown for identified entries are not availability claims.

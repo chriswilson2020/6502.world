@@ -4,7 +4,7 @@ import { configurationFromSearch, configurationUrl, defaultSoftwareForProfile, r
 
 test("BBC hardware profiles filter compatible software presets", () => {
   assert.deepEqual(softwareForProfile("bbc-model-b").map(({ id }) => id), ["bbc-basic", "local-bbc-media"]);
-  assert.deepEqual(softwareForProfile("bbc-model-b-acorn-z80").map(({ id }) => id), ["acorn-cpm-utilities", "acorn-cpm-bbc-basic", "acorn-cpm-memoplan", "acorn-cpm-graphplan", "acorn-cpm-fileplan", "acorn-cpm-cis-cobol", "acorn-cpm-accountant", "custom-acorn-cpm"]);
+  assert.deepEqual(softwareForProfile("bbc-model-b-acorn-z80").map(({ id }) => id), ["acorn-cpm-utilities", "acorn-cpm-bbc-basic", "acorn-cpm-memoplan", "acorn-cpm-graphplan", "acorn-cpm-fileplan", "acorn-cpm-cis-cobol", "acorn-cpm-accountant", "acorn-cpm-nucleus", "custom-acorn-cpm"]);
   assert.equal(defaultSoftwareForProfile("bbc-model-b-acorn-z80"), "acorn-cpm-utilities");
   for (const preset of ["acorn-cpm-utilities", "acorn-cpm-bbc-basic", "acorn-cpm-memoplan", "acorn-cpm-graphplan", "acorn-cpm-fileplan"]) {
     const software = resolveBbcConfiguration({ system: "bbc-model-b-acorn-z80", software: preset }).software;
