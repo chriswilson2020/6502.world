@@ -20,6 +20,17 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | Portable BBC state | Stable v2 | CPU, memory, ROMs, core devices, two drives and active FDC transfers round-trip; version 1 SSD states migrate |
 | Tube | Acorn CP/M validated | Four duplex channels, Acorn control/FIFO behavior, interrupts, state resume and 6MHz scheduling; real CP/M 2.2 boots and runs `DIR`/`STAT` |
 
+## Acorn Atom 2.1
+
+| Surface | Status | Evidence / limitation |
+|---|---|---|
+| Core firmware | Validated | Canonical BASIC/kernel and floating-point checksums reach `ACORN ATOM` and the BASIC prompt |
+| Memory and devices | Boot-path implemented | Atom RAM/ROM map, mirrored 8255 and 6522 shell; full VIA timers, printer and expansion hardware remain |
+| Keyboard | Implemented for browser use | Ten-column active-low matrix, character-based punctuation translation and firmware-debounce pacing; `PRINT "HI"` executes in headless and Chromium gates |
+| Display | Text implemented | 32 × 16 alphanumeric snapshot/canvas and accessible mirror; MC6847 bitmap, colour and semigraphics modes remain |
+| Audio | Partial | PPI buzzer bit drives an opt-in browser square wave; cassette audio and waveform timing remain |
+| Portable Atom state | Version 1 | CPU, RAM, ROM sockets, PPI timing/output and VIA registers round-trip at an instruction boundary |
+
 ## Browser support
 
 The static application uses standard ES modules, Canvas 2D, Web Audio, File/Blob and IndexedDB APIs and `requestAnimationFrame`. Current Chromium is exercised at desktop and 390-pixel widths. Explicit hardware profiles and compatible software presets support deterministic deep links, cold switching and independent two-drive controls. Controls have visible keyboard focus, advanced controls use native disclosures, the BBC canvas has a text alternative, audio starts only after a user gesture, and the console collapses without horizontal document overflow. Protected/nonstandard disc layouts remain unsupported.

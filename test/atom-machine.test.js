@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { AtomBus, ATOM_MEMORY_MAP } from "../src/machine/atom/atom-bus.js";
-import { AtomKeyboardMatrix, AtomPpi8255 } from "../src/machine/atom/ppi-8255.js";
+import { ATOM_KEYBOARD_CODES, AtomKeyboardMatrix, AtomPpi8255, atomKeyboardMappingForBrowserEvent } from "../src/machine/atom/ppi-8255.js";
 import { AcornAtom } from "../src/machine/atom/atom.js";
 
 const paths = {
@@ -44,6 +44,14 @@ test("Atom 8255 scans active-low keys and exposes timing inputs", () => {
   assert.equal(ppi.read(2) & 0x80, 0x80);
 });
 
+test("modern printable characters translate to Atom legends", () => {
+  assert.deepEqual(atomKeyboardMappingForBrowserEvent("Digit8", "*"), { matrix: ATOM_KEYBOARD_CODES.Colon, shift: true });
+  assert.deepEqual(atomKeyboardMappingForBrowserEvent("Quote", '"'), { matrix: ATOM_KEYBOARD_CODES.Digit2, shift: true });
+  assert.deepEqual(atomKeyboardMappingForBrowserEvent("KeyA", "A"), { matrix: ATOM_KEYBOARD_CODES.KeyA, shift: false });
+  assert.deepEqual(atomKeyboardMappingForBrowserEvent("KeyA", "a"), { matrix: ATOM_KEYBOARD_CODES.KeyA, shift: true });
+  assert.deepEqual(atomKeyboardMappingForBrowserEvent("ArrowLeft", "ArrowLeft"), { matrix: ATOM_KEYBOARD_CODES.Horizontal, shift: true });
+});
+
 test("bundled Atom core is the canonical ROM set and reaches BASIC", async () => {
   const roms = Object.fromEntries(await Promise.all(Object.entries(paths).map(async ([name, path]) => [name, new Uint8Array(await readFile(path))])));
   const combined = Buffer.concat([roms.basic, roms.kernel]);
@@ -53,6 +61,14 @@ test("bundled Atom core is the canonical ROM set and reaches BASIC", async () =>
   machine.loadCoreRoms(roms);
   const report = machine.diagnoseBoot();
   assert.equal(report.passed, true, JSON.stringify(report));
+
+  const state = machine.exportState();
+  machine.bus.ram[0x8000] = 0;
+  machine.importState(state);
+  assert.equal(machine.textSnapshot()[0].trim(), "ACORN ATOM");
+  const before = machine.cpu.pc;
+  machine.step();
+  assert.notEqual(machine.cpu.pc, before);
 });
 
 function filled(value) { return new Uint8Array(0x1000).fill(value); }

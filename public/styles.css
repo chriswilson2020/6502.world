@@ -124,6 +124,8 @@ footer a { color: var(--accent); }
 .bbc-display-card { min-width: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 20px; }
 #bbcScreen { width: 100%; height: auto; display: block; border: 1px solid #40534d; border-radius: 6px; background: #050706; image-rendering: pixelated; }
 #bbcScreen:focus { outline: 3px solid var(--accent); outline-offset: 3px; }
+#atomScreen { width: 100%; height: auto; display: block; border: 1px solid #40534d; border-radius: 6px; background: #050706; image-rendering: pixelated; }
+#atomScreen:focus { outline: 3px solid var(--accent); outline-offset: 3px; }
 .bbc-controls { display: grid; gap: 16px; }
 .rom-field { display: grid; gap: 8px; margin-top: 12px; color: var(--muted); font-size: 11px; font-weight: 750; }
 .rom-field input, .rom-field select { width: 100%; border: 1px solid var(--line); border-radius: 6px; background: #090c0b; color: var(--text); padding: 10px; font-size: 11px; }
