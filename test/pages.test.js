@@ -38,8 +38,8 @@ test("BBC console exposes the debugger, persistent dual-drive media and Tube con
 
 test("Atom console exposes firmware, matrix input, debugger and portable states", async () => {
   const [html, source] = await Promise.all([readFile("public/atom.html", "utf8"), readFile("public/atom.js", "utf8")]);
-  for (const id of ["atomScreen", "atomTextMirror", "bootAtomButton", "resetAtomButton", "atomBasicInput", "atomFloatInput", "atomKernelInput", "atomUtilitySelect", "atomDosEnabled", "atomProgramInput", "atomDrive0Input", "atomDrive0Export", "atomDrive1Input", "atomDrive1Export", "atomPc", "atomCycles", "pauseAtomButton", "enableAtomAudioButton", "atomBreakpointInput", "stepAtomButton", "exportAtomStateButton", "atomStateInput"]) assert.match(html, new RegExp(`id=["']${id}["']`));
-  assert.match(html, /2\.2 · ATOM SOFTWARE/);
+  for (const id of ["atomScreen", "atomTextMirror", "bootAtomButton", "resetAtomButton", "atomBasicInput", "atomFloatInput", "atomKernelInput", "atomUtilitySelect", "atomDosEnabled", "atomProgramInput", "atomUefInput", "atomTapePlay", "atomTapeRewind", "atomDrive0Input", "atomDrive0Export", "atomDrive1Input", "atomDrive1Export", "atomPc", "atomCycles", "pauseAtomButton", "enableAtomAudioButton", "atomBreakpointInput", "stepAtomButton", "exportAtomStateButton", "atomStateInput"]) assert.match(html, new RegExp(`id=["']${id}["']`));
+  assert.match(html, /2\.3 · GRAPHICS \+ CASSETTE/);
   assert.match(html, /aria-describedby=["']atomKeyboardHelp atomTextMirror["']/);
   assert.match(source, /keyboardQueue/); assert.match(source, /atomKeyboardMappingForBrowserEvent/); assert.match(source, /100\);/);
 });

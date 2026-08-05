@@ -1,6 +1,6 @@
 # Acorn Atom machine
 
-Milestones 2.0 and 2.1 introduce an independent, interactive Acorn Atom machine around the existing cycle-stepped NMOS 6502 core.
+Milestones 2.0 through 2.3 introduce an independent, interactive Acorn Atom machine around the existing cycle-stepped NMOS 6502 core.
 
 ## Implemented hardware boundary
 
@@ -23,7 +23,7 @@ after 3,000 instructions while accessing both the 8255 and 6522 boundaries. No f
 
 ## Interactive browser gate
 
-`atom.html` boots the bundled core ROMs automatically and renders the 32 × 16 alphanumeric display with an accessible text mirror. Local 4K replacements remain available for all three core sockets. The console exposes BREAK/reset, pause/run, single-instruction stepping, address breakpoints, buzzer audio after a user gesture and a versioned full-machine JSON state.
+`atom.html` boots the bundled core ROMs automatically and renders the 32 × 16 alphanumeric display with an accessible text mirror. It also renders six-block semigraphics and all eight PPI-selected MC6847 bitmap modes at their native decoded geometry, scaled without interpolation. The four-colour sets are green/yellow/blue/red and buff/cyan/magenta/orange; the high-resolution modes use black plus green or buff. Local 4K replacements remain available for all three core sockets. The console exposes BREAK/reset, pause/run, single-instruction stepping, address breakpoints, buzzer audio after a user gesture and a versioned full-machine JSON state.
 
 Modern printable characters are translated by the character they represent rather than their host key position. This is important for Atom punctuation: `*` maps to Atom Shift+`:`, while `"` maps to Atom Shift+`2`. Browser key events enter a bounded pacing queue because the original firmware debounce loop requires longer press and release intervals than automation or very fast host typing supplies.
 
@@ -41,10 +41,11 @@ The ATM loader validates the 22-byte header and exact payload length, loads norm
 
 Eight owner-approved utility ROMs can be selected for `$A000`; Atom DOS can independently occupy `$E000`. The original Atom 8271 register window at `$0A00-$0A04` reuses the tested sector controller and supports two SSD/DSD drives. Browser mounts clone all input bytes, writes affect only the private session copy, and users can export that copy. Mounted copies also round-trip in Atom portable state.
 
+Local UEF cassette images are signature- and chunk-length validated. Standard `$0100` data-stream bytes are serialized with one start bit, eight least-significant-bit-first data bits and two stop bits. At the Atom's 1 MHz machine rate, each bit lasts 3,333 cycles; zero and one bits synthesize 1200 Hz and 2400 Hz levels into PPI port C bit 5. Play, pause, rewind, byte/bit position and waveform phase round-trip in portable state. Other UEF chunk types are parsed but are not yet interpreted as Atom tape data.
+
 ## Deliberately deferred
 
-- pixel-accurate MC6847 rendering and graphics modes;
-- cassette transport;
-- tape/cassette loading;
 - real Atom disk and ATM software corpus validation;
-- BBC BASIC mode.
+- protected or nonstandard Atom disk layouts;
+- UEF waveform/security chunks and cassette recording;
+- BBC BASIC mode pending validation of an Atom-compatible ROM arrangement.

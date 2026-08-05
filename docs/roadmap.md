@@ -718,12 +718,19 @@ Hash recognition and launch metadata may be committed even when the binary canno
 
 **Gate:** constructed ATM fixtures validate normal and BASIC load behavior; utility/DOS ROM writes are rejected; original-address 8271 registers respond; writable SSD copies never mutate selected source bytes and survive portable state.
 
-## 2.3 — Atom graphics and preservation corpus
+## 2.3 — Atom graphics and cassette (implemented)
 
 - MC6847 bitmap and semigraphics modes;
-- cassette waveform/UEF transport;
+- cassette waveform/standard UEF input transport;
+
+**Gate:** focused tests decode every MC6847 geometry and representative pixels, distinguish alphanumeric, inverse and semigraphics cells, drive the PPI cassette input from a cycle-timed UEF stream and preserve its transport/waveform phase in portable state. The browser exposes native-pixel canvas rendering and local UEF play, pause and rewind controls.
+
+## 2.4 — Atom preservation corpus and BBC BASIC
+
 - validation with independently sourced ATM and Atom disk software;
 - optional BBC BASIC Atom profile after its ROM pair is independently validated.
+
+**Gate:** publish no compatibility claim until a hash-pinned Atom software item executes through the emulated hardware, and do not map generic BBC Micro ROMs into the Atom address space without independent evidence for the required Atom adapter and bank arrangement.
 
 ## Recommended BBC/CP/M implementation order (completed)
 
