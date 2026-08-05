@@ -20,7 +20,7 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | Portable BBC state | Stable v2 | CPU, memory, ROMs, core devices, two drives and active FDC transfers round-trip; version 1 SSD states migrate |
 | Tube | Acorn CP/M validated | Four duplex channels, Acorn control/FIFO behavior, interrupts, state resume and 6MHz scheduling; real CP/M 2.2 boots and runs `DIR`/`STAT` |
 
-## Acorn Atom 2.4
+## Acorn Atom 2.4.1
 
 | Surface | Status | Evidence / limitation |
 |---|---|---|
@@ -34,7 +34,7 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | ATM quickload | Implemented | Exact 22-byte header and payload validation, declared load/run addresses and BASIC end-pointer convention; no independent public software corpus yet |
 | Utility and DOS ROMs | Selectable | Eight owner-approved `$A000` utilities and Atom DOS at `$E000`; utility-specific workflows remain unvalidated |
 | Atom 8271 disks | Hardware path implemented | Original `$0A00-$0A04` registers, two SSD/DSD slots, immutable source cloning, writable session copies, export and state resume; no real Atom disk corpus yet |
-| BBC BASIC conversion card | Local-ROM validated | Documented `$4000` video, `$6000` utility, `$7000/$7800` I/O, `$8000-$BFFF` BASIC and `$F000` MOS map plus 6522 timer IRQ; a temporary canonical BASIC 1 image boots and executes quoted BASIC, but no compatible BASIC image is distributed yet |
+| BBC BASIC conversion card | Turnkey validated | Documented `$4000` video, `$6000` utility, `$7000/$7800` I/O, `$8000-$BFFF` BASIC and `$F000` MOS map plus 6522 timer IRQ; bundled owner-supplied BASIC I and Atom MOS variant 1 boot and execute `PRINT "HI"` through the real matrix |
 
 ## Browser support
 

@@ -52,7 +52,7 @@ async function boot() {
     stop();
     const mounted = machine.bus.fdc.drives.map(({ disk, writeProtected }) => ({ disk, writeProtected }));
     if (elements.atomProfileSelect.value === "bbc-basic") {
-      const [file] = elements.atomBbcBasicInput.files; if (!file) throw new Error("Select a period-compatible 16K BBC BASIC 1 ROM for the conversion card."); const basic = new Uint8Array(await file.arrayBuffer()); if (basic.length !== 0x4000) throw new Error("The BBC BASIC conversion ROM must be exactly 16K.");
+      const basic = await selectedRom(elements.atomBbcBasicInput, await fetchRom("ROM/basic1.rom")); if (basic.length !== 0x4000) throw new Error("The BBC BASIC conversion ROM must be exactly 16K.");
       const mos = await fetchRom("ROM/Atom_BBC_BASIC_OS.rom"); machine = new AcornAtom({ traceLimit: 128, accessLogLimit: 0, profile: "bbc-basic" }); machine.loadBbcBasicConversion({ basic, mos });
     } else {
       const basic = await selectedRom(elements.atomBasicInput, coreRoms?.basic); const floatingPoint = await selectedRom(elements.atomFloatInput, coreRoms?.floatingPoint); const kernel = await selectedRom(elements.atomKernelInput, coreRoms?.kernel);
