@@ -18,10 +18,10 @@ export async function runAtomSoftwareCorpus({
   const boot = machine.diagnoseBoot();
   const cases = [{ name: "canonical Atom firmware boots to BASIC", passed: boot.passed, instructions: boot.instructions }];
   runInstructions(machine, 25_000);
-  typeText(machine, 'PRINT "HI"\r');
+  typeText(machine, 'print "hi"\r');
   runInstructions(machine, 100_000);
   const screen = machine.textSnapshot().join("\n");
-  cases.push({ name: 'Atom BASIC executes PRINT "HI" through the keyboard matrix', passed: screen.includes('>PRINT "HI"') && screen.includes("HI>") });
+  cases.push({ name: 'lowercase host input executes PRINT "HI" through the Atom keyboard matrix', passed: screen.includes('>PRINT "HI"') && screen.includes("HI>") });
 
   const archiveProgram = await readBase64File(archiveProgramPath);
   const archiveHash = sha256(archiveProgram);

@@ -62,7 +62,7 @@ function createPrintableMap() {
   pair("Digit6", "6", "&"); pair("Digit7", "7", "'"); pair("Digit8", "8", "("); pair("Digit9", "9", ")"); pair("Digit0", "0");
   pair("Minus", "-", "="); pair("Semicolon", ";", "+"); pair("Colon", ":", "*"); pair("Comma", ",", "<"); pair("Period", ".", ">"); pair("Slash", "/", "?");
   pair("BracketLeft", "["); pair("BracketRight", "]"); pair("Backslash", "\\"); pair("At", "@"); pair("Caret", "^"); pair("Space", " ");
-  for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") { map[letter] = mapping(`Key${letter}`); map[letter.toLowerCase()] = mapping(`Key${letter}`, true); }
+  for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") { map[letter] = mapping(`Key${letter}`); map[letter.toLowerCase()] = mapping(`Key${letter}`); }
   return map;
 }
 
