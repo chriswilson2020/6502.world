@@ -684,7 +684,39 @@ Hash recognition and launch metadata may be committed even when the binary canno
 
 **Gate:** the public site boots BBC BASIC and Acorn CP/M through explicit profiles, preserves writable user media, restores versioned states, exposes only honestly validated software and builds successfully with and without the optional local media corpus.
 
-## Recommended implementation order
+## 2.0 — Acorn Atom foundation (implemented)
+
+- independent Atom memory and device bus around the shared NMOS 6502;
+- canonical owner-supplied BASIC, floating-point and kernel firmware;
+- mirrored 8255 PPI and 6522 expansion VIA boundaries;
+- active-low Atom keyboard matrix and boot-critical timing inputs;
+- MC6847 text snapshot suitable for deterministic validation.
+
+**Gate:** the exact canonical core firmware reaches the real `ACORN ATOM` banner and `>` prompt, with ROM writes rejected and real 8255/VIA accesses observed.
+
+**Evidence:** `npm run test:atom` validates checksums, mapping, mirroring, keyboard inputs and a 3,000-instruction real-ROM boot. See `acorn-atom.md`.
+
+## 2.1 — Interactive Atom
+
+- browser Atom console linked from the machine catalogue;
+- MC6847 text and graphics rendering;
+- character-based modern keyboard translation into the Atom matrix;
+- sound output and reset/BREAK handling;
+- local replacement ROM controls and portable state files.
+
+**Gate:** the bundled Atom reaches its prompt in the browser, accepts a quoted BASIC program through the keyboard matrix and renders the result.
+
+## 2.2 — Atom software and expansion
+
+- ATM program loading and cassette transport;
+- selectable `$A000` utility ROMs;
+- Atom DOS and original-address 8271 support;
+- writable temporary-session Atom disk images;
+- optional BBC BASIC Atom profile after its ROM pair is independently validated.
+
+**Gate:** one real Atom program loads and runs through a documented format, while optional expansion selection cannot regress the baseline machine.
+
+## Recommended BBC/CP/M implementation order (completed)
 
 Codex should execute this work as a sequence of reviewable changes rather than one broad rewrite:
 
