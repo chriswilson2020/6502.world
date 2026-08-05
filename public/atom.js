@@ -1,7 +1,7 @@
 import { AcornAtom } from "./src/machine/atom/atom.js";
 import { atomKeyboardMappingForBrowserEvent } from "./src/machine/atom/ppi-8255.js";
 
-const ids = ["atomScreen", "atomRunState", "atomStatus", "bootAtomButton", "resetAtomButton", "atomProfileSelect", "atomBbcBasicInput", "atomBasicInput", "atomFloatInput", "atomKernelInput", "atomUtilitySelect", "atomDosEnabled", "atomTextMirror", "atomPc", "atomCycles", "atomColumn", "atomSpeaker", "atomMode", "pauseAtomButton", "enableAtomAudioButton", "atomProgramInput", "atomUefInput", "atomTapePlay", "atomTapeRewind", "atomDrive0Input", "atomDrive0Protect", "atomDrive0Export", "atomDrive1Input", "atomDrive1Protect", "atomDrive1Export", "atomMediaState", "atomMediaStatus", "atomBreakpointCount", "atomBreakpointInput", "toggleAtomBreakpointButton", "stepAtomButton", "atomDisassembly", "exportAtomStateButton", "atomStateInput", "atomDebuggerStatus"];
+const ids = ["atomScreen", "atomRunState", "atomStatus", "bootAtomButton", "resetAtomButton", "atomProfileSelect", "atomBbcBasicInput", "atomBasicInput", "atomFloatInput", "atomKernelInput", "atomUtilitySelect", "atomDosEnabled", "atomTextMirror", "atomPc", "atomCycles", "atomColumn", "atomSpeaker", "atomMode", "pauseAtomButton", "enableAtomAudioButton", "runAtomBcdTest", "atomProgramInput", "atomUefInput", "atomTapePlay", "atomTapeRewind", "atomDrive0Input", "atomDrive0Protect", "atomDrive0Export", "atomDrive1Input", "atomDrive1Protect", "atomDrive1Export", "atomMediaState", "atomMediaStatus", "atomBreakpointCount", "atomBreakpointInput", "toggleAtomBreakpointButton", "stepAtomButton", "atomDisassembly", "exportAtomStateButton", "atomStateInput", "atomDebuggerStatus"];
 const elements = Object.fromEntries(ids.map((id) => [id, document.querySelector(`#${id}`)]));
 const context = elements.atomScreen.getContext("2d");
 const pixelCanvas = document.createElement("canvas"); const pixelContext = pixelCanvas.getContext("2d");
@@ -13,6 +13,7 @@ const RESOLUTION_PALETTES = [[[0x05, 0x07, 0x06], GRAPHICS_PALETTES[0][0]], [[0x
 const hex = (value, width = 4) => value.toString(16).toUpperCase().padStart(width, "0");
 let machine = new AcornAtom({ traceLimit: 128, accessLogLimit: 0 });
 let coreRoms = null; let running = false; let frame = null; let audio = null; let keyboardTimer = null;
+let displayModeOverride = null;
 const keyboardQueue = []; const breakpoints = new Set();
 const mountedNames = ["atom-drive-0.ssd", "atom-drive-1.ssd"];
 
@@ -21,10 +22,10 @@ async function selectedRom(input, fallback) { const [file] = input.files; return
 function status(message, label = "READY") { elements.atomStatus.textContent = message; elements.atomRunState.textContent = label; elements.atomRunState.className = `status ${label === "ERROR" ? "error" : "live"}`; }
 
 function draw() {
-  const text = machine.video.graphicsEnabled ? drawGraphics() : drawText();
+  const text = machine.video.graphicsEnabled && displayModeOverride !== "text" ? drawGraphics() : drawText();
   if (elements.atomTextMirror.textContent !== text) elements.atomTextMirror.textContent = text;
   elements.atomPc.textContent = hex(machine.cpu.pc); elements.atomCycles.textContent = machine.machineCycles.toLocaleString(); elements.atomColumn.textContent = String(machine.bus.ppi.keyColumn);
-  const speaker = Boolean(machine.bus.ppi.portC & 4); elements.atomSpeaker.textContent = speaker ? "HIGH" : "LOW"; elements.atomMode.textContent = machine.bus.ppi.portA & 0x10 ? `GRAPHICS ${machine.bus.ppi.portA >> 5}` : "TEXT";
+  const speaker = Boolean(machine.bus.ppi.portC & 4); elements.atomSpeaker.textContent = speaker ? "HIGH" : "LOW"; elements.atomMode.textContent = displayModeOverride === "text" || !(machine.bus.ppi.portA & 0x10) ? "TEXT" : `GRAPHICS ${machine.bus.ppi.portA >> 5}`;
   if (machine.cassette) elements.atomTapePlay.textContent = machine.cassette.playing ? "Pause cassette" : "Play cassette";
   audio?.set(speaker); renderDebugger();
 }
@@ -50,6 +51,7 @@ function drawText() {
 async function boot() {
   try {
     stop();
+    displayModeOverride = null;
     const mounted = machine.bus.fdc.drives.map(({ disk, writeProtected }) => ({ disk, writeProtected }));
     if (elements.atomProfileSelect.value === "bbc-basic") {
       const basic = await selectedRom(elements.atomBbcBasicInput, await fetchRom("ROM/basic1.rom")); if (basic.length !== 0x4000) throw new Error("The BBC BASIC conversion ROM must be exactly 16K.");
@@ -66,7 +68,7 @@ async function boot() {
   } catch (error) { status(error.message, "ERROR"); }
 }
 
-function reset() { clearKeyboardQueue(); machine.reset(); machine.bus.keyboard.reset(); running = true; status("BREAK reset asserted; Atom restarting.", "RUNNING"); elements.atomScreen.focus(); schedule(); }
+function reset() { clearKeyboardQueue(); displayModeOverride = null; machine.reset(); machine.bus.keyboard.reset(); running = true; status("BREAK reset asserted; Atom restarting.", "RUNNING"); elements.atomScreen.focus(); schedule(); }
 function schedule() { if (frame == null) frame = requestAnimationFrame(runFrame); }
 function runFrame() {
   frame = null; if (!running) return;
@@ -76,6 +78,7 @@ function runFrame() {
 }
 function stop() { running = false; if (frame != null) cancelAnimationFrame(frame); frame = null; }
 function boundary() { while (!machine.cpu.instructionBoundary) machine.clock(); }
+function loadAtm(bytes, label, { displayMode = null } = {}) { stop(); boundary(); displayModeOverride = displayMode; const result = machine.loadAtm(bytes); elements.atomMediaStatus.textContent = `${result.name || label}: ${result.size} bytes loaded at $${hex(result.start)}${result.run === 0xc2b2 ? " into BASIC" : `; running at $${hex(result.run)}`}.`; elements.atomMediaState.textContent = "ATM"; elements.atomMediaState.className = "status live"; running = true; schedule(); return result; }
 
 elements.atomScreen.addEventListener("keydown", (event) => {
   if (event.code === "F12") { event.preventDefault(); reset(); return; }
@@ -117,7 +120,8 @@ elements.stepAtomButton.addEventListener("click", () => { stop(); boundary(); co
 elements.exportAtomStateButton.addEventListener("click", () => { stop(); boundary(); const state = machine.exportState(); state.debugger = { breakpoints: [...breakpoints] }; const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(state)], { type: "application/json" })); link.download = `6502-world-atom-${hex(machine.cpu.pc)}.json`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0); status("Portable Atom state exported.", "PAUSED"); });
 elements.atomStateInput.addEventListener("change", async () => { try { const [file] = elements.atomStateInput.files; if (!file) return; stop(); const state = JSON.parse(await file.text()); machine.importState(state); elements.atomProfileSelect.value = machine.bus.profile; if (machine.bus.profile === "atom") coreRoms = { basic: machine.bus.basicRom, floatingPoint: machine.bus.floatingPointRom, kernel: machine.bus.kernelRom }; elements.atomTapePlay.disabled = !machine.cassette; elements.atomTapeRewind.disabled = !machine.cassette; breakpoints.clear(); for (const address of state.debugger?.breakpoints ?? []) breakpoints.add(address & 0xffff); status(`${file.name} restored.`, "PAUSED"); draw(); } catch (error) { status(error.message, "ERROR"); } finally { elements.atomStateInput.value = ""; } });
 elements.enableAtomAudioButton.addEventListener("click", async () => { audio ??= new AtomAudio(); await audio.enable(); elements.enableAtomAudioButton.textContent = "Atom sound enabled"; });
-elements.atomProgramInput.addEventListener("change", async () => { try { const [file] = elements.atomProgramInput.files; if (!file) return; stop(); boundary(); const result = machine.loadAtm(new Uint8Array(await file.arrayBuffer())); elements.atomMediaStatus.textContent = `${result.name || file.name}: ${result.size} bytes loaded at $${hex(result.start)}${result.run === 0xc2b2 ? " into BASIC" : `; running at $${hex(result.run)}`}.`; elements.atomMediaState.textContent = "ATM"; elements.atomMediaState.className = "status live"; running = true; schedule(); } catch (error) { elements.atomMediaStatus.textContent = error.message; elements.atomMediaState.textContent = "ERROR"; elements.atomMediaState.className = "status error"; } finally { elements.atomProgramInput.value = ""; } });
+elements.runAtomBcdTest.addEventListener("click", async () => { try { if (machine.bus.profile !== "atom") { elements.atomProfileSelect.value = "atom"; await boot(); } const response = await fetch("corpus/atom/BCDTEST.atm.b64"); if (!response.ok) throw new Error("Unable to load the validated BCD test."); const encoded = (await response.text()).replace(/\s/g, ""); loadAtm(Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0)), "BCDTEST", { displayMode: "text" }); elements.atomScreen.focus(); } catch (error) { elements.atomMediaStatus.textContent = error.message; elements.atomMediaState.textContent = "ERROR"; elements.atomMediaState.className = "status error"; } });
+elements.atomProgramInput.addEventListener("change", async () => { try { const [file] = elements.atomProgramInput.files; if (!file) return; loadAtm(new Uint8Array(await file.arrayBuffer()), file.name); } catch (error) { elements.atomMediaStatus.textContent = error.message; elements.atomMediaState.textContent = "ERROR"; elements.atomMediaState.className = "status error"; } finally { elements.atomProgramInput.value = ""; } });
 elements.atomUefInput.addEventListener("change", async () => { try { const [file] = elements.atomUefInput.files; if (!file) return; const tape = machine.loadUef(new Uint8Array(await file.arrayBuffer())); elements.atomTapePlay.disabled = false; elements.atomTapeRewind.disabled = false; elements.atomMediaStatus.textContent = `${file.name}: UEF ${tape.version}, ${tape.data.length.toLocaleString()} standard data bytes ready. Press Play, then use the Atom cassette command.`; elements.atomMediaState.textContent = "UEF"; elements.atomMediaState.className = "status live"; draw(); } catch (error) { elements.atomMediaStatus.textContent = error.message; elements.atomMediaState.textContent = "ERROR"; elements.atomMediaState.className = "status error"; } finally { elements.atomUefInput.value = ""; } });
 elements.atomTapePlay.addEventListener("click", () => { if (!machine.cassette) return; if (machine.cassette.playing) machine.cassette.pause(); else machine.cassette.play(); elements.atomMediaStatus.textContent = `Cassette ${machine.cassette.playing ? "playing" : "paused"} at data byte ${machine.cassette.position.toLocaleString()} of ${machine.cassette.data.length.toLocaleString()}.`; draw(); });
 elements.atomTapeRewind.addEventListener("click", () => { if (!machine.cassette) return; machine.cassette.rewind(); machine.bus.ppi.cassetteInput = false; elements.atomMediaStatus.textContent = "Cassette rewound and paused."; draw(); });

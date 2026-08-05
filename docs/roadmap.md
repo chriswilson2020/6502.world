@@ -734,11 +734,12 @@ Hash recognition and launch metadata may be committed even when the binary canno
 
 **Gate:** tests cover the documented mapping, ROM protection, VIA timer interrupt and versioned profile state. The owner-supplied canonical BASIC I and Atom MOS variant 1 pair reaches the real prompt, accepts `PRINT "HI"` through the Atom matrix and prints `HI`. The uploaded canonical BASIC 4 image is explicitly rejected as a MOS mismatch after reproducing its post-banner BRK-vector failure.
 
-## 2.5 — Atom preservation corpus
+## 2.5 — Atom preservation corpus (implemented)
 
-- validation with independently sourced ATM and Atom disk software;
+- validation with an independently sourced, hash-pinned ATM program;
+- Atom disk software remains an explicit follow-on compatibility target;
 
-**Gate:** publish no compatibility claim until a hash-pinned Atom software item executes through the emulated hardware.
+**Gate:** the unmodified Bruce Clark `BCDTEST_atom` ATM image from `hoglet67/AtomSoftwareArchive` loads at `$2900` and reaches its complete CPU/range/flags menu through the emulated Atom hardware. Its SHA-256 identity is asserted before execution.
 
 ## Recommended BBC/CP/M implementation order (completed)
 

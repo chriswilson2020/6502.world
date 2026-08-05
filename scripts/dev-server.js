@@ -17,7 +17,7 @@ createServer(async (request, response) => {
     if (pathname === "/") pathname = "/index.html";
 
     let file;
-    if (pathname.startsWith("/src/") || pathname.startsWith("/docs/") || pathname.startsWith("/ROM/") || pathname.startsWith("/MEDIA/") || pathname.startsWith("/vendor/z80-world/src/")) {
+    if (pathname.startsWith("/src/") || pathname.startsWith("/docs/") || pathname.startsWith("/ROM/") || pathname.startsWith("/MEDIA/") || pathname.startsWith("/corpus/") || pathname.startsWith("/vendor/z80-world/src/")) {
       file = join(root, normalize(pathname));
     } else {
       file = join(root, "public", normalize(pathname));

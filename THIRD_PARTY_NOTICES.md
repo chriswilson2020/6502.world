@@ -8,6 +8,10 @@ The repository owner supplied and explicitly approved temporary publication of t
 
 The repository owner supplied and explicitly approved publication of the DSD images under `MEDIA/`. They contain historical third-party software, are emulator inputs, and are not covered by the source code's MIT licence. See `MEDIA/README.md` and `docs/acorn-z80-media.md` for hashes and validation status.
 
+## Acorn Atom preservation corpus
+
+`corpus/atom/BCDTEST.atm.b64` is a byte-exact base64 representation of Bruce Clark's `BCDTEST_atom`, independently sourced from `hoglet67/AtomSoftwareArchive` commit `13cdf0f0ec5621a6965ee2acb92c88efd3f15e75`. It is an emulator validation input, remains third-party material and is not covered by this repository's MIT licence. SHA-256: `1afc39aa5e6ebe497d428543a9325ff61e3aa83bf8bbb8244a194ba4fa7fa0b1`.
+
 ## Z80 World core
 
 6502 World links to the Z80 CPU core from `chriswilson2020/zx-spectrum-emulator` through the pinned `vendor/z80-world` Git submodule.
