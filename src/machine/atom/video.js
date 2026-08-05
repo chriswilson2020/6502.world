@@ -14,7 +14,7 @@ export class AtomVideoOutput {
   graphicsFrame() {
     const mode = ATOM_GRAPHICS_MODES[this.modeNumber]; const pixels = new Uint8Array(mode.width * mode.height); const bytes = mode.width * mode.height * mode.bpp / 8;
     for (let offset = 0; offset < bytes; offset += 1) {
-      const value = this.bus.ram[0x8000 + offset];
+      const value = this.bus.ram[this.bus.videoBase + offset];
       if (mode.bpp === 1) for (let bit = 0; bit < 8; bit += 1) pixels[offset * 8 + bit] = (value >> (7 - bit)) & 1;
       else for (let pair = 0; pair < 4; pair += 1) pixels[offset * 4 + pair] = (value >> (6 - pair * 2)) & 3;
     }
@@ -23,7 +23,7 @@ export class AtomVideoOutput {
 
   textCells() {
     return Array.from({ length: 16 }, (_, row) => Array.from({ length: 32 }, (_, column) => {
-      const value = this.bus.ram[0x8000 + row * 32 + column];
+      const value = this.bus.ram[this.bus.videoBase + row * 32 + column];
       return value & 0x40 ? { kind: "semigraphics", blocks: value & 0x3f, inverse: Boolean(value & 0x80) } : { kind: "text", character: decode(value), inverse: Boolean(value & 0x80) };
     }));
   }

@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a href="bbc.html">BBC Micro</a><a aria-current="page" href="atom.html">Acorn Atom</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">2.3 · GRAPHICS + CASSETTE</p><h1>Atom console.</h1></div><p>Boot canonical firmware, render MC6847 text and graphics, load ATM or UEF software, work with private disk copies, and type through the real 8255 keyboard matrix.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">2.4 · CONVERSION CARD</p><h1>Atom console.</h1></div><p>Boot canonical Atom firmware or the documented BBC BASIC conversion hardware, render MC6847 graphics, load local software, and work with private media copies.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>MC6847</span><h2>32 × 16 display</h2></div><span id="atomRunState" class="status planned">LOADING</span></div>
@@ -15,13 +15,15 @@
       </article>
       <aside class="bbc-controls">
         <article class="tool-card"><div class="tool-heading"><div><span>FIRMWARE</span><h2>Atom system</h2></div></div>
+          <label class="rom-field">Machine profile<select id="atomProfileSelect"><option value="atom">Acorn Atom BASIC</option><option value="bbc-basic">BBC BASIC conversion card</option></select></label>
           <div class="button-row compact-row"><button id="bootAtomButton" class="button primary" type="button">Boot Atom</button><button id="resetAtomButton" class="button secondary" type="button">BREAK / reset</button></div>
           <details class="advanced-panel"><summary>Local replacement ROMs</summary>
             <label class="rom-field">BASIC · 4K<input id="atomBasicInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
             <label class="rom-field">Floating point · 4K<input id="atomFloatInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
             <label class="rom-field">Kernel · 4K<input id="atomKernelInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
           </details>
-          <label class="rom-field">Utility ROM · $A000<select id="atomUtilitySelect"><option value="">None</option><option value="Atom_axr1.rom">AXR1</option><option value="Atom_Combox.rom">Combox</option><option value="Atom_gags.rom">GAGS 2.3</option><option value="Atom_pcharme.rom">PCharme</option><option value="Atom_salfaa.rom">SALFAA 2.6</option><option value="Atom_Toolkit.rom">Programmer's Toolkit</option><option value="Atom_werom.rom">WE ROM</option><option value="Atom_Windows.rom">Atomic Windows</option></select></label>
+          <label class="rom-field">BBC BASIC 1 · 16K local ROM<input id="atomBbcBasicInput" type="file" accept=".rom,.bin,application/octet-stream"></label><p class="bbc-help">The conversion profile uses the bundled owner-supplied Atom MOS but requires a period-compatible BASIC 1 image locally. BASIC 4 is not compatible with this 1982 card.</p>
+          <label class="rom-field">Utility ROM · $A000 / conversion $6000<select id="atomUtilitySelect"><option value="">None</option><option value="Atom_axr1.rom">AXR1</option><option value="Atom_Combox.rom">Combox</option><option value="Atom_gags.rom">GAGS 2.3</option><option value="Atom_pcharme.rom">PCharme</option><option value="Atom_salfaa.rom">SALFAA 2.6</option><option value="Atom_Toolkit.rom">Programmer's Toolkit</option><option value="Atom_werom.rom">WE ROM</option><option value="Atom_Windows.rom">Atomic Windows</option></select></label>
           <label class="bbc-help"><input id="atomDosEnabled" type="checkbox"> Load Atom DOS at $E000</label>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>MACHINE</span><h2>Live state</h2></div><span id="atomMode" class="address-pill">TEXT</span></div>

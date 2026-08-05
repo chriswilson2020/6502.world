@@ -4,11 +4,11 @@ import { createSectorDisk } from "../bbc/media.js";
 import { AtomVideoOutput } from "./video.js";
 import { AtomUefCassette } from "./cassette.js";
 
-export const ATOM_STATE_FORMAT = Object.freeze({ format: "6502-world-atom-state", version: 1, machine: "acorn-atom" });
+export const ATOM_STATE_FORMAT = Object.freeze({ format: "6502-world-atom-state", version: 2, machine: "acorn-atom" });
 
 export class AcornAtom {
-  constructor({ traceLimit = 512, accessLogLimit = 4096 } = {}) {
-    this.bus = new AtomBus({ accessLogLimit });
+  constructor({ traceLimit = 512, accessLogLimit = 4096, profile = "atom" } = {}) {
+    this.bus = new AtomBus({ accessLogLimit, profile });
     this.cpu = new M6502({ bus: this.bus, traceLimit });
     this.machineCycles = 0;
     this.video = new AtomVideoOutput({ bus: this.bus }); this.cassette = null;
@@ -17,6 +17,7 @@ export class AcornAtom {
   loadCoreRoms(roms) { this.bus.loadCoreRoms(roms); this.reset(); }
   loadUtilityRom(bytes) { this.bus.loadUtilityRom(bytes); }
   loadDosRom(bytes) { this.bus.loadDosRom(bytes); }
+  loadBbcBasicConversion(roms) { this.bus.loadBbcBasicConversion(roms); this.reset(); }
   mountMedia(bytes, { format, filename, drive = 0, writeProtected = false } = {}) { const disk = createSectorDisk(bytes, { format, filename }); this.bus.fdc.mount(disk, { drive, writeProtected }); return disk; }
   ejectMedia(drive = 0) { return this.bus.fdc.eject(drive); }
   loadUef(bytes) { this.cassette = new AtomUefCassette(bytes); return this.cassette; }
@@ -35,30 +36,33 @@ export class AcornAtom {
   exportState() {
     return {
       ...ATOM_STATE_FORMAT,
+      profile: this.bus.profile,
       machineCycles: this.machineCycles,
       cpu: this.cpu.saveState(),
       ram: encodeBytes(this.bus.ram),
       roms: {
         basic: encodeBytes(this.bus.basicRom), floatingPoint: encodeBytes(this.bus.floatingPointRom), kernel: encodeBytes(this.bus.kernelRom),
         utility: this.bus.utilityRom ? encodeBytes(this.bus.utilityRom) : null, dos: this.bus.dosRom ? encodeBytes(this.bus.dosRom) : null,
+        bbcBasic: this.bus.bbcBasicRom ? encodeBytes(this.bus.bbcBasicRom) : null, bbcMos: this.bus.bbcMosRom ? encodeBytes(this.bus.bbcMosRom) : null,
       },
       ppi: { portA: this.bus.ppi.portA, portC: this.bus.ppi.portC, control: this.bus.ppi.control, keyColumn: this.bus.ppi.keyColumn, cycles: this.bus.ppi.cycles },
-      via: { registers: Array.from(this.bus.via.registers) },
+      via: this.bus.via.saveState(),
       fdc: { drives: this.bus.fdc.drives.map((drive) => ({ currentTrack: drive.currentTrack, writeProtected: drive.writeProtected, disk: drive.disk ? { format: drive.disk.format, bytes: encodeBytes(drive.disk.export()), dirty: drive.disk.dirty, revision: drive.disk.revision } : null })) },
       cassette: this.cassette ? { source: encodeBytes(this.cassette.source), position: this.cassette.position, bit: this.cassette.bit, bitCycles: this.cassette.bitCycles, carrierCycles: this.cassette.carrierCycles, level: this.cassette.level, playing: this.cassette.playing } : null,
     };
   }
 
   importState(state) {
-    if (!state || state.format !== ATOM_STATE_FORMAT.format || state.version !== ATOM_STATE_FORMAT.version || state.machine !== ATOM_STATE_FORMAT.machine) throw new TypeError("unsupported Atom state file");
-    const bus = new AtomBus({ accessLogLimit: this.bus.accessLogLimit });
+    if (!state || state.format !== ATOM_STATE_FORMAT.format || ![1, ATOM_STATE_FORMAT.version].includes(state.version) || state.machine !== ATOM_STATE_FORMAT.machine) throw new TypeError("unsupported Atom state file");
+    const bus = new AtomBus({ accessLogLimit: this.bus.accessLogLimit, profile: state.profile ?? "atom" });
     bus.loadCoreRoms({ basic: decodeBytes(state.roms?.basic, 0x1000, "BASIC ROM"), floatingPoint: decodeBytes(state.roms?.floatingPoint, 0x1000, "floating-point ROM"), kernel: decodeBytes(state.roms?.kernel, 0x1000, "kernel ROM") });
     if (state.roms.utility) bus.loadUtilityRom(decodeBytes(state.roms.utility, 0x1000, "utility ROM"));
     if (state.roms.dos) bus.loadDosRom(decodeBytes(state.roms.dos, 0x1000, "DOS ROM"));
+    if (state.roms.bbcBasic || state.roms.bbcMos) bus.loadBbcBasicConversion({ basic: decodeBytes(state.roms.bbcBasic, 0x4000, "BBC BASIC ROM"), mos: decodeBytes(state.roms.bbcMos, 0x1000, "BBC BASIC MOS ROM") });
     bus.ram.set(decodeBytes(state.ram, 0x10000, "RAM"));
     Object.assign(bus.ppi, { portA: state.ppi.portA & 0xff, portC: state.ppi.portC & 0xff, control: state.ppi.control & 0xff, keyColumn: state.ppi.keyColumn & 0x0f, cycles: Number(state.ppi.cycles) || 0 });
     bus.ppi.tick(0);
-    bus.via.registers.set(state.via?.registers ?? []);
+    bus.via.loadState(state.via);
     state.fdc?.drives?.forEach((saved, drive) => { if (saved.disk) { const disk = createSectorDisk(decodeBytesAny(saved.disk.bytes, `drive ${drive} media`), { format: saved.disk.format }); disk.dirty = Boolean(saved.disk.dirty); disk.revision = saved.disk.revision ?? 0; bus.fdc.mount(disk, { drive, writeProtected: saved.writeProtected }); } bus.fdc.drives[drive].currentTrack = saved.currentTrack & 0xff; });
     this.bus = bus;
     this.video = new AtomVideoOutput({ bus }); this.cassette = null;
@@ -79,8 +83,10 @@ export class AcornAtom {
     const cycle = this.cpu.clock();
     this.machineCycles += 1;
     this.bus.ppi.tick(1);
+    this.bus.via.tick(1);
     if (this.cassette) this.bus.ppi.cassetteInput = this.cassette.tick(1);
     if (this.bus.fdc.tick(this.machineCycles)) this.cpu.requestNmi();
+    this.cpu.setIrq(this.bus.via.irq);
     return { ...cycle, machineCycles: this.machineCycles };
   }
 
@@ -98,7 +104,7 @@ export class AcornAtom {
     const rows = [];
     for (let row = 0; row < 16; row += 1) {
       let line = "";
-      for (let column = 0; column < 32; column += 1) line += decodeMc6847(this.bus.ram[0x8000 + row * 32 + column]);
+      for (let column = 0; column < 32; column += 1) line += decodeMc6847(this.bus.ram[this.bus.videoBase + row * 32 + column]);
       rows.push(line);
     }
     return rows;

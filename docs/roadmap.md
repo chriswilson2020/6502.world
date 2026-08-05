@@ -725,10 +725,19 @@ Hash recognition and launch metadata may be committed even when the binary canno
 
 **Gate:** focused tests decode every MC6847 geometry and representative pixels, distinguish alphanumeric, inverse and semigraphics cells, drive the PPI cassette input from a cycle-timed UEF stream and preserve its transport/waveform phase in portable state. The browser exposes native-pixel canvas rendering and local UEF play, pause and rewind controls.
 
-## 2.4 — Atom preservation corpus and BBC BASIC
+## 2.4 — Atom BBC BASIC conversion hardware (implemented)
+
+- Acorn conversion-card memory and I/O remapping;
+- 16K BBC BASIC and 4K Atom MOS sockets;
+- timer/IRQ-capable 6522 required by the conversion MOS;
+- browser profile using the approved MOS and a local compatible language ROM.
+
+**Gate:** tests cover the documented mapping, ROM protection, VIA timer interrupt and versioned profile state. A non-distributed canonical BASIC 1 comparison reaches the real prompt, accepts `PRINT "HI"` through the Atom matrix and prints `HI`. The uploaded canonical BASIC 4 image is explicitly rejected as a period mismatch after reproducing its post-banner BRK-vector failure.
+
+## 2.5 — Atom preservation corpus and turnkey BBC BASIC
 
 - validation with independently sourced ATM and Atom disk software;
-- optional BBC BASIC Atom profile after its ROM pair is independently validated.
+- bundle the BBC BASIC conversion profile only after a compatible language ROM is owner-supplied and approved.
 
 **Gate:** publish no compatibility claim until a hash-pinned Atom software item executes through the emulated hardware, and do not map generic BBC Micro ROMs into the Atom address space without independent evidence for the required Atom adapter and bank arrangement.
 

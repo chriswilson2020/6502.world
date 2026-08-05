@@ -1,5 +1,6 @@
 import { AtomKeyboardMatrix, AtomPpi8255 } from "./ppi-8255.js";
 import { Intel8271 } from "../bbc/intel-8271.js";
+import { AtomVia6522 } from "./via-6522.js";
 
 const ROM_SIZE = 0x1000;
 
@@ -18,16 +19,19 @@ export const ATOM_MEMORY_MAP = Object.freeze([
 ]);
 
 export class AtomBus {
-  constructor({ accessLogLimit = 1024 } = {}) {
+  constructor({ accessLogLimit = 1024, profile = "atom" } = {}) {
+    if (!["atom", "bbc-basic"].includes(profile)) throw new RangeError(`unsupported Atom profile: ${profile}`);
+    this.profile = profile;
     this.ram = new Uint8Array(0x10000);
     this.basicRom = emptyRom();
     this.floatingPointRom = emptyRom();
     this.kernelRom = emptyRom();
+    this.bbcBasicRom = null; this.bbcMosRom = null;
     this.utilityRom = null;
     this.dosRom = null;
     this.keyboard = new AtomKeyboardMatrix();
     this.ppi = new AtomPpi8255({ keyboard: this.keyboard });
-    this.via = new AtomVia6522Shell();
+    this.via = new AtomVia6522();
     this.fdc = new Intel8271();
     this.accessLogLimit = accessLogLimit;
     this.accessLog = [];
@@ -36,6 +40,7 @@ export class AtomBus {
 
   read8(address) {
     const normalized = address & 0xffff;
+    if (this.profile === "bbc-basic") return this.#readBbcBasic(normalized);
     let data = 0xff;
     let device = null;
     if (normalized >= 0x0a00 && normalized <= 0x0a04) { data = this.fdc.read(normalized - 0x0a00); device = this.fdc.name; }
@@ -54,6 +59,7 @@ export class AtomBus {
   write8(address, value) {
     const normalized = address & 0xffff;
     const data = value & 0xff;
+    if (this.profile === "bbc-basic") { this.#writeBbcBasic(normalized, data); return; }
     let device = null;
     if (normalized >= 0x0a00 && normalized <= 0x0a04) { this.fdc.write(normalized - 0x0a00, data); device = this.fdc.name; }
     else if (isRam(normalized)) this.ram[normalized] = data;
@@ -70,6 +76,8 @@ export class AtomBus {
 
   loadUtilityRom(bytes) { this.utilityRom = normalizeRom(bytes, "Atom utility ROM"); }
   loadDosRom(bytes) { this.dosRom = normalizeRom(bytes, "Atom DOS ROM"); }
+  loadBbcBasicConversion({ basic, mos }) { this.bbcBasicRom = normalizeSizedRom(basic, 0x4000, "BBC BASIC ROM"); this.bbcMosRom = normalizeRom(mos, "Atom BBC BASIC MOS ROM"); }
+  get videoBase() { return this.profile === "bbc-basic" ? 0x4000 : 0x8000; }
 
   reset() {
     this.ppi.reset();
@@ -85,6 +93,30 @@ export class AtomBus {
     this.accessLog.push({ address, operation, data, device });
     if (this.accessLog.length > this.accessLogLimit) this.accessLog.splice(0, this.accessLog.length - this.accessLogLimit);
   }
+
+  #readBbcBasic(address) {
+    let data = 0xff; let device = null;
+    if (address >= 0x0a00 && address <= 0x0a04) { data = this.fdc.read(address - 0x0a00); device = this.fdc.name; }
+    else if (address < 0x6000) data = this.ram[address];
+    else if (address < 0x7000) data = this.utilityRom?.[address - 0x6000] ?? 0xff;
+    else if (address >= 0x7000 && address < 0x7400) { data = this.ppi.read(address & 3); device = this.ppi.name; }
+    else if (address >= 0x7800 && address < 0x7c00) { data = this.via.read(address & 0x0f); device = this.via.name; }
+    else if (address >= 0x8000 && address < 0xc000) data = this.bbcBasicRom?.[address - 0x8000] ?? 0xff;
+    else if (address >= 0xc000 && address < 0xd000) data = 0xff;
+    else if (address >= 0xd000 && address < 0xe000) data = this.floatingPointRom[address - 0xd000];
+    else if (address >= 0xe000 && address < 0xf000) data = this.dosRom?.[address - 0xe000] ?? 0xff;
+    else if (address >= 0xf000) data = this.bbcMosRom?.[address - 0xf000] ?? 0xff;
+    this.#record(address, "read", data, device); return data;
+  }
+
+  #writeBbcBasic(address, data) {
+    let device = null;
+    if (address >= 0x0a00 && address <= 0x0a04) { this.fdc.write(address - 0x0a00, data); device = this.fdc.name; }
+    else if (address < 0x6000) this.ram[address] = data;
+    else if (address >= 0x7000 && address < 0x7400) { this.ppi.write(address & 3, data); device = this.ppi.name; }
+    else if (address >= 0x7800 && address < 0x7c00) { this.via.write(address & 0x0f, data); device = this.via.name; }
+    this.#record(address, "write", data, device);
+  }
 }
 
 function isRam(address) {
@@ -93,14 +125,6 @@ function isRam(address) {
 
 function emptyRom() { return new Uint8Array(ROM_SIZE).fill(0xff); }
 function normalizeRom(bytes, label) {
-  const rom = Uint8Array.from(bytes ?? []);
-  if (rom.length !== ROM_SIZE) throw new RangeError(`${label} must be exactly 4K`);
-  return rom;
+  return normalizeSizedRom(bytes, ROM_SIZE, label);
 }
-
-class AtomVia6522Shell {
-  constructor() { this.name = "6522 VIA"; this.reset(); }
-  reset() { this.registers = new Uint8Array(16); }
-  read(offset) { return this.registers[offset & 0x0f]; }
-  write(offset, value) { this.registers[offset & 0x0f] = value & 0xff; }
-}
+function normalizeSizedRom(bytes, size, label) { const rom = Uint8Array.from(bytes ?? []); if (rom.length !== size) throw new RangeError(`${label} must be exactly ${size / 1024}K`); return rom; }
