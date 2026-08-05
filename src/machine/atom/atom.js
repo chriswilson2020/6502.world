@@ -1,6 +1,8 @@
 import { M6502 } from "../../cpu/m6502.js";
 import { AtomBus } from "./atom-bus.js";
 import { createSectorDisk } from "../bbc/media.js";
+import { AtomVideoOutput } from "./video.js";
+import { AtomUefCassette } from "./cassette.js";
 
 export const ATOM_STATE_FORMAT = Object.freeze({ format: "6502-world-atom-state", version: 1, machine: "acorn-atom" });
 
@@ -9,6 +11,7 @@ export class AcornAtom {
     this.bus = new AtomBus({ accessLogLimit });
     this.cpu = new M6502({ bus: this.bus, traceLimit });
     this.machineCycles = 0;
+    this.video = new AtomVideoOutput({ bus: this.bus }); this.cassette = null;
   }
 
   loadCoreRoms(roms) { this.bus.loadCoreRoms(roms); this.reset(); }
@@ -16,6 +19,7 @@ export class AcornAtom {
   loadDosRom(bytes) { this.bus.loadDosRom(bytes); }
   mountMedia(bytes, { format, filename, drive = 0, writeProtected = false } = {}) { const disk = createSectorDisk(bytes, { format, filename }); this.bus.fdc.mount(disk, { drive, writeProtected }); return disk; }
   ejectMedia(drive = 0) { return this.bus.fdc.eject(drive); }
+  loadUef(bytes) { this.cassette = new AtomUefCassette(bytes); return this.cassette; }
 
   loadAtm(bytes) {
     const source = Uint8Array.from(bytes);
@@ -41,6 +45,7 @@ export class AcornAtom {
       ppi: { portA: this.bus.ppi.portA, portC: this.bus.ppi.portC, control: this.bus.ppi.control, keyColumn: this.bus.ppi.keyColumn, cycles: this.bus.ppi.cycles },
       via: { registers: Array.from(this.bus.via.registers) },
       fdc: { drives: this.bus.fdc.drives.map((drive) => ({ currentTrack: drive.currentTrack, writeProtected: drive.writeProtected, disk: drive.disk ? { format: drive.disk.format, bytes: encodeBytes(drive.disk.export()), dirty: drive.disk.dirty, revision: drive.disk.revision } : null })) },
+      cassette: this.cassette ? { source: encodeBytes(this.cassette.source), position: this.cassette.position, bit: this.cassette.bit, bitCycles: this.cassette.bitCycles, carrierCycles: this.cassette.carrierCycles, level: this.cassette.level, playing: this.cassette.playing } : null,
     };
   }
 
@@ -56,6 +61,8 @@ export class AcornAtom {
     bus.via.registers.set(state.via?.registers ?? []);
     state.fdc?.drives?.forEach((saved, drive) => { if (saved.disk) { const disk = createSectorDisk(decodeBytesAny(saved.disk.bytes, `drive ${drive} media`), { format: saved.disk.format }); disk.dirty = Boolean(saved.disk.dirty); disk.revision = saved.disk.revision ?? 0; bus.fdc.mount(disk, { drive, writeProtected: saved.writeProtected }); } bus.fdc.drives[drive].currentTrack = saved.currentTrack & 0xff; });
     this.bus = bus;
+    this.video = new AtomVideoOutput({ bus }); this.cassette = null;
+    if (state.cassette) { this.loadUef(decodeBytesAny(state.cassette.source, "cassette")); Object.assign(this.cassette, { position: state.cassette.position, bit: state.cassette.bit, bitCycles: state.cassette.bitCycles, carrierCycles: state.cassette.carrierCycles, level: Boolean(state.cassette.level), playing: Boolean(state.cassette.playing) }); bus.ppi.cassetteInput = this.cassette.level; }
     this.cpu = new M6502({ bus, traceLimit: this.cpu.traceLimit });
     this.cpu.loadState(state.cpu);
     this.machineCycles = Number(state.machineCycles) || 0;
@@ -72,6 +79,7 @@ export class AcornAtom {
     const cycle = this.cpu.clock();
     this.machineCycles += 1;
     this.bus.ppi.tick(1);
+    if (this.cassette) this.bus.ppi.cassetteInput = this.cassette.tick(1);
     if (this.bus.fdc.tick(this.machineCycles)) this.cpu.requestNmi();
     return { ...cycle, machineCycles: this.machineCycles };
   }

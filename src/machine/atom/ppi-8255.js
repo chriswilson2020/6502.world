@@ -83,13 +83,14 @@ export class AtomPpi8255 {
     this.cycles = 0;
     this.hz2400 = false;
     this.frameSync = false;
+    this.cassetteInput = false;
   }
 
   read(offset) {
     switch (offset & 3) {
       case 0: return this.portA;
       case 1: return this.keyboard.readColumn(this.keyColumn);
-      case 2: return (this.portC & 0x0f) | (this.hz2400 ? 0x10 : 0) | (this.keyboard.repeat ? 0 : 0x40) | (this.frameSync ? 0x80 : 0);
+      case 2: return (this.portC & 0x0f) | (this.hz2400 ? 0x10 : 0) | (this.cassetteInput ? 0x20 : 0) | (this.keyboard.repeat ? 0 : 0x40) | (this.frameSync ? 0x80 : 0);
       default: return this.control;
     }
   }
