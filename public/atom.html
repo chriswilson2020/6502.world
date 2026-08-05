@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a href="bbc.html">BBC Micro</a><a aria-current="page" href="atom.html">Acorn Atom</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">2.1 · INTERACTIVE ATOM</p><h1>Atom console.</h1></div><p>Boot the canonical Atom firmware, type through its real 8255 keyboard matrix, inspect the shared 6502 core and move complete sessions between browsers.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">2.2 · ATOM SOFTWARE</p><h1>Atom console.</h1></div><p>Boot canonical firmware, select utility and DOS expansions, load ATM programs, work with private disk copies, and type through the real 8255 keyboard matrix.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>MC6847</span><h2>32 × 16 display</h2></div><span id="atomRunState" class="status planned">LOADING</span></div>
@@ -21,12 +21,20 @@
             <label class="rom-field">Floating point · 4K<input id="atomFloatInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
             <label class="rom-field">Kernel · 4K<input id="atomKernelInput" type="file" accept=".rom,.bin,application/octet-stream"></label>
           </details>
+          <label class="rom-field">Utility ROM · $A000<select id="atomUtilitySelect"><option value="">None</option><option value="Atom_axr1.rom">AXR1</option><option value="Atom_Combox.rom">Combox</option><option value="Atom_gags.rom">GAGS 2.3</option><option value="Atom_pcharme.rom">PCharme</option><option value="Atom_salfaa.rom">SALFAA 2.6</option><option value="Atom_Toolkit.rom">Programmer's Toolkit</option><option value="Atom_werom.rom">WE ROM</option><option value="Atom_Windows.rom">Atomic Windows</option></select></label>
+          <label class="bbc-help"><input id="atomDosEnabled" type="checkbox"> Load Atom DOS at $E000</label>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>MACHINE</span><h2>Live state</h2></div><span id="atomMode" class="address-pill">TEXT</span></div>
           <dl class="bbc-stats"><div><dt>PC</dt><dd id="atomPc">0000</dd></div><div><dt>Cycles</dt><dd id="atomCycles">0</dd></div><div><dt>Column</dt><dd id="atomColumn">0</dd></div><div><dt>Speaker</dt><dd id="atomSpeaker">LOW</dd></div></dl>
           <button id="pauseAtomButton" class="wide-action" type="button">Run / pause</button><button id="enableAtomAudioButton" class="wide-action" type="button">Enable Atom sound</button>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>KEYBOARD</span><h2>Character translation</h2></div></div><p id="atomKeyboardHelp" class="bbc-help">Click the display, then type. Characters are translated to the Atom legends: for example modern <code>*</code> uses Atom Shift+<code>:</code>, and <code>"</code> uses Atom Shift+<code>2</code>. F12 performs BREAK.</p></article>
+        <article class="tool-card"><div class="tool-heading"><div><span>2.2 SOFTWARE</span><h2>Programs + writable disks</h2></div><span id="atomMediaState" class="status planned">EMPTY</span></div>
+          <label class="rom-field">ATM program<input id="atomProgramInput" type="file" accept=".atm,application/octet-stream"></label>
+          <label class="rom-field">Drive 0 · SSD/DSD<input id="atomDrive0Input" type="file" accept=".ssd,.dsd,application/octet-stream"></label><label class="bbc-help"><input id="atomDrive0Protect" type="checkbox"> Write-protect drive 0 copy</label><button id="atomDrive0Export" class="wide-action" type="button" disabled>Export drive 0</button>
+          <label class="rom-field">Drive 1 · SSD/DSD<input id="atomDrive1Input" type="file" accept=".ssd,.dsd,application/octet-stream"></label><label class="bbc-help"><input id="atomDrive1Protect" type="checkbox"> Write-protect drive 1 copy</label><button id="atomDrive1Export" class="wide-action" type="button" disabled>Export drive 1</button>
+          <p id="atomMediaStatus" class="bbc-help" role="status">Every mounted image is a private writable browser-session copy. Published and selected source files cannot be overwritten.</p>
+        </article>
         <article class="tool-card"><div class="tool-heading"><div><span>DEBUGGER</span><h2>CPU + portable state</h2></div><span id="atomBreakpointCount" class="address-pill">0 BREAKPOINTS</span></div>
           <div class="debug-toolbar"><label class="inline-field">BREAKPOINT <input id="atomBreakpointInput" value="C000" inputmode="text" maxlength="4" aria-label="Breakpoint address"></label><button id="toggleAtomBreakpointButton" class="small-button" type="button">Toggle</button><button id="stepAtomButton" class="small-button" type="button">Step</button></div>
           <pre id="atomDisassembly" class="bbc-debugger" aria-label="Atom disassembly"></pre>

@@ -1,5 +1,6 @@
 import { M6502 } from "../../cpu/m6502.js";
 import { AtomBus } from "./atom-bus.js";
+import { createSectorDisk } from "../bbc/media.js";
 
 export const ATOM_STATE_FORMAT = Object.freeze({ format: "6502-world-atom-state", version: 1, machine: "acorn-atom" });
 
@@ -13,6 +14,19 @@ export class AcornAtom {
   loadCoreRoms(roms) { this.bus.loadCoreRoms(roms); this.reset(); }
   loadUtilityRom(bytes) { this.bus.loadUtilityRom(bytes); }
   loadDosRom(bytes) { this.bus.loadDosRom(bytes); }
+  mountMedia(bytes, { format, filename, drive = 0, writeProtected = false } = {}) { const disk = createSectorDisk(bytes, { format, filename }); this.bus.fdc.mount(disk, { drive, writeProtected }); return disk; }
+  ejectMedia(drive = 0) { return this.bus.fdc.eject(drive); }
+
+  loadAtm(bytes) {
+    const source = Uint8Array.from(bytes);
+    if (source.length < 0x16) throw new Error("ATM file is shorter than its 22-byte header");
+    const start = word(source, 0x10); const run = word(source, 0x12); const size = word(source, 0x14);
+    if (source.length !== 0x16 + size) throw new Error("ATM payload length does not match its header");
+    for (let index = 0; index < size; index += 1) this.bus.write8(start + index, source[0x16 + index]);
+    if (run === 0xc2b2) { this.bus.ram[0x0c] = (start + size) & 0xff; this.bus.ram[0x0d] = (start + size) >> 8; }
+    else { while (!this.cpu.instructionBoundary) this.clock(); this.cpu.pc = run; }
+    return { name: new TextDecoder("latin1").decode(source.subarray(0, 16)).replace(/\0.*$/, "").trim(), start, run, size };
+  }
 
   exportState() {
     return {
@@ -26,6 +40,7 @@ export class AcornAtom {
       },
       ppi: { portA: this.bus.ppi.portA, portC: this.bus.ppi.portC, control: this.bus.ppi.control, keyColumn: this.bus.ppi.keyColumn, cycles: this.bus.ppi.cycles },
       via: { registers: Array.from(this.bus.via.registers) },
+      fdc: { drives: this.bus.fdc.drives.map((drive) => ({ currentTrack: drive.currentTrack, writeProtected: drive.writeProtected, disk: drive.disk ? { format: drive.disk.format, bytes: encodeBytes(drive.disk.export()), dirty: drive.disk.dirty, revision: drive.disk.revision } : null })) },
     };
   }
 
@@ -39,6 +54,7 @@ export class AcornAtom {
     Object.assign(bus.ppi, { portA: state.ppi.portA & 0xff, portC: state.ppi.portC & 0xff, control: state.ppi.control & 0xff, keyColumn: state.ppi.keyColumn & 0x0f, cycles: Number(state.ppi.cycles) || 0 });
     bus.ppi.tick(0);
     bus.via.registers.set(state.via?.registers ?? []);
+    state.fdc?.drives?.forEach((saved, drive) => { if (saved.disk) { const disk = createSectorDisk(decodeBytesAny(saved.disk.bytes, `drive ${drive} media`), { format: saved.disk.format }); disk.dirty = Boolean(saved.disk.dirty); disk.revision = saved.disk.revision ?? 0; bus.fdc.mount(disk, { drive, writeProtected: saved.writeProtected }); } bus.fdc.drives[drive].currentTrack = saved.currentTrack & 0xff; });
     this.bus = bus;
     this.cpu = new M6502({ bus, traceLimit: this.cpu.traceLimit });
     this.cpu.loadState(state.cpu);
@@ -56,6 +72,7 @@ export class AcornAtom {
     const cycle = this.cpu.clock();
     this.machineCycles += 1;
     this.bus.ppi.tick(1);
+    if (this.bus.fdc.tick(this.machineCycles)) this.cpu.requestNmi();
     return { ...cycle, machineCycles: this.machineCycles };
   }
 
@@ -124,3 +141,9 @@ function decodeBytes(encoded, expectedLength, label) {
   if (bytes.length !== expectedLength) throw new TypeError(`${label} state has the wrong size`);
   return bytes;
 }
+
+function decodeBytesAny(encoded, label) {
+  if (typeof encoded !== "string") throw new TypeError(`${label} state must be base64 text`);
+  try { return Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0)); } catch { throw new TypeError(`${label} state is not valid base64`); }
+}
+function word(bytes, offset) { return bytes[offset] | (bytes[offset + 1] << 8); }

@@ -35,10 +35,16 @@ PRINT "HI"
 
 through the matrix and observe `HI>` on the Atom display.
 
+## Software and expansion
+
+The ATM loader validates the 22-byte header and exact payload length, loads normal programs at their declared address and execution vector, and updates Atom BASIC's end pointer for the conventional `$C2B2` BASIC run address. It does not guess that arbitrary `.rom` data is an ATM file.
+
+Eight owner-approved utility ROMs can be selected for `$A000`; Atom DOS can independently occupy `$E000`. The original Atom 8271 register window at `$0A00-$0A04` reuses the tested sector controller and supports two SSD/DSD drives. Browser mounts clone all input bytes, writes affect only the private session copy, and users can export that copy. Mounted copies also round-trip in Atom portable state.
+
 ## Deliberately deferred
 
 - pixel-accurate MC6847 rendering and graphics modes;
 - cassette transport;
-- ATM program and tape loading;
-- utility-ROM selection and DOS/FDC support;
+- tape/cassette loading;
+- real Atom disk and ATM software corpus validation;
 - BBC BASIC mode.
