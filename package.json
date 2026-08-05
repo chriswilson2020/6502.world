@@ -1,6 +1,6 @@
 {
   "name": "6502-world",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -11,7 +11,8 @@
     "test:bbc-cpm": "node scripts/run-acorn-cpm.js",
     "test:bbc-cpm-write": "node scripts/run-acorn-cpm-write.js",
     "test:bbc-catalogue": "node scripts/run-acorn-z80-catalogue.js",
-    "test:atom": "node --test test/atom-machine.test.js",
+    "test:atom": "node --test test/atom*.test.js",
+    "test:atom-software": "node scripts/run-atom-software.js",
     "measure:bbc-cpm": "node scripts/measure-bbc-cpm-performance.js",
     "inventory:acorn-media": "node scripts/inventory-acorn-z80-media.js",
     "build:pages": "node scripts/build-pages.js",

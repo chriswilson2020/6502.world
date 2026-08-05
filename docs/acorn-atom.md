@@ -1,6 +1,6 @@
 # Acorn Atom machine
 
-Milestone 2.0 introduces an independent Acorn Atom machine around the existing cycle-stepped NMOS 6502 core.
+Milestones 2.0 and 2.1 introduce an independent, interactive Acorn Atom machine around the existing cycle-stepped NMOS 6502 core.
 
 ## Implemented hardware boundary
 
@@ -21,12 +21,24 @@ ACORN ATOM
 
 after 3,000 instructions while accessing both the 8255 and 6522 boundaries. No firmware-specific program-counter shortcut is used.
 
+## Interactive browser gate
+
+`atom.html` boots the bundled core ROMs automatically and renders the 32 × 16 alphanumeric display with an accessible text mirror. Local 4K replacements remain available for all three core sockets. The console exposes BREAK/reset, pause/run, single-instruction stepping, address breakpoints, buzzer audio after a user gesture and a versioned full-machine JSON state.
+
+Modern printable characters are translated by the character they represent rather than their host key position. This is important for Atom punctuation: `*` maps to Atom Shift+`:`, while `"` maps to Atom Shift+`2`. Browser key events enter a bounded pacing queue because the original firmware debounce loop requires longer press and release intervals than automation or very fast host typing supplies.
+
+The deterministic software corpus and a real Chromium workflow both enter:
+
+```text
+PRINT "HI"
+```
+
+through the matrix and observe `HI>` on the Atom display.
+
 ## Deliberately deferred
 
-- browser UI and modern-keyboard translation;
 - pixel-accurate MC6847 rendering and graphics modes;
-- sound and cassette transport;
+- cassette transport;
 - ATM program and tape loading;
 - utility-ROM selection and DOS/FDC support;
-- portable Atom states;
 - BBC BASIC mode.

@@ -696,19 +696,22 @@ Hash recognition and launch metadata may be committed even when the binary canno
 
 **Evidence:** `npm run test:atom` validates checksums, mapping, mirroring, keyboard inputs and a 3,000-instruction real-ROM boot. See `acorn-atom.md`.
 
-## 2.1 — Interactive Atom
+## 2.1 — Interactive Atom (implemented)
 
 - browser Atom console linked from the machine catalogue;
-- MC6847 text and graphics rendering;
+- readable MC6847 32 × 16 text display with an accessible text mirror;
 - character-based modern keyboard translation into the Atom matrix;
 - sound output and reset/BREAK handling;
 - local replacement ROM controls and portable state files.
 
 **Gate:** the bundled Atom reaches its prompt in the browser, accepts a quoted BASIC program through the keyboard matrix and renders the result.
 
+**Evidence:** `npm run test:atom` executes `PRINT "HI"` through matrix input. A real Chromium validation boots bundled firmware, accepts the same fast modern-keyboard stream through the paced input queue, shows `HI>` without console errors and renders at desktop and 700-pixel widths.
+
 ## 2.2 — Atom software and expansion
 
 - ATM program loading and cassette transport;
+- MC6847 bitmap and semigraphics modes;
 - selectable `$A000` utility ROMs;
 - Atom DOS and original-address 8271 support;
 - writable temporary-session Atom disk images;

@@ -30,6 +30,44 @@ export class AtomKeyboardMatrix {
   }
 }
 
+export const ATOM_KEYBOARD_CODES = Object.freeze({
+  Escape: [0, 5], Digit3: [0, 1], Minus: [0, 2], KeyG: [0, 3], KeyQ: [0, 4],
+  Digit2: [1, 1], Comma: [1, 2], KeyF: [1, 3], KeyP: [1, 4], KeyZ: [1, 5],
+  Vertical: [2, 0], Digit1: [2, 1], Semicolon: [2, 2], KeyE: [2, 3], KeyO: [2, 4], KeyY: [2, 5],
+  Horizontal: [3, 0], Digit0: [3, 1], Colon: [3, 2], KeyD: [3, 3], KeyN: [3, 4], KeyX: [3, 5],
+  CapsLock: [4, 0], Delete: [4, 1], Digit9: [4, 2], KeyC: [4, 3], KeyM: [4, 4], KeyW: [4, 5],
+  Caret: [5, 0], Tab: [5, 1], Digit8: [5, 2], KeyB: [5, 3], KeyL: [5, 4], KeyV: [5, 5],
+  BracketRight: [6, 0], Enter: [6, 1], Digit7: [6, 2], KeyA: [6, 3], KeyK: [6, 4], KeyU: [6, 5],
+  Backslash: [7, 0], Digit6: [7, 2], At: [7, 3], KeyJ: [7, 4], KeyT: [7, 5],
+  BracketLeft: [8, 0], Digit5: [8, 2], Slash: [8, 3], KeyI: [8, 4], KeyS: [8, 5],
+  Space: [9, 0], Digit4: [9, 2], Period: [9, 3], KeyH: [9, 4], KeyR: [9, 5],
+});
+
+export const ATOM_PRINTABLE_KEYBOARD = Object.freeze(createPrintableMap());
+
+export function atomKeyboardMappingForBrowserEvent(code, key) {
+  if (typeof key === "string" && key.length === 1 && ATOM_PRINTABLE_KEYBOARD[key]) return ATOM_PRINTABLE_KEYBOARD[key];
+  const special = {
+    Enter: mapping("Enter"), NumpadEnter: mapping("Enter"), Backspace: mapping("Delete"), Delete: mapping("Delete"),
+    Escape: mapping("Escape"), Tab: mapping("Tab"), CapsLock: mapping("CapsLock"),
+    ArrowUp: mapping("Vertical"), ArrowDown: mapping("Vertical", true), ArrowRight: mapping("Horizontal"), ArrowLeft: mapping("Horizontal", true),
+  };
+  return special[code] ?? null;
+}
+
+function createPrintableMap() {
+  const map = {};
+  const pair = (name, plain, shifted) => { map[plain] = mapping(name); if (shifted) map[shifted] = mapping(name, true); };
+  pair("Digit1", "1", "!"); pair("Digit2", "2", '"'); pair("Digit3", "3", "#"); pair("Digit4", "4", "$"); pair("Digit5", "5", "%");
+  pair("Digit6", "6", "&"); pair("Digit7", "7", "'"); pair("Digit8", "8", "("); pair("Digit9", "9", ")"); pair("Digit0", "0");
+  pair("Minus", "-", "="); pair("Semicolon", ";", "+"); pair("Colon", ":", "*"); pair("Comma", ",", "<"); pair("Period", ".", ">"); pair("Slash", "/", "?");
+  pair("BracketLeft", "["); pair("BracketRight", "]"); pair("Backslash", "\\"); pair("At", "@"); pair("Caret", "^"); pair("Space", " ");
+  for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZ") { map[letter] = mapping(`Key${letter}`); map[letter.toLowerCase()] = mapping(`Key${letter}`, true); }
+  return map;
+}
+
+function mapping(name, shift = false) { return Object.freeze({ matrix: ATOM_KEYBOARD_CODES[name], shift }); }
+
 export class AtomPpi8255 {
   constructor({ keyboard = new AtomKeyboardMatrix() } = {}) {
     this.name = "8255 PPI";
