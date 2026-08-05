@@ -82,6 +82,7 @@ function loadAtm(bytes, label, { displayMode = null } = {}) { stop(); boundary()
 
 elements.atomScreen.addEventListener("keydown", (event) => {
   if (event.code === "F12") { event.preventDefault(); reset(); return; }
+  if (event.code === "CapsLock") { event.preventDefault(); return; }
   if (event.code.startsWith("Control")) { event.preventDefault(); machine.bus.keyboard.setControl(true); return; }
   if (event.code === "AltRight") { event.preventDefault(); machine.bus.keyboard.setRepeat(true); return; }
   if (event.code.startsWith("Shift") || event.repeat) { event.preventDefault(); return; }
@@ -89,6 +90,7 @@ elements.atomScreen.addEventListener("keydown", (event) => {
   event.preventDefault(); keyboardQueue.push(mapping); pumpKeyboardQueue();
 });
 elements.atomScreen.addEventListener("keyup", (event) => {
+  if (event.code === "CapsLock") { event.preventDefault(); return; }
   if (event.code.startsWith("Control")) { event.preventDefault(); machine.bus.keyboard.setControl(false); return; }
   if (event.code === "AltRight") { event.preventDefault(); machine.bus.keyboard.setRepeat(false); return; }
   if (atomKeyboardMappingForBrowserEvent(event.code, event.key)) event.preventDefault();
