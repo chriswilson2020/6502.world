@@ -47,13 +47,12 @@ Local UEF cassette images are signature- and chunk-length validated. Standard `$
 
 The optional profile follows Acorn conversion-card documentation and schematic 102-007/C. In BBC BASIC mode, RAM/video occupies `$0000-$5FFF` with the 6K MC6847 window at `$4000`, the utility socket moves to `$6000`, the 8255 and 6522 move to `$7000` and `$7800`, the 16K BBC BASIC ROM occupies `$8000-$BFFF`, and the conversion MOS occupies `$F000-$FFFF`. The 6522 now supplies timer 1/2, interrupt flags/enables and CPU IRQ delivery required by TIME, ESC and SOUND.
 
-The bundled conversion MOS is owner-supplied and checksum pinned. The browser intentionally requires a local compatible 16K BASIC image. A temporary canonical BASIC 1 comparison (SHA-256 `6dccf62d34a90fc16f102f9dbb3431bbf084e4edcbc21a5f059bbdf6af35b566`) booted to `BBC BASIC`, accepted `PRINT "HI"` through the Atom matrix and printed `HI`; that third-party image is not distributed by this repository. The uploaded `BBC_BASIC_4.rom` exactly matches the canonical Master-era BASIC 4 archive image, but with the 1982 conversion MOS it prints the banner and then falls through an uninitialised BRK vector, so it is not shipped or claimed compatible.
+The owner-supplied, checksum-pinned conversion pair is BASIC I (SHA-256 `6dccf62d34a90fc16f102f9dbb3431bbf084e4edcbc21a5f059bbdf6af35b566`) plus Atom BBC BASIC MOS variant 1 (SHA-256 `8419bc5e8c39aaa72445754879ca15de2a7fca3e0334bb7852312537bc9f1112`). The browser boots that pair automatically, reaches `BBC BASIC`, accepts `PRINT "HI"` through the Atom matrix and prints `HI`; the file input remains an optional local replacement. The uploaded `BBC_BASIC_4.rom` exactly matches the canonical Master-era BASIC 4 archive image, but with this MOS variant it prints the banner and then falls through an uninitialised BRK vector, so it is not shipped or claimed compatible.
 
 ## Deliberately deferred
 
 - real Atom disk and ATM software corpus validation;
 - protected or nonstandard Atom disk layouts;
 - UEF waveform/security chunks and cassette recording;
-- a redistributable/owner-approved period-compatible BBC BASIC image for a turnkey conversion profile.
 
 Primary conversion references: [Acornsoft, *BBC BASIC Conversion Unit for the Acorn ATOM*](https://acorn.huininga.nl/pub/mirrors/ftp.nvg.org/pub/bbc/doc/AtomBBCBASIC.zip) and [Acorn conversion-card schematic 102-007/C](https://theoddys.com/acorn/acorn_system_computers/atom/atom_bbc_basic/Acorn%20Atom%20BBC%20BASIC%20Conversion%20Card%20102.007%20Schematic.jpg).

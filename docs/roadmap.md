@@ -730,16 +730,15 @@ Hash recognition and launch metadata may be committed even when the binary canno
 - Acorn conversion-card memory and I/O remapping;
 - 16K BBC BASIC and 4K Atom MOS sockets;
 - timer/IRQ-capable 6522 required by the conversion MOS;
-- browser profile using the approved MOS and a local compatible language ROM.
+- browser profile using the approved, bundled BASIC I and Atom MOS variant 1 pair, with an optional local language-ROM replacement.
 
-**Gate:** tests cover the documented mapping, ROM protection, VIA timer interrupt and versioned profile state. A non-distributed canonical BASIC 1 comparison reaches the real prompt, accepts `PRINT "HI"` through the Atom matrix and prints `HI`. The uploaded canonical BASIC 4 image is explicitly rejected as a period mismatch after reproducing its post-banner BRK-vector failure.
+**Gate:** tests cover the documented mapping, ROM protection, VIA timer interrupt and versioned profile state. The owner-supplied canonical BASIC I and Atom MOS variant 1 pair reaches the real prompt, accepts `PRINT "HI"` through the Atom matrix and prints `HI`. The uploaded canonical BASIC 4 image is explicitly rejected as a MOS mismatch after reproducing its post-banner BRK-vector failure.
 
-## 2.5 — Atom preservation corpus and turnkey BBC BASIC
+## 2.5 — Atom preservation corpus
 
 - validation with independently sourced ATM and Atom disk software;
-- bundle the BBC BASIC conversion profile only after a compatible language ROM is owner-supplied and approved.
 
-**Gate:** publish no compatibility claim until a hash-pinned Atom software item executes through the emulated hardware, and do not map generic BBC Micro ROMs into the Atom address space without independent evidence for the required Atom adapter and bank arrangement.
+**Gate:** publish no compatibility claim until a hash-pinned Atom software item executes through the emulated hardware.
 
 ## Recommended BBC/CP/M implementation order (completed)
 

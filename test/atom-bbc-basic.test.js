@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { AcornAtom } from "../src/machine/atom/atom.js";
 import { AtomBus } from "../src/machine/atom/atom-bus.js";
+import { ATOM_KEYBOARD_CODES, ATOM_PRINTABLE_KEYBOARD } from "../src/machine/atom/ppi-8255.js";
 
 test("BBC BASIC conversion card remaps RAM, video, ROM and Atom I/O", () => {
   const bus = new AtomBus({ profile: "bbc-basic" });
@@ -24,6 +25,16 @@ test("owner-supplied Atom BBC BASIC MOS is a stable 4K conversion image", async 
   assert.equal(mos[0xffc] | (mos[0xffd] << 8), 0xff18);
 });
 
+test("bundled BASIC I and Atom MOS boot and execute quoted BASIC through the real matrix", { timeout: 15_000 }, async () => {
+  const [basic, mos] = await Promise.all(["ROM/basic1.rom", "ROM/Atom_BBC_BASIC_OS.rom"].map(async (path) => new Uint8Array(await readFile(path))));
+  assert.equal(basic.length, 0x4000); assert.equal(sha256(basic), "6dccf62d34a90fc16f102f9dbb3431bbf084e4edcbc21a5f059bbdf6af35b566");
+  const machine = new AcornAtom({ profile: "bbc-basic", accessLogLimit: 0 }); machine.loadBbcBasicConversion({ basic, mos }); run(machine, 20_000);
+  assert.match(machine.textSnapshot().join("\n"), /BBC BASIC[\s\S]*>/);
+  for (const character of "PRINT \"HI\"\r") typeCharacter(machine, character);
+  assert.match(machine.textSnapshot().join("\n"), />PRINT "HI"[\s\S]*HI[\s\S]*>/);
+  assert.equal(machine.cpu.brkSeen, false);
+});
+
 test("BBC BASIC conversion profile and full VIA state round-trip", () => {
   const machine = new AcornAtom({ profile: "bbc-basic" }); machine.loadBbcBasicConversion({ basic: filled(0x4000, 0x42), mos: filled(0x1000, 0x4d) }); machine.bus.via.write(14, 0xc0); machine.bus.via.write(4, 3); machine.bus.via.write(5, 0); machine.cpu.instructionBoundary = true;
   const restored = new AcornAtom().importState(machine.exportState()); assert.equal(restored.bus.profile, "bbc-basic"); assert.equal(restored.bus.read8(0x8000), 0x42); assert.equal(restored.bus.via.ier, 0x40); assert.equal(restored.bus.via.timer1Latch, 3);
@@ -31,3 +42,9 @@ test("BBC BASIC conversion profile and full VIA state round-trip", () => {
 
 function filled(size, value) { return new Uint8Array(size).fill(value); }
 function sha256(bytes) { return createHash("sha256").update(bytes).digest("hex"); }
+function run(machine, instructions) { for (let index = 0; index < instructions; index += 1) machine.step(); }
+function typeCharacter(machine, character) {
+  const key = character === "\r" ? { matrix: ATOM_KEYBOARD_CODES.Enter, shift: false } : ATOM_PRINTABLE_KEYBOARD[character];
+  machine.bus.keyboard.setShift(key.shift); machine.bus.keyboard.press(...key.matrix); run(machine, 35_000);
+  machine.bus.keyboard.release(...key.matrix); machine.bus.keyboard.setShift(false); run(machine, 35_000);
+}
