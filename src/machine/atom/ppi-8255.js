@@ -49,7 +49,7 @@ export function atomKeyboardMappingForBrowserEvent(code, key) {
   if (typeof key === "string" && key.length === 1 && ATOM_PRINTABLE_KEYBOARD[key]) return ATOM_PRINTABLE_KEYBOARD[key];
   const special = {
     Enter: mapping("Enter"), NumpadEnter: mapping("Enter"), Backspace: mapping("Delete"), Delete: mapping("Delete"),
-    Escape: mapping("Escape"), Tab: mapping("Tab"), CapsLock: mapping("CapsLock"),
+    Escape: mapping("Escape"), Tab: mapping("Tab"),
     ArrowUp: mapping("Vertical"), ArrowDown: mapping("Vertical", true), ArrowRight: mapping("Horizontal"), ArrowLeft: mapping("Horizontal", true),
   };
   return special[code] ?? null;
