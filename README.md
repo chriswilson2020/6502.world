@@ -17,7 +17,7 @@ This repository begins with a deliberately small but complete vertical slice:
 
 The first full machine target is the **BBC Micro Model B**. Its stable BBC and Acorn Z80 releases are now joined by the first headless **Acorn Atom** machine milestone. Apple II and Commodore-family targets remain future work.
 
-## Current release — 2.3
+## Current release — 2.4
 
 The 2.1 interactive Atom release reuses the validated NMOS 6502 core with the Atom's independent memory and device layer:
 
@@ -34,7 +34,9 @@ The 2.1 interactive Atom release reuses the validated NMOS 6502 core with the At
 
 The 2.2 expansion adds strict ATM quickload parsing, selectable owner-approved `$A000` utility ROMs, optional Atom DOS, original-address 8271 registers, two local SSD/DSD drives and exportable private browser-session disk copies.
 
-The 2.3 release decodes all eight MC6847 bitmap geometries, two- and four-colour output, inverse alphanumeric cells and six-block semigraphics. Local UEF files now have play, pause and rewind transport; standard data chunks are converted to the Atom's cycle-driven 1200/2400 Hz cassette input and survive portable-state export. Real Atom ATM/disk corpus claims and a BBC BASIC profile remain gated on independently identifiable compatible software and firmware.
+The 2.3 release decodes all eight MC6847 bitmap geometries, two- and four-colour output, inverse alphanumeric cells and six-block semigraphics. Local UEF files now have play, pause and rewind transport; standard data chunks are converted to the Atom's cycle-driven 1200/2400 Hz cassette input and survive portable-state export. Real Atom ATM/disk corpus claims and a turnkey BBC BASIC profile remain gated on independently identifiable compatible software and firmware.
+
+The 2.4 release models Acorn's documented BBC BASIC conversion card: its relocated RAM/video/utility/I/O map, 16K language-ROM window, 4K Atom MOS, and a timer/IRQ-capable 6522. The browser can boot the conversion profile with a local period-compatible BASIC 1 image and the bundled owner-supplied MOS. The uploaded BASIC 4 image is a verified canonical Master-era ROM but is not compatible with the 1982 card, so it is deliberately not presented as working firmware.
 
 ## BBC preservation release — 1.8
 

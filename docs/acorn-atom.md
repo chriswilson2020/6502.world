@@ -1,6 +1,6 @@
 # Acorn Atom machine
 
-Milestones 2.0 through 2.3 introduce an independent, interactive Acorn Atom machine around the existing cycle-stepped NMOS 6502 core.
+Milestones 2.0 through 2.4 introduce an independent, interactive Acorn Atom machine around the existing cycle-stepped NMOS 6502 core.
 
 ## Implemented hardware boundary
 
@@ -43,9 +43,17 @@ Eight owner-approved utility ROMs can be selected for `$A000`; Atom DOS can inde
 
 Local UEF cassette images are signature- and chunk-length validated. Standard `$0100` data-stream bytes are serialized with one start bit, eight least-significant-bit-first data bits and two stop bits. At the Atom's 1 MHz machine rate, each bit lasts 3,333 cycles; zero and one bits synthesize 1200 Hz and 2400 Hz levels into PPI port C bit 5. Play, pause, rewind, byte/bit position and waveform phase round-trip in portable state. Other UEF chunk types are parsed but are not yet interpreted as Atom tape data.
 
+## BBC BASIC conversion card
+
+The optional profile follows Acorn conversion-card documentation and schematic 102-007/C. In BBC BASIC mode, RAM/video occupies `$0000-$5FFF` with the 6K MC6847 window at `$4000`, the utility socket moves to `$6000`, the 8255 and 6522 move to `$7000` and `$7800`, the 16K BBC BASIC ROM occupies `$8000-$BFFF`, and the conversion MOS occupies `$F000-$FFFF`. The 6522 now supplies timer 1/2, interrupt flags/enables and CPU IRQ delivery required by TIME, ESC and SOUND.
+
+The bundled conversion MOS is owner-supplied and checksum pinned. The browser intentionally requires a local compatible 16K BASIC image. A temporary canonical BASIC 1 comparison (SHA-256 `6dccf62d34a90fc16f102f9dbb3431bbf084e4edcbc21a5f059bbdf6af35b566`) booted to `BBC BASIC`, accepted `PRINT "HI"` through the Atom matrix and printed `HI`; that third-party image is not distributed by this repository. The uploaded `BBC_BASIC_4.rom` exactly matches the canonical Master-era BASIC 4 archive image, but with the 1982 conversion MOS it prints the banner and then falls through an uninitialised BRK vector, so it is not shipped or claimed compatible.
+
 ## Deliberately deferred
 
 - real Atom disk and ATM software corpus validation;
 - protected or nonstandard Atom disk layouts;
 - UEF waveform/security chunks and cassette recording;
-- BBC BASIC mode pending validation of an Atom-compatible ROM arrangement.
+- a redistributable/owner-approved period-compatible BBC BASIC image for a turnkey conversion profile.
+
+Primary conversion references: [Acornsoft, *BBC BASIC Conversion Unit for the Acorn ATOM*](https://acorn.huininga.nl/pub/mirrors/ftp.nvg.org/pub/bbc/doc/AtomBBCBASIC.zip) and [Acorn conversion-card schematic 102-007/C](https://theoddys.com/acorn/acorn_system_computers/atom/atom_bbc_basic/Acorn%20Atom%20BBC%20BASIC%20Conversion%20Card%20102.007%20Schematic.jpg).
