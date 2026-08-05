@@ -1,5 +1,9 @@
 # Third-party notices
 
+## Acorn Atom firmware
+
+The repository owner supplied and explicitly approved temporary publication of the three Atom firmware images listed in `ROM/README.md`. They remain historical third-party firmware, are emulator inputs, are not covered by the source code's MIT licence and are not relicensed by inclusion.
+
 ## Recovered Acorn Z80 media
 
 The repository owner supplied and explicitly approved publication of the DSD images under `MEDIA/`. They contain historical third-party software, are emulator inputs, and are not covered by the source code's MIT licence. See `MEDIA/README.md` and `docs/acorn-z80-media.md` for hashes and validation status.

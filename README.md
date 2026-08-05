@@ -15,9 +15,22 @@ This repository begins with a deliberately small but complete vertical slice:
 - automated tests and GitHub Pages deployment;
 - architecture, ROM-policy and implementation-roadmap documentation.
 
-The first full machine target is the **BBC Micro Model B**. Apple II, Acorn Atom and Commodore-family targets remain future work until the BBC implementation is stable.
+The first full machine target is the **BBC Micro Model B**. Its stable BBC and Acorn Z80 releases are now joined by the first headless **Acorn Atom** machine milestone. Apple II and Commodore-family targets remain future work.
 
-## Current release — 1.8
+## Current release — 2.0
+
+The 2.0 Atom foundation reuses the validated NMOS 6502 core with the Atom's independent memory and device layer:
+
+- checksum-pinned Atom BASIC, floating-point and kernel ROMs;
+- the original `$C000`, `$D000` and `$F000` ROM placement and write protection;
+- expanded text/video RAM regions and the `$A000` utility and `$E000` DOS sockets;
+- mirrored 8255 PPI and 6522 VIA address decoding;
+- active-low Atom keyboard scanning plus 2400 Hz and MC6847 frame-sync inputs;
+- a deterministic real-ROM gate that reaches the `ACORN ATOM` banner and BASIC prompt.
+
+The browser console, keyboard adapter, video renderer and software formats remain the next Atom milestones.
+
+## BBC preservation release — 1.8
 
 The 1.8 preservation release hardens the complete BBC Model B and Acorn Z80 path:
 
