@@ -30,6 +30,9 @@ This matrix records what 6502 World 1.0 actually validates. “Implemented” do
 | Display | Text implemented | 32 × 16 alphanumeric snapshot/canvas and accessible mirror; MC6847 bitmap, colour and semigraphics modes remain |
 | Audio | Partial | PPI buzzer bit drives an opt-in browser square wave; cassette audio and waveform timing remain |
 | Portable Atom state | Version 1 | CPU, RAM, ROM sockets, PPI timing/output and VIA registers round-trip at an instruction boundary |
+| ATM quickload | Implemented | Exact 22-byte header and payload validation, declared load/run addresses and BASIC end-pointer convention; no independent public software corpus yet |
+| Utility and DOS ROMs | Selectable | Eight owner-approved `$A000` utilities and Atom DOS at `$E000`; utility-specific workflows remain unvalidated |
+| Atom 8271 disks | Hardware path implemented | Original `$0A00-$0A04` registers, two SSD/DSD slots, immutable source cloning, writable session copies, export and state resume; no real Atom disk corpus yet |
 
 ## Browser support
 

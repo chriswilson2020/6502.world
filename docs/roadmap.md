@@ -708,16 +708,22 @@ Hash recognition and launch metadata may be committed even when the binary canno
 
 **Evidence:** `npm run test:atom` executes `PRINT "HI"` through matrix input. A real Chromium validation boots bundled firmware, accepts the same fast modern-keyboard stream through the paced input queue, shows `HI>` without console errors and renders at desktop and 700-pixel widths.
 
-## 2.2 — Atom software and expansion
+## 2.2 — Atom software and expansion (implemented)
 
-- ATM program loading and cassette transport;
-- MC6847 bitmap and semigraphics modes;
+- strict ATM program loading;
 - selectable `$A000` utility ROMs;
 - Atom DOS and original-address 8271 support;
 - writable temporary-session Atom disk images;
-- optional BBC BASIC Atom profile after its ROM pair is independently validated.
+- disk-copy export and portable-state preservation.
 
-**Gate:** one real Atom program loads and runs through a documented format, while optional expansion selection cannot regress the baseline machine.
+**Gate:** constructed ATM fixtures validate normal and BASIC load behavior; utility/DOS ROM writes are rejected; original-address 8271 registers respond; writable SSD copies never mutate selected source bytes and survive portable state.
+
+## 2.3 — Atom graphics and preservation corpus
+
+- MC6847 bitmap and semigraphics modes;
+- cassette waveform/UEF transport;
+- validation with independently sourced ATM and Atom disk software;
+- optional BBC BASIC Atom profile after its ROM pair is independently validated.
 
 ## Recommended BBC/CP/M implementation order (completed)
 

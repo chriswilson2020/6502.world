@@ -1,9 +1,11 @@
 import { AtomKeyboardMatrix, AtomPpi8255 } from "./ppi-8255.js";
+import { Intel8271 } from "../bbc/intel-8271.js";
 
 const ROM_SIZE = 0x1000;
 
 export const ATOM_MEMORY_MAP = Object.freeze([
   { start: 0x0000, end: 0x03ff, name: "System RAM" },
+  { start: 0x0a00, end: 0x0a04, name: "Intel 8271 FDC" },
   { start: 0x2800, end: 0x3bff, name: "Text workspace RAM" },
   { start: 0x8000, end: 0x97ff, name: "MC6847 video RAM" },
   { start: 0xa000, end: 0xafff, name: "Utility ROM" },
@@ -26,6 +28,7 @@ export class AtomBus {
     this.keyboard = new AtomKeyboardMatrix();
     this.ppi = new AtomPpi8255({ keyboard: this.keyboard });
     this.via = new AtomVia6522Shell();
+    this.fdc = new Intel8271();
     this.accessLogLimit = accessLogLimit;
     this.accessLog = [];
     this.deviceAccessCounts = {};
@@ -35,7 +38,8 @@ export class AtomBus {
     const normalized = address & 0xffff;
     let data = 0xff;
     let device = null;
-    if (isRam(normalized)) data = this.ram[normalized];
+    if (normalized >= 0x0a00 && normalized <= 0x0a04) { data = this.fdc.read(normalized - 0x0a00); device = this.fdc.name; }
+    else if (isRam(normalized)) data = this.ram[normalized];
     else if (normalized >= 0xa000 && normalized < 0xb000) data = this.utilityRom?.[normalized - 0xa000] ?? 0xff;
     else if (normalized >= 0xb000 && normalized < 0xb400) { data = this.ppi.read(normalized & 3); device = this.ppi.name; }
     else if (normalized >= 0xb800 && normalized < 0xbc00) { data = this.via.read(normalized & 0x0f); device = this.via.name; }
@@ -51,7 +55,8 @@ export class AtomBus {
     const normalized = address & 0xffff;
     const data = value & 0xff;
     let device = null;
-    if (isRam(normalized)) this.ram[normalized] = data;
+    if (normalized >= 0x0a00 && normalized <= 0x0a04) { this.fdc.write(normalized - 0x0a00, data); device = this.fdc.name; }
+    else if (isRam(normalized)) this.ram[normalized] = data;
     else if (normalized >= 0xb000 && normalized < 0xb400) { this.ppi.write(normalized & 3, data); device = this.ppi.name; }
     else if (normalized >= 0xb800 && normalized < 0xbc00) { this.via.write(normalized & 0x0f, data); device = this.via.name; }
     this.#record(normalized, "write", data, device);
@@ -69,6 +74,7 @@ export class AtomBus {
   reset() {
     this.ppi.reset();
     this.via.reset();
+    this.fdc.reset();
     this.accessLog = [];
     this.deviceAccessCounts = {};
   }

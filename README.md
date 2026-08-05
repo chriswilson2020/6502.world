@@ -17,7 +17,7 @@ This repository begins with a deliberately small but complete vertical slice:
 
 The first full machine target is the **BBC Micro Model B**. Its stable BBC and Acorn Z80 releases are now joined by the first headless **Acorn Atom** machine milestone. Apple II and Commodore-family targets remain future work.
 
-## Current release — 2.1
+## Current release — 2.2
 
 The 2.1 interactive Atom release reuses the validated NMOS 6502 core with the Atom's independent memory and device layer:
 
@@ -32,7 +32,7 @@ The 2.1 interactive Atom release reuses the validated NMOS 6502 core with the At
 - browser buzzer audio, BREAK/reset, stepping, address breakpoints and complete portable Atom states;
 - a real keyboard-matrix gate that executes `PRINT "HI"` through Atom BASIC.
 
-ATM/cassette software loading, bitmap graphics, utility ROMs and Atom DOS remain the next Atom milestone.
+The 2.2 expansion adds strict ATM quickload parsing, selectable owner-approved `$A000` utility ROMs, optional Atom DOS, original-address 8271 registers, two local SSD/DSD drives and exportable private browser-session disk copies. Cassette transport, bitmap graphics and real Atom disk-corpus validation remain later work.
 
 ## BBC preservation release — 1.8
 

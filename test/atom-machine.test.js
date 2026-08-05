@@ -30,6 +30,30 @@ test("Atom memory map protects ROM and mirrors the 8255", () => {
   assert.ok(ATOM_MEMORY_MAP.some(({ start, end }) => start === 0xb000 && end === 0xb3ff));
 });
 
+test("Atom maps optional utility, DOS and original-address 8271 hardware", () => {
+  const bus = new AtomBus(); bus.loadUtilityRom(filled(0x44)); bus.loadDosRom(filled(0x55));
+  assert.equal(bus.read8(0xa000), 0x44); assert.equal(bus.read8(0xe000), 0x55);
+  bus.write8(0xa000, 0); bus.write8(0xe000, 0); assert.equal(bus.read8(0xa000), 0x44); assert.equal(bus.read8(0xe000), 0x55);
+  bus.write8(0x0a02, 0xff); assert.equal(bus.read8(0x0a00), 0);
+});
+
+test("ATM quickload validates its header and loads normal and BASIC programs", () => {
+  const machine = new AcornAtom();
+  const normal = atm("HELLO", 0x0280, 0x0280, Uint8Array.of(0xa9, 0x41, 0x00));
+  assert.deepEqual(machine.loadAtm(normal), { name: "HELLO", start: 0x0280, run: 0x0280, size: 3 });
+  assert.deepEqual(Array.from(machine.bus.ram.slice(0x0280, 0x0283)), [0xa9, 0x41, 0]); assert.equal(machine.cpu.pc, 0x0280);
+  machine.loadAtm(atm("BASIC", 0x2900, 0xc2b2, Uint8Array.of(1, 2, 3, 4)));
+  assert.equal(machine.bus.ram[0x0c] | (machine.bus.ram[0x0d] << 8), 0x2904);
+  assert.throws(() => machine.loadAtm(normal.subarray(0, -1)), /payload length/);
+});
+
+test("Atom disk mounts are private writable copies and survive portable state", () => {
+  const source = new Uint8Array(10 * 256); const machine = new AcornAtom(); const disk = machine.mountMedia(source, { format: "ssd" });
+  disk.writeSector(0, 0, new Uint8Array(256).fill(0x5a)); assert.equal(source[0], 0); assert.equal(disk.export()[0], 0x5a);
+  machine.cpu.instructionBoundary = true; const state = machine.exportState(); const restored = new AcornAtom().importState(state);
+  assert.equal(restored.bus.fdc.drives[0].disk.export()[0], 0x5a); assert.equal(restored.bus.fdc.drives[0].disk.dirty, true);
+});
+
 test("Atom 8255 scans active-low keys and exposes timing inputs", () => {
   const keyboard = new AtomKeyboardMatrix();
   const ppi = new AtomPpi8255({ keyboard });
@@ -72,3 +96,4 @@ test("bundled Atom core is the canonical ROM set and reaches BASIC", async () =>
 });
 
 function filled(value) { return new Uint8Array(0x1000).fill(value); }
+function atm(name, start, run, payload) { const bytes = new Uint8Array(0x16 + payload.length); bytes.set(new TextEncoder().encode(name).subarray(0, 16)); bytes[0x10] = start; bytes[0x11] = start >> 8; bytes[0x12] = run; bytes[0x13] = run >> 8; bytes[0x14] = payload.length; bytes[0x15] = payload.length >> 8; bytes.set(payload, 0x16); return bytes; }
