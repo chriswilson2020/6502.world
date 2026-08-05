@@ -12,6 +12,7 @@ for (const entry of await readdir("public", { withFileTypes: true })) {
 await cp("src", `${output}/src`, { recursive: true });
 await cp("docs", `${output}/docs`, { recursive: true });
 await cp("ROM", `${output}/ROM`, { recursive: true });
+await cp("corpus", `${output}/corpus`, { recursive: true });
 await mkdir(`${output}/MEDIA`, { recursive: true });
 if (await exists(mediaSource)) await cp(mediaSource, `${output}/MEDIA`, { recursive: true });
 else await writeFile(`${output}/MEDIA/UNAVAILABLE.txt`, "Optional Acorn Z80 media was not present at build time. Use the browser's local SSD/DSD import controls.\n");

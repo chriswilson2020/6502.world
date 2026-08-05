@@ -5,7 +5,7 @@
 </head><body>
   <header class="site-header compact-header"><a class="brand" href="index.html"><img src="6502-mark.svg" alt="" width="36" height="36"><span><strong>6502</strong> WORLD</span></a><nav><a href="cpu-lab.html">Workbench</a><a href="bbc.html">BBC Micro</a><a aria-current="page" href="atom.html">Acorn Atom</a><a href="https://z80.world">Z80 World ↗</a></nav></header>
   <main class="bbc-shell">
-    <section class="bbc-heading"><div><p class="eyebrow">2.4.1 · TURNKEY BASIC</p><h1>Atom console.</h1></div><p>Boot canonical Atom firmware or the documented BBC BASIC conversion hardware, render MC6847 graphics, load local software, and work with private media copies.</p></section>
+    <section class="bbc-heading"><div><p class="eyebrow">2.5 · PRESERVATION CORPUS</p><h1>Atom console.</h1></div><p>Boot canonical Atom firmware or the documented BBC BASIC conversion hardware, run validated archive software, render MC6847 graphics, load local software, and work with private media copies.</p></section>
     <section class="bbc-console-grid">
       <article class="bbc-display-card">
         <div class="tool-heading"><div><span>MC6847</span><h2>32 × 16 display</h2></div><span id="atomRunState" class="status planned">LOADING</span></div>
@@ -31,7 +31,8 @@
           <button id="pauseAtomButton" class="wide-action" type="button">Run / pause</button><button id="enableAtomAudioButton" class="wide-action" type="button">Enable Atom sound</button>
         </article>
         <article class="tool-card"><div class="tool-heading"><div><span>KEYBOARD</span><h2>Character translation</h2></div></div><p id="atomKeyboardHelp" class="bbc-help">Click the display, then type. Characters are translated to the Atom legends: for example modern <code>*</code> uses Atom Shift+<code>:</code>, and <code>"</code> uses Atom Shift+<code>2</code>. F12 performs BREAK.</p></article>
-        <article class="tool-card"><div class="tool-heading"><div><span>2.3 SOFTWARE</span><h2>Programs + writable media</h2></div><span id="atomMediaState" class="status planned">EMPTY</span></div>
+        <article class="tool-card"><div class="tool-heading"><div><span>2.5 SOFTWARE</span><h2>Programs + writable media</h2></div><span id="atomMediaState" class="status planned">EMPTY</span></div>
+          <button id="runAtomBcdTest" class="wide-action" type="button">Run validated 6502 BCD Tests</button>
           <label class="rom-field">ATM program<input id="atomProgramInput" type="file" accept=".atm,application/octet-stream"></label>
           <label class="rom-field">UEF cassette<input id="atomUefInput" type="file" accept=".uef,application/octet-stream"></label><div class="button-row compact-row"><button id="atomTapePlay" class="button secondary" type="button" disabled>Play cassette</button><button id="atomTapeRewind" class="button secondary" type="button" disabled>Rewind</button></div>
           <label class="rom-field">Drive 0 · SSD/DSD<input id="atomDrive0Input" type="file" accept=".ssd,.dsd,application/octet-stream"></label><label class="bbc-help"><input id="atomDrive0Protect" type="checkbox"> Write-protect drive 0 copy</label><button id="atomDrive0Export" class="wide-action" type="button" disabled>Export drive 0</button>

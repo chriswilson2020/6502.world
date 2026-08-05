@@ -10,6 +10,7 @@ test("Pages build succeeds without the optional MEDIA corpus and retains local i
   try {
     const result = await run(process.execPath, ["scripts/build-pages.js"], { ...process.env, BUILD_OUTPUT: output, MEDIA_SOURCE: join(root, "missing-media") }); assert.equal(result.code, 0, result.stderr);
     const html = await readFile(join(output, "bbc.html"), "utf8"); assert.match(html, /id="ssdInput"/); assert.match(html, /id="drive1Input"/);
+    assert.match(await readFile(join(output, "corpus", "atom", "BCDTEST.atm.b64"), "utf8"), /^QkNEVEVTV/);
     assert.deepEqual(await readdir(join(output, "MEDIA")), ["UNAVAILABLE.txt"]); assert.match(await readFile(join(output, "MEDIA", "UNAVAILABLE.txt"), "utf8"), /local SSD\/DSD import/);
   } finally { await rm(root, { recursive: true, force: true }); }
 });

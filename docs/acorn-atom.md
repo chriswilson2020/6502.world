@@ -35,6 +35,8 @@ PRINT "HI"
 
 through the matrix and observe `HI>` on the Atom display.
 
+The preservation corpus additionally runs Bruce Clark's independently sourced `BCDTEST_atom` from the Atom Software Archive. The exact upstream file is pinned to SHA-256 `1afc39aa5e6ebe497d428543a9325ff61e3aa83bf8bbb8244a194ba4fa7fa0b1`; the gate verifies its ATM header, `$2900` load/run address and complete CPU/range/flags selection menu after execution through the real Atom ROM calls and display memory.
+
 ## Software and expansion
 
 The ATM loader validates the 22-byte header and exact payload length, loads normal programs at their declared address and execution vector, and updates Atom BASIC's end pointer for the conventional `$C2B2` BASIC run address. It does not guess that arbitrary `.rom` data is an ATM file.
@@ -51,7 +53,7 @@ The owner-supplied, checksum-pinned conversion pair is BASIC I (SHA-256 `6dccf62
 
 ## Deliberately deferred
 
-- real Atom disk and ATM software corpus validation;
+- real Atom disk software corpus validation and broader ATM title coverage;
 - protected or nonstandard Atom disk layouts;
 - UEF waveform/security chunks and cassette recording;
 
