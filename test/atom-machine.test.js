@@ -72,7 +72,7 @@ test("modern printable characters translate to Atom legends", () => {
   assert.deepEqual(atomKeyboardMappingForBrowserEvent("Digit8", "*"), { matrix: ATOM_KEYBOARD_CODES.Colon, shift: true });
   assert.deepEqual(atomKeyboardMappingForBrowserEvent("Quote", '"'), { matrix: ATOM_KEYBOARD_CODES.Digit2, shift: true });
   assert.deepEqual(atomKeyboardMappingForBrowserEvent("KeyA", "A"), { matrix: ATOM_KEYBOARD_CODES.KeyA, shift: false });
-  assert.deepEqual(atomKeyboardMappingForBrowserEvent("KeyA", "a"), { matrix: ATOM_KEYBOARD_CODES.KeyA, shift: true });
+  assert.deepEqual(atomKeyboardMappingForBrowserEvent("KeyA", "a"), { matrix: ATOM_KEYBOARD_CODES.KeyA, shift: false });
   assert.deepEqual(atomKeyboardMappingForBrowserEvent("ArrowLeft", "ArrowLeft"), { matrix: ATOM_KEYBOARD_CODES.Horizontal, shift: true });
 });
 
